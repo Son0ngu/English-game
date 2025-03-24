@@ -75,6 +75,13 @@ $(document).ready(function () {
         $(this).parent().addClass('active');
     });
 
+    $('#navbarSupportedContent a').on('click', function (e) {
+        e.preventDefault();
+        var targetTab = $(this).attr('href');
+        $('.tab-pane').removeClass('show active');
+        $(targetTab).tab('show');
+    });
+
     // Initialize the active item when the page loads
     var path = window.location.pathname.split("/").pop();
     if (path == '') {
