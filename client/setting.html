@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cài đặt</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fef6e4;
+      padding: 30px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .setting-group {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    select, input[type="checkbox"] {
+      font-size: 1rem;
+      padding: 8px;
+      width: 100%;
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #1982c4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1667a7;
+    }
+  </style>
+</head>
+<body>
+  <h1>⚙️ Cài đặt trò chơi</h1>
+
+  <div class="setting-group">
+    <label for="difficulty">Độ khó:</label>
+    <select id="difficulty">
+      <option value="easy">Dễ</option>
+      <option value="medium">Trung bình</option>
+      <option value="hard">Khó</option>
+    </select>
+  </div>
+
+  <div class="setting-group">
+    <label for="timer">Thời gian mỗi câu:</label>
+    <select id="timer">
+      <option value="10">10 giây</option>
+      <option value="20">20 giây</option>
+      <option value="30">30 giây</option>
+      <option value="0">Không giới hạn</option>
+    </select>
+  </div>
+
+  <div class="setting-group">
+    <label>Âm thanh:</label>
+    <input type="checkbox" id="sound" checked /> Bật âm thanh
+  </div>
+
+  <div class="setting-group">
+    <label for="topic">Chủ đề từ vựng:</label>
+    <select id="topic">
+      <option value="animals">Động vật</option>
+      <option value="food">Thức ăn</option>
+      <option value="school">Trường học</option>
+      <option value="daily">Sinh hoạt hàng ngày</option>
+    </select>
+  </div>
+
+  <button onclick="saveSettings()">Lưu và quay lại</button>
+
+  <script>
+    function saveSettings() {
+      const settings = {
+        difficulty: document.getElementById('difficulty').value,
+        timer: document.getElementById('timer').value,
+        sound: document.getElementById('sound').checked,
+        topic: document.getElementById('topic').value,
+      };
+
+      // Lưu vào localStorage
+      localStorage.setItem('gameSettings', JSON.stringify(settings));
+
+      // Quay lại menu chính (giả định là index.html)
+      window.location.href = 'index.html';
+    }
+
+    function toggleMusic() {
+    const music = document.getElementById("bg-music");
+    if (localStorage.getItem('sound') === 'true') {
+      music.volume = 0.5; // Âm lượng 50%
+      music.play();
+    } else {
+      music.pause();
+    }
+  }
+  </script>
+</body>
+</html>
