@@ -36,6 +36,8 @@ class gateway_service:
                 services_route.user_service(destination, data,method)
             if service_requested == "feedback":
                 services_route.feedback_service(destination, data,method)
+
+
             else:
                 return jsonify({"error": "Requested not found"}), 404
         else:

@@ -28,3 +28,5 @@ class monster_service:
             self.monster.monster_hp = student_hp * 10
             self.monster.monster_atk = student_atk * 10
             self.monster.money_win = 150
+
+        return self.monster
