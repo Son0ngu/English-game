@@ -1,0 +1,5 @@
+flask==2.0.1
+flask-injector==0.14.0
+injector==0.19.0
+sqlalchemy==1.4.25
+pymongo==4.1.1
