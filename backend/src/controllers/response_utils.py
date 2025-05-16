@@ -8,10 +8,8 @@ def mongo_response(data: Any, status_code: int = 200):
     return jsonify(mongo_data), status_code
 
 def error_response(message: str, status_code: int = 400):
-    """Create error response in MongoDB-style"""
-    error_data = {
-        "error": True,
-        "message": message,
-        "status": status_code
-    }
-    return jsonify(error_data), status_code
+    """Create error response"""
+    return jsonify({
+        "success": False,
+        "error": message
+    }), status_code
