@@ -69,6 +69,33 @@
             <div class="tab-pane fade" id="learning">
                 <h3>Learning Content</h3>
                 <p>This is the learning content. You can add your learning materials here.</p>
+
+                <div class="menu-buttons">
+                    <button onclick="goToMap()">Play</button>
+                    <button onclick="window.location.href='setting.html'">Setting</button>
+                    <button onclick="toggleInstruction()">Instruction</button>
+                </div>
+                
+                <div id="setting-panel" class="panel hidden">
+                    <h2>⚙️ Settings</h2>
+                    <p>Chưa có cài đặt nào.</p>
+                    <button onclick="toggleSetting()">Đóng</button>
+                </div>
+                
+                <div id="instruction-panel" class="panel hidden">
+                    <h2>📜 Hướng dẫn</h2>
+                    <p>Bạn sẽ điều khiển dũng sĩ vượt qua 10 màn chơi bằng cách học từ vựng và câu tiếng Anh!</p>
+                    <p>Mỗi màn là một thử thách: nối từ, chọn hình, nghe và điền từ, v.v.</p>
+                    <button onclick="toggleInstruction()">Đóng</button>
+                </div>
+                
+                <audio id="bg-music" autoplay loop>
+                    <source src="static/music/background.mp3" type="audio/mpeg">
+                    Trình duyệt của bạn không hỗ trợ âm thanh.
+                </audio>
+
+
+
             </div>
 
             <!-- Components Tab -->
@@ -137,6 +164,31 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="./static/js/script.js"></script>
+    <script>
+        function goToMap() {
+          window.location.href = 'map.html';
+        }
+        /*
+        function toggleSetting() {
+          document.getElementById("setting-panel").classList.toggle("hidden");
+        }
+        */
+        function toggleInstruction() {
+          document.getElementById("instruction-panel").classList.toggle("hidden");
+        }
+    
+        window.addEventListener("DOMContentLoaded", () => {
+        const music = document.getElementById("bg-music");
+    
+        // Phát sau khi người dùng tương tác
+        document.body.addEventListener("click", () => {
+          if (music.paused) {
+            music.volume = 0.5; // Âm lượng 50%
+            music.play();
+          }
+        }, { once: true });
+      });
+      </script>
 </body>
 
 </html>
