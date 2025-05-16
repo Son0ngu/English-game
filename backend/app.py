@@ -9,6 +9,7 @@ from flask_cors import CORS
 
 from backend.src.config.database import DatabaseConfig
 from backend.api_gateway.gateway_service import gateway_service
+from src.services.classroom_service import ClassroomService
 
 # Load environment variables from .env file
 dotenv.load_dotenv()
@@ -42,12 +43,16 @@ def create_app(config_object=None):
     from backend.src.controllers.admin_controller import admin_bp
     from backend.src.controllers.permission_controller import permission_bp
     from backend.src.controllers.item_controller import item_bp
-    
+    from backend.src.controllers.course_controller import course_bp
+    from backend.src.controllers.classroom_controller import classroom_bp
+
     app.register_blueprint(user_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(permission_bp)
     app.register_blueprint(item_bp)
-    
+    app.register_blueprint(course_bp)
+    app.register_blueprint(classroom_bp)
+
     # Configure dependency injection
     FlaskInjector(app=app, modules=[configure])
     
@@ -75,7 +80,9 @@ def configure(binder: Binder):
     from backend.src.data.user_repository import UserRepository
     from backend.src.data.permission_repository import PermissionRepository
     from backend.src.data.item_repository import ItemRepository
-    
+    from backend.src.data.classroom_repository import ClassroomRepository, StudentClassLinkRepository, DashboardRepository
+    from backend.src.data.course_repository import CourseRepository, LessonRepository, TopicRepository
+
     # Create configuration
     db_config = {
         "sqlite_path": os.path.join(os.getcwd(), "data", "english_game.db"),
@@ -89,7 +96,14 @@ def configure(binder: Binder):
     user_repository = UserRepository(database_config.db_type, connection)
     permission_repository = PermissionRepository(db_config)
     item_repository = ItemRepository(database_config.db_type, connection)
-    
+    classroom_repository = ClassroomRepository(connection)
+    student_class_repository = StudentClassLinkRepository(connection)
+    dashboard_repository = DashboardRepository(connection)
+
+    course_repository = CourseRepository(connection)
+    lesson_repository = LessonRepository(connection)
+    topic_repository = TopicRepository(connection)
+
     # Bind repositories
     binder.bind(DatabaseConfig, to=database_config, scope=singleton)
     binder.bind(UserRepository, to=user_repository, scope=singleton)
@@ -125,9 +139,10 @@ def configure(binder: Binder):
     admin_service = AdminService(user_service)
     item_service = ItemService(item_repository)
     progress_service = ProgressService(user_service, admin_service)
-    
+    classroom_service = ClassroomService(classroom_repository, student_class_repository, dashboard_repository, user_service)
+    course_service = CourseService(course_repository, lesson_repository, topic_repository)
+
     # Initialize optional services
-    course_service = CourseService()
     difficulty_evaluator = DifficultyEvaluator()
     
     # Register services for health check
@@ -136,7 +151,9 @@ def configure(binder: Binder):
     admin_service.register_service('items', item_service)
     admin_service.register_service('progress', progress_service)
     admin_service.register_service('admin', admin_service)
-    
+    admin_service.register_service('classroom', classroom_service)
+    admin_service.register_service('courses', course_service)
+
     # Register optional services
     if course_service_available:
         admin_service.register_service('courses', course_service)
@@ -151,6 +168,7 @@ def configure(binder: Binder):
     binder.bind(DifficultyEvaluator, to=difficulty_evaluator, scope=singleton)
     binder.bind(ItemService, to=item_service, scope=singleton)
     binder.bind(ProgressService, to=progress_service, scope=singleton)
+    binder.bind(ClassroomService, to=classroom_service, scope=singleton)
 
 # Make the file directly runnable
 if __name__ == '__main__':
