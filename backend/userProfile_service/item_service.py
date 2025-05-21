@@ -1,11 +1,11 @@
 import time
 import json
 from typing import Dict, List, Any, Optional, Tuple
-from ..models.item import Item
-from ..data.item_repository import ItemRepository
+from .item import Item
+from .item_repository import ItemRepository
 
 class ItemService:
-    def __init__(self, repository=None):
+    def __init__(self):
         self._startup_time = time.time()
         self._last_error = None
         self._stats = {
@@ -14,7 +14,7 @@ class ItemService:
             "item_upgrades": 0,
             "upgrades_successful": 0
         }
-        self.repository = repository
+        self.repository = ItemRepository()
         
         # Catalog items (used when repository is not available)
         self.available_items = [
@@ -50,16 +50,15 @@ class ItemService:
             }
         ]
         
-        # Initialize database with catalog items if needed
-        if repository:
-            self._initialize_catalog()
+        # Initialize database with catalog items
+        self._initialize_catalog()
     
     def _initialize_catalog(self):
         """Ensure catalog items exist in database"""
         try:
             templates = self.repository.find_templates()
             
-            if not templates:
+            if not templates or len(templates) == 0:
                 for item_data in self.available_items:
                     template = Item(
                         id=item_data["id"],
@@ -80,9 +79,6 @@ class ItemService:
         """Get all available items that can be purchased"""
         self._stats["item_views"] += 1
         
-        if not self.repository:
-            return self.available_items
-            
         try:
             templates = self.repository.find_templates()
             return [item.to_dict() for item in templates]
@@ -92,12 +88,6 @@ class ItemService:
         
     def get_item_by_id(self, item_id: str) -> Optional[Dict[str, Any]]:
         """Get item details by ID"""
-        if not self.repository:
-            for item in self.available_items:
-                if item["id"] == item_id:
-                    return item
-            return None
-            
         try:
             item = self.repository.find_by_id(item_id)
             return item.to_dict() if item else None
@@ -107,9 +97,6 @@ class ItemService:
     
     def get_user_items(self, user_id: str) -> List[Dict[str, Any]]:
         """Get all items owned by a user"""
-        if not self.repository:
-            return []
-            
         try:
             items = self.repository.find_by_owner(user_id)
             return [item.to_dict() for item in items]
@@ -120,9 +107,6 @@ class ItemService:
     def purchase_item(self, user_id: str, item_id: str) -> Dict[str, Any]:
         """Purchase an item from catalog for a user"""
         self._stats["item_purchases"] += 1
-        
-        if not self.repository:
-            return {"success": False, "message": "Repository not available"}
         
         try:
             # Get template from catalog
@@ -157,13 +141,8 @@ class ItemService:
             self._last_error = e
             return {"success": False, "message": f"Error purchasing item: {str(e)}"}
     
-    # UpgradeHandler functionality integrated directly
-    
     def can_upgrade(self, item_id: str) -> Tuple[bool, str]:
         """Check if an item can be upgraded"""
-        if not self.repository:
-            return False, "Repository not available"
-            
         try:
             item = self.repository.find_by_id(item_id)
             
@@ -183,9 +162,6 @@ class ItemService:
     
     def get_upgrade_details(self, item_id: str) -> Dict[str, Any]:
         """Get item upgrade details including cost and effect changes"""
-        if not self.repository:
-            return {"error": "Repository not available"}
-            
         try:
             item = self.repository.find_by_id(item_id)
             
@@ -218,9 +194,6 @@ class ItemService:
         """Upgrade an item owned by the user"""
         self._stats["item_upgrades"] += 1
         
-        if not self.repository:
-            return {"success": False, "message": "Repository not available"}
-            
         try:
             # Check if item can be upgraded
             can_upgrade, message = self.can_upgrade(item_id)
@@ -286,7 +259,7 @@ class ItemService:
             "status": "healthy" if not self._last_error else "degraded",
             "uptime": time.time() - self._startup_time,
             "stats": self._stats,
-            "items_count": len(self.available_items) if not self.repository else self._count_items(),
+            "items_count": self._count_items(),
             "last_error": str(self._last_error) if self._last_error else None,
             "details": "Item service running normally"
         }
@@ -294,9 +267,7 @@ class ItemService:
     def _count_items(self) -> int:
         """Count items in database"""
         try:
-            if self.repository:
-                templates = self.repository.find_templates()
-                return len(templates)
-            return len(self.available_items)
+            templates = self.repository.find_templates()
+            return len(templates)
         except Exception:
             return 0
