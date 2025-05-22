@@ -93,3 +93,28 @@ class auth_service_database_interface:
             print("User not found (db.login)")
             return False
 
+    def get_id_from_username(self, username):
+        if self.check_if_user_exist(username):
+            connection = sqlite3.connect('database.db')
+            cursor = connection.cursor()
+            cursor.execute("SELECT user_id FROM auth_service WHERE username = ?", (username,))
+            result = cursor.fetchone()
+            cursor.close()
+            connection.close()
+            return result[0]
+        else:
+            print("User not found (db.get_id_from_username)")
+            return None
+
+    def get_role_from_id(self, user_id):
+        connection = sqlite3.connect('database.db')
+        cursor = connection.cursor()
+        cursor.execute("SELECT role FROM auth_service WHERE user_id = ?", (user_id,))
+        result = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        if result:
+            return result[0]
+        else:
+            print("User not found (db.get_role_from_id)")
+            return None
