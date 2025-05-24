@@ -1,8 +1,7 @@
 import time
-import json
 from typing import Dict, List, Any, Optional, Tuple
-from .item import Item
-from .item_repository import ItemRepository
+from userProfile_service.item.item import Item
+from userProfile_service.item.item_repository import ItemRepository
 
 class ItemService:
     def __init__(self):

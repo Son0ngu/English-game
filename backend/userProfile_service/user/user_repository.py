@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict, Any
-from .user import UserProfile, StudentProfile, TeacherProfile
-from .database_interface import UserProfileDatabaseInterface
+from userProfile_service.user.user import UserProfile, StudentProfile, TeacherProfile
+from userProfile_service.database_interface import UserProfileDatabaseInterface
 
 class UserRepository:
     def __init__(self):

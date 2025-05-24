@@ -3,7 +3,7 @@ from auth_service.auth_service_controller import auth_service_controller
 from game_service.gameroom.game_room_controller import game_room_controller
 class services_route:
     def __init__(self):
-        self.game_room_controller = game_room_controller()
+        self.game_room_controller = None #game_room_controller()
         self.auth_service_controller = auth_service_controller()
         pass
     @jwt_required()
@@ -44,6 +44,7 @@ class services_route:
 
         if destination == "add_permission" and method == 'POST':
             jwt_role = get_jwt().get("role")
+            user_id = get_jwt_identity()
             role = data.get("role")
             path = data.get("path")
             service = data.get("service")

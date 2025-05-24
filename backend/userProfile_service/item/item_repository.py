@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict, Any
-from .item import Item
-from .database_interface import ItemDatabaseInterface
+from userProfile_service.item.item import Item
+from userProfile_service.database_interface import ItemDatabaseInterface
 
 class ItemRepository:
     """Repository for item data storage"""
