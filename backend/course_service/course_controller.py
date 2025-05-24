@@ -1,5 +1,6 @@
 from flask import jsonify, request
 from course_service import CourseService
+from course_service.course_model import TOPIC_TYPES
 
 class CourseController:
     def __init__(self, service: CourseService):
@@ -20,7 +21,11 @@ class CourseController:
     def create_topic(self, lesson_id, data):
         if not data or 'title' not in data:
             return jsonify({"error": "Missing topic title"}), 400
+
         topic_type = data.get('topic_type', 'normal')
+        if topic_type not in TOPIC_TYPES:
+            return jsonify({"error": f"Invalid topic_type: {topic_type}"}), 400
+
         content = data.get('content', '')
         try:
             topic = self.service.add_topic(lesson_id, data['title'], content, topic_type)
