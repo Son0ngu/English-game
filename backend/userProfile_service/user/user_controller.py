@@ -33,6 +33,24 @@ class UserController:
         except Exception as e:
             return jsonify({"error": f"Get user error: {str(e)}"}), 500
 
+    def get_user_stats_only(self, user_id):
+        """Lấy chỉ ATK và HP của user"""
+        try:
+            user_data = self.user_service.get_user(user_id)
+            
+            if user_data:
+                # Chỉ trả về ATK và HP
+                stats = {
+                    "user_id": user_id,
+                    "atk": user_data.get('atk', 0),
+                    "hp": user_data.get('hp', 0)
+                }
+                return jsonify(stats), 200
+            else:
+                return jsonify({"error": "User not found"}), 404
+        except Exception as e:
+            return jsonify({"error": f"Get user stats error: {str(e)}"}), 500
+
     def update_user(self, user_id, data):
         """Cập nhật thông tin người dùng"""
         try:
@@ -49,7 +67,7 @@ class UserController:
             return jsonify({"error": f"Update user error: {str(e)}"}), 500
 
     def update_progress(self, user_id, data):
-        """Cập nhật tiến độ học tập của học sinh"""
+        """Cập nhật tiến độ học tập với auto weapon upgrade"""
         try:
             lesson_id = data.get('lesson_id', 'unknown')
             points = data.get('points', 0)
@@ -57,7 +75,8 @@ class UserController:
             if points <= 0:
                 return jsonify({"error": "Points must be positive"}), 400
             
-            result = self.user_service.update_progress(user_id, lesson_id, points)
+            # Update progress với weapon upgrade
+            result = self.user_service.update_progress_with_weapon_upgrade(user_id, lesson_id, points)
             
             if result.get('success'):
                 return jsonify(result), 200
@@ -77,25 +96,6 @@ class UserController:
                 return jsonify({"error": result.get('error', 'Failed to get progress')}), 404
         except Exception as e:
             return jsonify({"error": f"Get progress error: {str(e)}"}), 500
-
-    def update_student_money(self, user_id, data):
-        """Cập nhật tiền của học sinh"""
-        try:
-            amount = data.get('amount', 0)
-            operation = data.get('operation', 'add')
-            
-            if amount < 0:
-                return jsonify({"error": "Amount must be non-negative"}), 400
-            
-            result = self.user_service.update_student_money(user_id, amount, operation)
-            
-            if result.get('success'):
-                return jsonify(result), 200
-            else:
-                status_code = 402 if "Insufficient funds" in result.get('error', '') else 400
-                return jsonify(result), status_code
-        except Exception as e:
-            return jsonify({"error": f"Money update error: {str(e)}"}), 500
 
     def update_student_stats(self, user_id, data):
         """Cập nhật stats game của học sinh (HP, ATK)"""
@@ -154,55 +154,3 @@ class UserController:
                 return jsonify({"error": result.get('error', 'Failed to get stats')}), 500
         except Exception as e:
             return jsonify({"error": f"Get stats error: {str(e)}"}), 500
-
-    def handle_user_service(self, destination, data, method):
-        """Điều hướng user service - bỏ user creation"""
-        if not self.user_controller:
-            return jsonify({"error": "User service not available"}), 503
-            
-        try:
-            if destination == 'health' and method == 'GET':
-                return self.user_controller.check_health()
-            
-            # User read/update/delete operations (NO CREATE)
-            elif method == 'GET' and destination.isdigit():
-                return self.user_controller.get_user(int(destination))
-            elif method == 'PUT' and destination.isdigit():
-                return self.user_controller.update_user(int(destination), data)
-            elif method == 'DELETE' and destination.isdigit():
-                return self.user_controller.delete_user(int(destination))
-            
-            # Progress management
-            elif destination.endswith('/progress') and method == 'POST':
-                user_id = int(destination.split('/')[0])
-                return self.user_controller.update_progress(user_id, data)
-            elif destination.endswith('/progress') and method == 'GET':
-                user_id = int(destination.split('/')[0])
-                return self.user_controller.get_student_progress(user_id)
-            
-            # Money management
-            elif destination.endswith('/money') and method == 'POST':
-                user_id = int(destination.split('/')[0])
-                return self.user_controller.update_student_money(user_id, data)
-            
-            # Stats management
-            elif destination.endswith('/stats') and method == 'POST':
-                user_id = int(destination.split('/')[0])
-                return self.user_controller.update_student_stats(user_id, data)
-            
-            # List users
-            elif destination == 'students' and method == 'GET':
-                limit = data.get('limit', 100) if data else 100
-                offset = data.get('offset', 0) if data else 0
-                return self.user_controller.get_all_students(limit, offset)
-            elif destination == 'teachers' and method == 'GET':
-                limit = data.get('limit', 100) if data else 100
-                offset = data.get('offset', 0) if data else 0
-                return self.user_controller.get_all_teachers(limit, offset)
-            elif destination == 'stats' and method == 'GET':
-                return self.user_controller.get_user_stats()
-            
-            else:
-                return jsonify({"error": f"User endpoint '{destination}' not found"}), 404
-        except Exception as e:
-            return jsonify({"error": f"User service error: {str(e)}"}), 500

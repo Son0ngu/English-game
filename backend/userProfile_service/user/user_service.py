@@ -29,9 +29,9 @@ class UserProfileService:
             if not user:
                 return {"success": False, "error": "User not found"}
             
-            # Update basic user properties
+            # Update basic user properties (exclude money)
             for key, value in updates.items():
-                if hasattr(user, key) and key not in ['id', 'role', 'created_at']:
+                if hasattr(user, key) and key not in ['id', 'role', 'created_at', 'money']:
                     setattr(user, key, value)
             
             # Handle special fields based on user type
@@ -51,35 +51,55 @@ class UserProfileService:
             self._last_error = e
             return {"success": False, "error": str(e)}
     
-    def update_progress(self, user_id: int, lesson_id: str, points: int) -> dict:
-        """Update user progress for a specific lesson"""
+    def update_progress_with_weapon_upgrade(self, user_id: int, lesson_id: str, points: int) -> dict:
+        """Update user progress với automatic weapon upgrade"""
         self._stats["progress_updates"] += 1
         try:
             user = self.user_repository.find_by_id(user_id)
             if not user or not isinstance(user, StudentProfile):
                 return {"success": False, "error": "Student not found"}
             
-            # Update points and potentially level
+            # Update points và level
             old_points = user.points
+            old_level = user.language_level
+            old_atk = user.atk
+            
             user.points += points
             
             # Level up logic (every 1000 points = 1 level)
-            old_level = user.language_level
             new_level = max(1, user.points // 1000 + 1)
             user.language_level = new_level
+            
+            # Auto weapon upgrade khi level up
+            weapon_upgraded = False
+            if new_level > old_level:
+                # Mỗi level tăng ATK lên 2 points
+                new_atk = 10 + (new_level - 1) * 2  # Base ATK = 10
+                user.atk = new_atk
+                weapon_upgraded = True
             
             # Save updated user
             self.user_repository.save(user)
             
-            return {
+            result = {
                 "success": True, 
                 "old_points": old_points,
                 "new_points": user.points,
                 "points_gained": points,
                 "old_level": old_level,
                 "new_level": new_level,
-                "level_up": new_level > old_level
+                "level_up": new_level > old_level,
+                "weapon_upgraded": weapon_upgraded
             }
+            
+            if weapon_upgraded:
+                result["weapon_upgrade"] = {
+                    "old_atk": old_atk,
+                    "new_atk": user.atk,
+                    "atk_gained": user.atk - old_atk
+                }
+            
+            return result
             
         except Exception as e:
             self._last_error = e
@@ -100,43 +120,10 @@ class UserProfileService:
             self._last_error = e
             return {"success": False, "error": str(e)}
     
-    def update_student_money(self, user_id: int, amount: int, operation: str = "add") -> dict:
-        """Update student's money (for item purchases/rewards)"""
-        try:
-            user = self.user_repository.find_by_id(user_id)
-            if not user or not isinstance(user, StudentProfile):
-                return {"success": False, "error": "Student not found"}
-            
-            old_money = user.money
-            
-            if operation == "add":
-                user.money += amount
-            elif operation == "subtract":
-                if user.money < amount:
-                    return {"success": False, "error": "Insufficient funds", "current_money": user.money, "required": amount}
-                user.money -= amount
-            elif operation == "set":
-                user.money = amount
-            else:
-                return {"success": False, "error": "Invalid operation. Use 'add', 'subtract', or 'set'"}
-            
-            # Save updated user
-            self.user_repository.save(user)
-            
-            return {
-                "success": True,
-                "old_money": old_money,
-                "new_money": user.money,
-                "amount_changed": amount,
-                "operation": operation
-            }
-            
-        except Exception as e:
-            self._last_error = e
-            return {"success": False, "error": str(e)}
+    # BỎ: update_student_money method hoàn toàn
     
     def update_student_stats(self, user_id: int, hp: int = None, atk: int = None) -> dict:
-        """Update student's game stats (HP, ATK)"""
+        """Update student's game stats (HP, ATK) and return detailed info"""
         try:
             user = self.user_repository.find_by_id(user_id)
             if not user or not isinstance(user, StudentProfile):
@@ -152,15 +139,28 @@ class UserProfileService:
                 old_atk = user.atk
                 user.atk = max(1, atk)  # ATK tối thiểu là 1
                 updates['atk'] = {"old": old_atk, "new": user.atk}
-            
+        
             if not updates:
                 return {"success": False, "error": "No stats to update"}
             
             # Save updated user
             self.user_repository.save(user)
             
-            return {"success": True, "updates": updates}
-            
+            # Return detailed stats including items and level
+            return {
+                "success": True, 
+                "updates": updates,
+                "current_stats": {
+                    "hp": user.hp,
+                    "atk": user.atk,
+                    "level": user.language_level,
+                    "points": user.points,
+                    "items": user.get_items() if hasattr(user, 'get_items') else [],
+                    "equipped_items": getattr(user, 'equipped_items', []),
+                    "username": user.username
+                }
+            }
+        
         except Exception as e:
             self._last_error = e
             return {"success": False, "error": str(e)}
@@ -224,7 +224,7 @@ class UserProfileService:
                 "last_error": str(self._last_error) if self._last_error else None,
                 "stats": self._stats.copy(),
                 "repository_status": "connected" if test_result else "disconnected",
-                "focus": "user_management_read_only"  # No creation, no authentication
+                "focus": "progress_based_upgrades"  # No money system
             }
         except Exception as e:
             self._last_error = e
