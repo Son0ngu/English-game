@@ -1,272 +1,264 @@
-import time
 from typing import Dict, List, Any, Optional, Tuple
 from userProfile_service.item.item import Item
 from userProfile_service.item.item_repository import ItemRepository
+import time
+import math
 
 class ItemService:
+    """Item service focused on item upgrades only"""
+    
     def __init__(self):
+        """Khởi tạo ItemService"""
         self._startup_time = time.time()
         self._last_error = None
-        self._stats = {
-            "item_purchases": 0, 
-            "item_views": 0, 
-            "item_upgrades": 0,
-            "upgrades_successful": 0
-        }
-        self.repository = ItemRepository()
+        self.item_repository = ItemRepository()
         
-        # Catalog items (used when repository is not available)
-        self.available_items = [
-            {
-                "id": "dict1", 
-                "name": "Basic Dictionary", 
-                "price": 100, 
-                "effect": 5, 
-                "type": "book",
-                "level": 1,
-                "max_level": 3,
-                "can_upgrade": True
-            },
-            {
-                "id": "dict2", 
-                "name": "Advanced Dictionary", 
-                "price": 300, 
-                "effect": 15, 
-                "type": "book",
-                "level": 1,
-                "max_level": 5,
-                "can_upgrade": True
-            },
-            {
-                "id": "pen1", 
-                "name": "Magic Pen", 
-                "price": 50, 
-                "effect": 2, 
-                "type": "tool",
-                "level": 1,
-                "max_level": 2,
-                "can_upgrade": True
-            }
-        ]
-        
-        # Initialize database with catalog items
-        self._initialize_catalog()
-    
-    def _initialize_catalog(self):
-        """Ensure catalog items exist in database"""
+        # Upgrade configuration
+        self._upgrade_cost_multiplier = 1.5  # Cost increases 50% per level
+        self._effect_improvement_rate = 1.3  # Effect increases 30% per level
+
+    def check_internal(self) -> dict:
+        """Kiểm tra trạng thái nội bộ của service"""
         try:
-            templates = self.repository.find_templates()
+            repository_status = self.item_repository.test_connection()
             
-            if not templates or len(templates) == 0:
-                for item_data in self.available_items:
-                    template = Item(
-                        id=item_data["id"],
-                        name=item_data["name"],
-                        price=item_data["price"],
-                        effect=item_data["effect"],
-                        type=item_data["type"],
-                        level=item_data.get("level", 1),
-                        max_level=item_data.get("max_level", 1),
-                        is_template=True,
-                        description=item_data.get("description", f"A {item_data['name']}")
-                    )
-                    self.repository.save_item(template)
+            return {
+                "status": "healthy" if repository_status else "degraded",
+                "uptime_seconds": int(time.time() - self._startup_time),
+                "last_error": str(self._last_error) if self._last_error else None,
+                "repository_status": "connected" if repository_status else "disconnected",
+                "focus": "item_upgrades_only"
+            }
         except Exception as e:
             self._last_error = e
-        
-    def get_item_catalog(self) -> List[Dict[str, Any]]:
-        """Get all available items that can be purchased"""
-        self._stats["item_views"] += 1
-        
-        try:
-            templates = self.repository.find_templates()
-            return [item.to_dict() for item in templates]
-        except Exception as e:
-            self._last_error = e
-            return self.available_items
-        
-    def get_item_by_id(self, item_id: str) -> Optional[Dict[str, Any]]:
-        """Get item details by ID"""
-        try:
-            item = self.repository.find_by_id(item_id)
-            return item.to_dict() if item else None
-        except Exception as e:
-            self._last_error = e
-            return None
-    
+            return {
+                "status": "error",
+                "error": str(e),
+                "uptime_seconds": int(time.time() - self._startup_time)
+            }
+
     def get_user_items(self, user_id: str) -> List[Dict[str, Any]]:
-        """Get all items owned by a user"""
+        """
+        Lấy danh sách items của user
+        
+        Args:
+            user_id: ID của user
+            
+        Returns:
+            Danh sách items với thông tin upgrade
+        """
         try:
-            items = self.repository.find_by_owner(user_id)
-            return [item.to_dict() for item in items]
+            items = self.item_repository.find_by_owner(user_id)
+            result = []
+            
+            for item in items:
+                item_dict = item.to_dict()
+                
+                # Thêm thông tin upgrade
+                if item.level < item.max_level:
+                    upgrade_info = self.calculate_upgrade_cost(item)
+                    item_dict['upgrade_info'] = upgrade_info
+                else:
+                    item_dict['upgrade_info'] = {
+                        "can_upgrade": False,
+                        "reason": "max_level_reached"
+                    }
+                
+                result.append(item_dict)
+            
+            return result
         except Exception as e:
             self._last_error = e
             return []
-    
-    def purchase_item(self, user_id: str, item_id: str) -> Dict[str, Any]:
-        """Purchase an item from catalog for a user"""
-        self._stats["item_purchases"] += 1
+
+    def calculate_upgrade_cost(self, item: Item) -> Dict[str, Any]:
+        """
+        Tính toán chi phí nâng cấp item
         
+        Args:
+            item: Item cần tính chi phí
+            
+        Returns:
+            Dictionary chứa thông tin chi phí và hiệu ứng sau nâng cấp
+        """
+        if item.level >= item.max_level:
+            return {
+                "can_upgrade": False,
+                "reason": "max_level_reached",
+                "current_level": item.level,
+                "max_level": item.max_level
+            }
+        
+        # Tính chi phí nâng cấp
+        base_cost = item.price if item.price > 0 else 100
+        upgrade_cost = int(base_cost * (self._upgrade_cost_multiplier ** item.level))
+        
+        # Tính effect sau nâng cấp
+        current_effect = item.effect if item.effect > 0 else 1
+        new_effect = int(current_effect * self._effect_improvement_rate)
+        
+        return {
+            "can_upgrade": True,
+            "current_level": item.level,
+            "next_level": item.level + 1,
+            "max_level": item.max_level,
+            "upgrade_cost": upgrade_cost,
+            "current_effect": item.effect,
+            "new_effect": new_effect,
+            "effect_increase": new_effect - item.effect,
+            "cost_currency": "coins"
+        }
+
+    def upgrade_item(self, user_id: str, item_id: str, available_money: int) -> Dict[str, Any]:
+        """
+        Nâng cấp item của user
+        
+        Args:
+            user_id: ID của user
+            item_id: ID của item cần nâng cấp
+            available_money: Số tiền hiện có của user
+            
+        Returns:
+            Kết quả nâng cấp
+        """
         try:
-            # Get template from catalog
-            template = self.repository.find_by_id(item_id)
+            # Tìm item
+            item = self.item_repository.find_by_id(item_id)
+            if not item:
+                return {
+                    "success": False,
+                    "error": "Item not found",
+                    "error_code": "ITEM_NOT_FOUND"
+                }
             
-            if not template or not template.is_template:
-                return {"success": False, "message": "Item not found in catalog"}
+            # Kiểm tra ownership
+            if item.owner_id != user_id:
+                return {
+                    "success": False,
+                    "error": "You don't own this item",
+                    "error_code": "NOT_OWNER"
+                }
             
-            # Create new instance for user
-            user_item = Item(
-                name=template.name,
-                description=template.description,
-                price=template.price, 
-                effect=template.effect,
-                type=template.type,
-                level=template.level,
-                max_level=template.max_level,
-                owner_id=user_id,
-                is_template=False
+            # Kiểm tra có thể nâng cấp không
+            if item.level >= item.max_level:
+                return {
+                    "success": False,
+                    "error": "Item is already at maximum level",
+                    "error_code": "MAX_LEVEL_REACHED",
+                    "current_level": item.level,
+                    "max_level": item.max_level
+                }
+            
+            # Tính chi phí
+            upgrade_info = self.calculate_upgrade_cost(item)
+            if not upgrade_info["can_upgrade"]:
+                return {
+                    "success": False,
+                    "error": "Item cannot be upgraded",
+                    "error_code": "CANNOT_UPGRADE"
+                }
+            
+            upgrade_cost = upgrade_info["upgrade_cost"]
+            new_effect = upgrade_info["new_effect"]
+            
+            # Kiểm tra tiền
+            if available_money < upgrade_cost:
+                return {
+                    "success": False,
+                    "error": f"Not enough money. Need {upgrade_cost}, have {available_money}",
+                    "error_code": "INSUFFICIENT_FUNDS",
+                    "required": upgrade_cost,
+                    "available": available_money,
+                    "deficit": upgrade_cost - available_money
+                }
+            
+            # Thực hiện nâng cấp
+            old_level = item.level
+            old_effect = item.effect
+            
+            success = self.item_repository.update_item_level(
+                item_id, 
+                item.level + 1, 
+                new_effect
             )
             
-            # Save to database
-            self.repository.save_item(user_item)
-            
+            if success:
+                return {
+                    "success": True,
+                    "message": f"Successfully upgraded {item.name}",
+                    "item_id": item_id,
+                    "item_name": item.name,
+                    "upgrade_cost": upgrade_cost,
+                    "old_level": old_level,
+                    "new_level": old_level + 1,
+                    "old_effect": old_effect,
+                    "new_effect": new_effect,
+                    "effect_increase": new_effect - old_effect,
+                    "remaining_money": available_money - upgrade_cost
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Failed to upgrade item (database error)",
+                    "error_code": "DATABASE_ERROR"
+                }
+                
+        except Exception as e:
+            self._last_error = e
             return {
-                "success": True,
-                "message": f"Successfully purchased {template.name}",
-                "item": user_item.to_dict(),
-                "cost": template.price
+                "success": False,
+                "error": f"Internal error: {str(e)}",
+                "error_code": "INTERNAL_ERROR"
             }
-        except Exception as e:
-            self._last_error = e
-            return {"success": False, "message": f"Error purchasing item: {str(e)}"}
-    
-    def can_upgrade(self, item_id: str) -> Tuple[bool, str]:
-        """Check if an item can be upgraded"""
-        try:
-            item = self.repository.find_by_id(item_id)
-            
-            if not item:
-                return False, "Item not found"
-                
-            if item.level >= item.max_level:
-                return False, "Item already at maximum level"
-                
-            if item.is_template:
-                return False, "Templates cannot be upgraded"
-                
-            return True, "Item can be upgraded"
-        except Exception as e:
-            self._last_error = e
-            return False, f"Error checking upgrade eligibility: {str(e)}"
-    
-    def get_upgrade_details(self, item_id: str) -> Dict[str, Any]:
-        """Get item upgrade details including cost and effect changes"""
-        try:
-            item = self.repository.find_by_id(item_id)
-            
-            if not item:
-                return {"error": "Item not found"}
-                
-            if item.level >= item.max_level:
-                return {"error": "Item already at maximum level"}
-            
-            # Calculate upgrade costs and effects
-            upgrade_cost = self._calculate_upgrade_cost(item)
-            new_effect = self._calculate_new_effect(item)
-            
-            return {
-                "item_id": item.id,
-                "item_name": item.name,
-                "current_level": item.level,
-                "next_level": item.level + 1,
-                "max_level": item.max_level,
-                "upgrade_cost": upgrade_cost,
-                "current_effect": item.effect,
-                "next_effect": new_effect,
-                "effect_increase": new_effect - item.effect
-            }
-        except Exception as e:
-            self._last_error = e
-            return {"error": f"Error getting upgrade details: {str(e)}"}
-    
-    def upgrade_item(self, item_id: str, user_id: str, available_money: int) -> Dict[str, Any]:
-        """Upgrade an item owned by the user"""
-        self._stats["item_upgrades"] += 1
+
+    def get_upgradeable_items(self, user_id: str) -> List[Dict[str, Any]]:
+        """
+        Lấy danh sách items có thể nâng cấp của user
         
+        Args:
+            user_id: ID của user
+            
+        Returns:
+            Danh sách items có thể nâng cấp với thông tin chi phí
+        """
         try:
-            # Check if item can be upgraded
-            can_upgrade, message = self.can_upgrade(item_id)
+            upgradeable_items = self.item_repository.find_upgradeable_items(user_id)
+            result = []
             
-            if not can_upgrade:
-                return {"success": False, "message": message}
-                
-            # Get item
-            item = self.repository.find_by_id(item_id)
+            for item in upgradeable_items:
+                item_dict = item.to_dict()
+                upgrade_info = self.calculate_upgrade_cost(item)
+                item_dict['upgrade_info'] = upgrade_info
+                result.append(item_dict)
             
-            # Verify ownership
-            if item.owner_id != user_id:
-                return {"success": False, "message": "You don't own this item"}
-            
-            # Calculate upgrade cost
-            upgrade_cost = self._calculate_upgrade_cost(item)
-            
-            # Check if user has enough money
-            if available_money < upgrade_cost:
-                return {"success": False, "message": "Insufficient funds for upgrade"}
-            
-            # Calculate new effect
-            new_effect = self._calculate_new_effect(item)
-            
-            # Upgrade the item
-            old_level = item.level
-            item.level += 1
-            item.effect = new_effect
-            
-            # Save updated item
-            self.repository.save_item(item)
-            self._stats["upgrades_successful"] += 1
-            
-            return {
-                "success": True,
-                "message": f"Item upgraded from level {old_level} to {item.level}",
-                "cost": upgrade_cost,
-                "item": item.to_dict()
-            }
+            return result
         except Exception as e:
             self._last_error = e
-            return {"success": False, "message": f"Error upgrading item: {str(e)}"}
-    
-    def _calculate_upgrade_cost(self, item) -> int:
-        """Calculate cost to upgrade an item to next level"""
-        if item.level >= item.max_level:
-            return 0
-            
-        # Base formula: price * (1.5^current_level)
-        return int(item.price * (1.5 ** item.level))
-    
-    def _calculate_new_effect(self, item) -> int:
-        """Calculate new effect after upgrade"""
-        if item.level >= item.max_level:
-            return item.effect
-            
-        # Base formula: effect * 1.3
-        return int(item.effect * 1.3)
-    
-    def check_internal(self) -> dict:
-        """Internal health check for this service"""
-        return {
-            "status": "healthy" if not self._last_error else "degraded",
-            "uptime": time.time() - self._startup_time,
-            "stats": self._stats,
-            "items_count": self._count_items(),
-            "last_error": str(self._last_error) if self._last_error else None,
-            "details": "Item service running normally"
-        }
+            return []
+
+    def get_item_details(self, item_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Lấy chi tiết của một item
         
-    def _count_items(self) -> int:
-        """Count items in database"""
+        Args:
+            item_id: ID của item
+            
+        Returns:
+            Chi tiết item hoặc None
+        """
         try:
-            templates = self.repository.find_templates()
-            return len(templates)
-        except Exception:
-            return 0
+            item = self.item_repository.find_by_id(item_id)
+            if not item:
+                return None
+                
+            item_dict = item.to_dict()
+            
+            # Thêm thông tin upgrade nếu có thể
+            if item.level < item.max_level:
+                upgrade_info = self.calculate_upgrade_cost(item)
+                item_dict['upgrade_info'] = upgrade_info
+            
+            return item_dict
+        except Exception as e:
+            self._last_error = e
+            return None
