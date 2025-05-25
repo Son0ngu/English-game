@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Battle Game</title>
+    <link rel="stylesheet" href="gamePage2.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="battle-scene">
+            <!-- Health bars -->
+            <div class="health-bars">
+                <div class="player-stats">
+                    <div class="health-bar">
+                        <div class="health-bar-fill player-health" style="width: 76%"></div>
+                        <span class="health-text">76</span>
+                    </div>
+                    <div class="player-level"></div>
+                </div>
+                <div class="monster-stats">
+                    <div class="health-bar">
+                        <div class="health-bar-fill monster-health" style="width: 45%"></div>
+                        <span class="health-text">45</span>
+                    </div>
+                    <div class="monster-level"></div>
+                </div>
+            </div>
+            
+            <!-- Battle characters -->
+            <div class="battle-characters">
+                <div class="player">
+                    <img src="../../static/images/player.png" alt="Player character">
+                </div>
+                <div class="damage-number" id="damageNumber">32</div>
+                <div class="attack-effect" id="attackEffect"></div>
+                <div class="monster">
+                    <img src="../../static/images/skeleton.png" alt="Monster">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Question area -->
+    <div class="question-area">
+        <div class="question">
+            <div class="question-text">Which word is a synonym for "happy"?</div>
+        </div>
+        <div class="answers">
+            <button class="answer-btn" data-correct="false">sad</button>
+            <button class="answer-btn" data-correct="true">joyful</button>
+            <button class="answer-btn" data-correct="false">angry</button>
+            <button class="answer-btn" data-correct="false">tired</button>
+        </div>
+    </div>
+    </div>
+
+    <script src="gamePage2.js"></script>
+</body>
+</html>
