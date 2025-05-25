@@ -1,5 +1,5 @@
 from flask import jsonify
-from .user_service import UserProfileService
+from userProfile_service.user.user_service import UserProfileService
 
 class UserController:
     def __init__(self, user_service: UserProfileService):

@@ -1,5 +1,5 @@
 from classroom_service.classroom_model import Classroom, DashboardEntry
-from userProfile_service.user_service import UserProfileService
+from userProfile_service.user.user_service import UserProfileService
 from game_service.gameroom.gameroom_service import game_service
 import uuid
 
