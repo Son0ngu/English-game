@@ -63,5 +63,14 @@ class ClassroomService:
                 self.update_dashboard(entry)
         return [e.to_dict() for e in self.get_dashboard_for_class(class_id)]
 
+    def get_student_classes(self, student_id: str):
+        result = []
+        for class_id, student_ids in self.student_class_links.items():
+            if student_id in student_ids:
+                classroom = self.classrooms.get(class_id)
+                if classroom:
+                    result.append(classroom.to_dict())
+        return result
+
     def check_internal(self):
         return {"status": "healthy", "details": "Classroom service running"}
