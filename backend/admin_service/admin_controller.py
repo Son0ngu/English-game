@@ -1,87 +1,76 @@
 from flask import jsonify
 from admin_service.admin_service import AdminService
+import time
 
 class AdminController:
-    def __init__(self, admin_service: AdminService):
+    def __init__(self, admin_service):  # Loại bỏ type hint
         """
-        Khởi tạo AdminController với AdminService.
+        Khởi tạo AdminController với AdminService
         
         Parameters:
-            admin_service: Dịch vụ quản trị dùng để kiểm tra sức khỏe và quản lý người dùng
+            admin_service: Dịch vụ quản lý admin
         """
         self.admin_service = admin_service
 
     def check_health(self, service_name=None):
-        """
-        Kiểm tra sức khỏe của các dịch vụ đã đăng ký.
-        
-        Parameters:
-            service_name: Tên dịch vụ cụ thể cần kiểm tra (nếu None, kiểm tra tất cả)
-            
-        Returns:
-            Kết quả kiểm tra sức khỏe dạng JSON response với status code
-        """
-        health_data = self.admin_service.check_service_availability(service_name)
-        
-        # Xác định trạng thái tổng thể dựa trên trạng thái của từng dịch vụ
-        all_healthy = all(data.get('status') == 'healthy' 
-                         for data in health_data.values())
-        
-        return jsonify({
-            "overall_status": "healthy" if all_healthy else "degraded",
-            "services": health_data,
-            "timestamp": int(self.admin_service._startup_time)
-        }), 200
+        """Kiểm tra sức khỏe hệ thống hoặc service cụ thể"""
+        try:
+            if service_name:
+                # Kiểm tra service cụ thể
+                services = self.admin_service.services
+                if service_name in services:
+                    service = services[service_name]
+                    if hasattr(service, 'check_internal'):
+                        health = service.check_internal()
+                    else:
+                        health = {"status": "unknown", "details": "No health check available"}
+                    return jsonify({"service": service_name, "health": health}), 200
+                else:
+                    return jsonify({"error": f"Service '{service_name}' not found"}), 404
+            else:
+                # Kiểm tra toàn bộ hệ thống
+                health = self.admin_service.get_system_health()
+                status_code = 200 if health['overall_status'] == 'healthy' else 503
+                return jsonify(health), status_code
+                
+        except Exception as e:
+            return jsonify({"error": f"Health check failed: {str(e)}"}), 500
 
     def list_services(self):
-        """
-        Liệt kê tất cả các dịch vụ đã đăng ký.
-        
-        Returns:
-            Danh sách các dịch vụ đã đăng ký dạng JSON response
-        """
-        return jsonify({
-            "services": list(self.admin_service.services.keys())
-        }), 200
+        """Lấy danh sách các service"""
+        try:
+            services = self.admin_service.get_service_list()
+            return jsonify({"services": services, "count": len(services)}), 200
+        except Exception as e:
+            return jsonify({"error": f"Failed to list services: {str(e)}"}), 500
 
     def get_system_stats(self):
-        """
-        Lấy thống kê tổng quan của hệ thống.
-        
-        Returns:
-            Thống kê hệ thống dạng JSON response
-        """
-        return jsonify(self.admin_service.get_system_stats()), 200
+        """Lấy thống kê hệ thống"""
+        try:
+            user_stats = self.admin_service.get_user_statistics()
+            health_stats = self.admin_service.get_system_health()
+            
+            return jsonify({
+                "user_statistics": user_stats,
+                "service_health": health_stats,
+                "timestamp": int(time.time())
+            }), 200
+        except Exception as e:
+            return jsonify({"error": f"Failed to get system stats: {str(e)}"}), 500
 
     def list_users(self, role=None):
-        """
-        Lấy danh sách người dùng, có thể lọc theo vai trò.
-        
-        Parameters:
-            role: Vai trò người dùng ('student', 'teacher')
-            
-        Returns:
-            Danh sách người dùng dạng JSON response
-        """
-        users = self.admin_service.get_users(role)
-        return jsonify({"users": users}), 200
-        
-    def change_user_role(self, data):
-        """
-        Thay đổi vai trò của người dùng.
-        
-        Parameters:
-            data: Dictionary chứa user_id và new_role
-            
-        Returns:
-            Kết quả thay đổi vai trò dạng JSON response
-        """
-        if 'user_id' not in data or 'new_role' not in data:
-            return jsonify({"error": "user_id và new_role là bắt buộc"}), 400
-            
-        success = self.admin_service.change_user_role(data['user_id'], data['new_role'])
-        
-        if success:
-            return jsonify({"message": "Đã cập nhật vai trò thành công"}), 200
-        else:
-            return jsonify({"error": "Không thể cập nhật vai trò"}), 500
+        """Lấy danh sách người dùng theo role"""
+        try:
+            if role == 'student':
+                users = self.admin_service.user_service.get_all_students()
+            elif role == 'teacher':
+                users = self.admin_service.user_service.get_all_teachers()
+            else:
+                # Lấy tất cả người dùng
+                students = self.admin_service.user_service.get_all_students()
+                teachers = self.admin_service.user_service.get_all_teachers()
+                users = students + teachers
+                
+            return jsonify({"users": users, "count": len(users), "role": role}), 200
+        except Exception as e:
+            return jsonify({"error": f"Failed to list users: {str(e)}"}), 500
