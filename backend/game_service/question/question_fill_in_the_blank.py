@@ -1,5 +1,6 @@
 from game_service.question.question import Question
 import re
+from flask import jsonify
 def normalize(text):
     return re.sub(r'\W+', '', text.lower())
 
@@ -11,4 +12,11 @@ class question_fill_in_the_blank(Question):
         return normalize(answer) == normalize(self.answer)
 
     def get_choices(self):
-        pass
+        return ""
+
+    def get_question(self):
+        return jsonify({
+            "question": self.question,
+            "answer": "",
+            "type": "fill_in_the_blank"
+        })
