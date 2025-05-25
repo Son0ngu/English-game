@@ -120,7 +120,12 @@ class services_route:
             elif method == 'DELETE' and destination.isdigit():
                 return self.user_controller.delete_user(int(destination))
             
-            # Progress management
+            # Get user stats (ATK & HP only)
+            elif destination.endswith('/stats-only') and method == 'GET':
+                user_id = int(destination.split('/')[0])
+                return self.user_controller.get_user_stats_only(user_id)
+            
+            # Progress management với auto weapon upgrade
             elif destination.endswith('/progress') and method == 'POST':
                 user_id = int(destination.split('/')[0])
                 return self.user_controller.update_progress(user_id, data)
@@ -128,10 +133,8 @@ class services_route:
                 user_id = int(destination.split('/')[0])
                 return self.user_controller.get_student_progress(user_id)
             
-            # Money management
-            elif destination.endswith('/money') and method == 'POST':
-                user_id = int(destination.split('/')[0])
-                return self.user_controller.update_student_money(user_id, data)
+            # BỎ: Money management endpoints
+            # elif destination.endswith('/money') and method == 'POST':
             
             # Stats management
             elif destination.endswith('/stats') and method == 'POST':
@@ -235,21 +238,29 @@ class services_route:
         try:
             if destination == 'health' and method == 'GET':
                 return self.item_controller.check_health()
+            
+            # Get user weapons
             elif destination.startswith('user/') and method == 'GET':
                 user_id = destination.split('/')[-1]
                 if 'upgradeable' in destination:
                     return self.item_controller.get_upgradeable_items(user_id)
+                elif 'available' in destination:
+                    return self.item_controller.get_available_weapons(user_id)
                 else:
                     return self.item_controller.get_user_items(user_id)
+            
+            # Select weapon from 3 options (NEW)
+            elif destination == 'select' and method == 'POST':
+                return self.item_controller.select_weapon(data)
+            
+            # Upgrade weapon (level up)
             elif destination == 'upgrade' and method == 'POST':
-                return self.item_controller.upgrade_item(data)
-            elif destination == 'upgrade-cost' and method == 'GET':
-                item_id = data.get('item_id')
-                if item_id:
-                    return self.item_controller.calculate_upgrade_cost(item_id)
-                return jsonify({"error": "item_id required"}), 400
+                return self.item_controller.upgrade_weapon(data)
+            
+            # Get weapon details
             elif method == 'GET' and destination:
                 return self.item_controller.get_item(destination)
+            
             else:
                 return jsonify({"error": f"Item endpoint '{destination}' not found"}), 404
         except Exception as e:
