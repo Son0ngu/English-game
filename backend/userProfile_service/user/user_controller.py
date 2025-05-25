@@ -1,5 +1,6 @@
 from flask import jsonify
-from userProfile_service.user.user_service import UserProfileService
+from .user_service import UserProfileService  # Import từ cùng thư mục
+import time
 
 class UserController:
     def __init__(self, user_service: UserProfileService):
@@ -11,122 +12,145 @@ class UserController:
         """
         self.user_service = user_service
 
-    def login(self, data):
-        """Xác thực người dùng"""
-        if not data or 'username' not in data or 'password' not in data:
-            return jsonify({"error": "Missing username or password"}), 400
-        
-        result = self.user_service.authenticate(data['username'], data['password'])
-        
-        if result.get('success'):
-            return jsonify(result), 200
-        else:
-            return jsonify({"error": result.get('error', 'Authentication failed')}), 401
-
-    def register(self, data):
-        """Đăng ký người dùng mới"""
-        if not data or 'username' not in data or 'password' not in data:
-            return jsonify({"error": "Missing required fields"}), 400
-        
-        user_type = data.get('user_type', 'student')
-        result = self.user_service.create_user(data, user_type)
-        
-        if result.get('success'):
-            return jsonify(result), 201
-        else:
-            return jsonify({"error": result.get('error', 'Registration failed')}), 400
+    def check_health(self):
+        """Kiểm tra trạng thái dịch vụ"""
+        try:
+            health_data = self.user_service.check_internal()
+            status_code = 200 if health_data['status'] == 'healthy' else 503
+            return jsonify(health_data), status_code
+        except Exception as e:
+            return jsonify({"status": "error", "error": str(e)}), 503
 
     def get_user(self, user_id):
         """Lấy thông tin người dùng"""
-        user_data = self.user_service.get_user(user_id)
-        
-        if user_data:
-            return jsonify(user_data), 200
-        else:
-            return jsonify({"error": "User not found"}), 404
+        try:
+            user_data = self.user_service.get_user(user_id)
+            
+            if user_data:
+                return jsonify(user_data), 200
+            else:
+                return jsonify({"error": "User not found"}), 404
+        except Exception as e:
+            return jsonify({"error": f"Get user error: {str(e)}"}), 500
 
     def update_user(self, user_id, data):
-        """Cập nhật hồ sơ người dùng"""
-        if not data:
-            return jsonify({"error": "No update data provided"}), 400
-        
-        result = self.user_service.update_profile(user_id, data)
-        
-        if result.get('success'):
-            return jsonify(result), 200
-        else:
-            error_msg = result.get('error', 'Update failed')
-            status_code = 404 if "not found" in error_msg else 400
-            return jsonify({"error": error_msg}), status_code
+        """Cập nhật thông tin người dùng"""
+        try:
+            if not data:
+                return jsonify({"error": "No data provided for update"}), 400
+            
+            result = self.user_service.update_profile(user_id, data)
+            
+            if result.get('success'):
+                return jsonify(result), 200
+            else:
+                return jsonify({"error": result.get('error', 'Update failed')}), 400
+        except Exception as e:
+            return jsonify({"error": f"Update user error: {str(e)}"}), 500
 
-    def delete_user(self, user_id):
-        """Xóa người dùng"""
-        result = self.user_service.delete_user(user_id)
-        
-        if result.get('success'):
-            return jsonify(result), 200
-        else:
-            error_msg = result.get('error', 'Deletion failed')
-            status_code = 404 if "not found" in error_msg else 400
-            return jsonify({"error": error_msg}), status_code
+    def update_progress(self, user_id, data):
+        """Cập nhật tiến độ học tập của học sinh"""
+        try:
+            lesson_id = data.get('lesson_id', 'unknown')
+            points = data.get('points', 0)
+            
+            if points <= 0:
+                return jsonify({"error": "Points must be positive"}), 400
+            
+            result = self.user_service.update_progress(user_id, lesson_id, points)
+            
+            if result.get('success'):
+                return jsonify(result), 200
+            else:
+                return jsonify({"error": result.get('error', 'Progress update failed')}), 400
+        except Exception as e:
+            return jsonify({"error": f"Progress update error: {str(e)}"}), 500
+
+    def get_student_progress(self, user_id):
+        """Lấy tiến độ học tập của học sinh"""
+        try:
+            result = self.user_service.get_student_progress(user_id)
+            
+            if result.get('success'):
+                return jsonify(result), 200
+            else:
+                return jsonify({"error": result.get('error', 'Failed to get progress')}), 404
+        except Exception as e:
+            return jsonify({"error": f"Get progress error: {str(e)}"}), 500
+
+    def update_student_money(self, user_id, data):
+        """Cập nhật tiền của học sinh"""
+        try:
+            amount = data.get('amount', 0)
+            operation = data.get('operation', 'add')
+            
+            if amount < 0:
+                return jsonify({"error": "Amount must be non-negative"}), 400
+            
+            result = self.user_service.update_student_money(user_id, amount, operation)
+            
+            if result.get('success'):
+                return jsonify(result), 200
+            else:
+                status_code = 402 if "Insufficient funds" in result.get('error', '') else 400
+                return jsonify(result), status_code
+        except Exception as e:
+            return jsonify({"error": f"Money update error: {str(e)}"}), 500
+
+    def update_student_stats(self, user_id, data):
+        """Cập nhật stats game của học sinh (HP, ATK)"""
+        try:
+            hp = data.get('hp')
+            atk = data.get('atk')
+            
+            if hp is None and atk is None:
+                return jsonify({"error": "Must provide hp or atk to update"}), 400
+            
+            result = self.user_service.update_student_stats(user_id, hp, atk)
+            
+            if result.get('success'):
+                return jsonify(result), 200
+            else:
+                return jsonify({"error": result.get('error', 'Stats update failed')}), 400
+        except Exception as e:
+            return jsonify({"error": f"Stats update error: {str(e)}"}), 500
 
     def get_all_students(self, limit=100, offset=0):
         """Lấy danh sách học sinh"""
-        students = self.user_service.get_all_students(limit, offset)
-        return jsonify({"students": students}), 200
+        try:
+            students = self.user_service.get_all_students(limit, offset)
+            return jsonify({"students": students, "count": len(students)}), 200
+        except Exception as e:
+            return jsonify({"error": f"Get students error: {str(e)}"}), 500
 
     def get_all_teachers(self, limit=100, offset=0):
         """Lấy danh sách giáo viên"""
-        teachers = self.user_service.get_all_teachers(limit, offset)
-        return jsonify({"teachers": teachers}), 200
+        try:
+            teachers = self.user_service.get_all_teachers(limit, offset)
+            return jsonify({"teachers": teachers, "count": len(teachers)}), 200
+        except Exception as e:
+            return jsonify({"error": f"Get teachers error: {str(e)}"}), 500
 
-    def get_progress(self, user_id):
-        """Lấy tiến độ học tập của học sinh"""
-        result = self.user_service.get_student_progress(user_id)
-        
-        if result.get('success'):
-            return jsonify(result), 200
-        else:
-            error_msg = result.get('error', 'Progress retrieval failed')
-            status_code = 404 if "not found" in error_msg else 400
-            return jsonify({"error": error_msg}), status_code
+    def delete_user(self, user_id):
+        """Xóa người dùng"""
+        try:
+            result = self.user_service.delete_user(user_id)
+            
+            if result.get('success'):
+                return jsonify(result), 200
+            else:
+                return jsonify({"error": result.get('error', 'Delete failed')}), 404
+        except Exception as e:
+            return jsonify({"error": f"Delete user error: {str(e)}"}), 500
 
-    def update_progress(self, user_id, data):
-        """Cập nhật tiến độ học tập"""
-        if not data or 'lesson_id' not in data or 'points' not in data:
-            return jsonify({"error": "Missing required fields"}), 400
-        
-        result = self.user_service.update_progress(
-            user_id, 
-            data['lesson_id'], 
-            data['points']
-        )
-        
-        if result.get('success'):
-            return jsonify(result), 200
-        else:
-            error_msg = result.get('error', 'Progress update failed')
-            status_code = 404 if "not found" in error_msg else 400
-            return jsonify({"error": error_msg}), status_code
-
-    def buy_item(self, user_id, data):
-        """Mua vật phẩm cho học sinh"""
-        if not data or 'item' not in data or 'cost' not in data:
-            return jsonify({"error": "Missing required fields"}), 400
-        
-        result = self.user_service.buy_item_for_student(
-            user_id, 
-            data['item'], 
-            data['cost']
-        )
-        
-        if result.get('success'):
-            return jsonify(result), 200
-        else:
-            return jsonify({"error": result.get('error', 'Item purchase failed')}), 400
-
-    def check_health(self):
-        """Kiểm tra trạng thái dịch vụ"""
-        health_data = self.user_service.check_internal()
-        status_code = 200 if health_data['status'] == 'healthy' else 503
-        return jsonify(health_data), status_code
+    def get_user_stats(self):
+        """Lấy thống kê người dùng"""
+        try:
+            result = self.user_service.get_user_count()
+            
+            if result.get('success'):
+                return jsonify(result), 200
+            else:
+                return jsonify({"error": result.get('error', 'Failed to get stats')}), 500
+        except Exception as e:
+            return jsonify({"error": f"Get stats error: {str(e)}"}), 500
