@@ -1,6 +1,20 @@
 from flask import jsonify, request
 from classroom_service.classroom_service import ClassroomService
 
+DIFFICULTY_MAP = {
+    1: "easy",
+    2: "medium",
+    3: "hard",
+    4: "expert"
+}
+
+QUESTION_TYPE_MAP = {
+    1: "multiple",
+    2: "true_false",
+    3: "fill_blank",
+    4: "single"
+}
+
 class ClassroomController:
     def __init__(self, service: ClassroomService):
         self.service = service
@@ -42,6 +56,15 @@ class ClassroomController:
         required = ['text', 'choices', 'correct_index', 'type', 'difficulty']
         if not data or not all(k in data for k in required):
             return jsonify({"error": "Missing question fields"}), 400
+
+        try:
+            difficulty_code = int(data['difficulty'])
+            q_type_code = int(data['type'])
+            difficulty = DIFFICULTY_MAP[difficulty_code]
+            q_type = QUESTION_TYPE_MAP[q_type_code]
+        except (ValueError, KeyError):
+            return jsonify({"error": "Invalid difficulty or question type"}), 400
+
         try:
             q = self.service.add_question(
                 class_id=class_id,
@@ -49,16 +72,23 @@ class ClassroomController:
                 text=data['text'],
                 choices=data['choices'],
                 correct_index=data['correct_index'],
-                q_type=data['type'],
-                difficulty=data['difficulty']
+                q_type=q_type,
+                difficulty=difficulty
             )
             return jsonify({"success": True, "question": q.to_dict()}), 201
         except ValueError as e:
             return jsonify({"error": str(e)}), 404
 
     def get_questions_by_criteria(self, class_id):
-        difficulty = request.args.get("difficulty")
-        q_type = request.args.get("type")
+        try:
+            difficulty_code = request.args.get("difficulty")
+            q_type_code = request.args.get("type")
+
+            difficulty = DIFFICULTY_MAP.get(int(difficulty_code)) if difficulty_code else None
+            q_type = QUESTION_TYPE_MAP.get(int(q_type_code)) if q_type_code else None
+        except (ValueError, KeyError):
+            return jsonify({"error": "Invalid difficulty or question type"}), 400
+
         result = self.service.get_questions_by_criteria(class_id, difficulty, q_type)
         return jsonify({"questions": result}), 200
 

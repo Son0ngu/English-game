@@ -53,18 +53,16 @@ class ClassroomService:
                 return question
         raise ValueError("Topic not found")
 
-    def get_questions_by_criteria(self, class_id: str, difficulty: Optional[str], q_type: Optional[str], limit: int = 5) -> List[dict]:
+    def get_questions_by_criteria(self, class_id: str, difficulty: Optional[str], q_type: Optional[str]) -> List[dict]:
         classroom = self.classrooms.get(class_id)
         if not classroom:
             return []
-
-        filtered = []
-        for topic in classroom.topics:
-            for q in topic.questions:
-                if (difficulty is None or q.difficulty == difficulty) and (q_type is None or q.type == q_type):
-                    filtered.append(q)
-
-        return [q.to_dict() for q in random.sample(filtered, min(limit, len(filtered)))]
+        filtered = [
+            q for topic in classroom.topics for q in topic.questions
+            if (difficulty is None or q.difficulty == difficulty) and
+               (q_type is None or q.type == q_type)
+        ]
+        return [q.to_dict() for q in filtered]
 
     def get_class_dashboard(self, class_id: str):
         student_ids = self.student_class_links.get(class_id, [])
