@@ -246,6 +246,9 @@ class services_route:
         elif destination.endswith("/dashboard") and method == "GET":
             class_id = destination.split("/")[0]
             return self.classroom_controller.get_dashboard(class_id)
+        elif destination.startswith("student/") and destination.endswith("/classes") and method == "GET":
+            student_id = destination.split("/")[1]
+            return self.classroom_controller.get_student_classes(student_id)
         elif destination == "health" and method == "GET":
             return self.classroom_controller.check_health()
         return jsonify({"error": "Classroom endpoint không tồn tại"}), 404
