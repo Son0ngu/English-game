@@ -1,18 +1,17 @@
 from game_service.gameroom.game_logic_handler import game_logic_handler
 from game_service.gameroom.gameroom import gameroom
-import time
 import uuid
 from threading import Timer
 class game_service:
     def __init__(self):
-        self.gameroom = gameroom
+        self.game_room = gameroom
         self.game_room_list = {}
         self.student_id_to_session_id = {}
         self.game_logic_handler = game_logic_handler
 
     def create_game_room(self,student_id):
         session_id=uuid.uuid1()
-        self.game_room_list[session_id] = self.gameroom(session_id,student_id,self.game_logic_handler)
+        self.game_room_list[session_id] = self.game_room(session_id, student_id, self.game_logic_handler)
         self.student_id_to_session_id[student_id]=session_id
         self.game_room_list[session_id].status = 0
         return self.game_room_list[session_id]
@@ -34,17 +33,17 @@ class game_service:
             result = room.check_answer(answer)
             if result["status"] == "win":
                 self.game_room_list[session_id].status = 1
-                Timer(30 * 60, self.trigger_gameroom_deletion, args=[session_id]).start()
+                Timer(30 * 60, self.trigger_game_room_deletion, args=[session_id]).start()
                 return result
             elif result["status"] == "lose":
                 self.game_room_list[session_id].status = 2
-                Timer(30 * 60, self.trigger_gameroom_deletion, args=[session_id]).start()
+                Timer(30 * 60, self.trigger_game_room_deletion, args=[session_id]).start()
                 return result
             else:
                 return result
         return None
 
-    def trigger_gameroom_deletion(self,session_id):
+    def trigger_game_room_deletion(self, session_id):
         if session_id in self.game_room_list:
             del self.game_room_list[session_id]
             for student_id, sid in list(self.student_id_to_session_id.items()):
