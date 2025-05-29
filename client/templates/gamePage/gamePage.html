@@ -54,6 +54,56 @@
     </div>
     </div>
 
+    <!-- Âm thanh SFX -->
+    <audio id="sfx-attack">
+      <source src="../../static/music/attack.wav" type="audio/wav">
+    </audio>
+    <audio id="sfx-hit">
+      <source src="../../static/music/hit.wav" type="audio/wav">
+    </audio>
+
     <script src="gamePage.js"></script>
+    <script>
+        window.addEventListener("DOMContentLoaded", () => {
+        const music = document.getElementById("bg-music");
+    
+        // Phát sau khi người dùng tương tác
+        document.body.addEventListener("click", () => {
+          if (music.paused) {
+            music.volume = 0.3; // Âm lượng 
+            music.play();
+          }
+        }, { once: true });
+      });
+
+      // Phát SFX tấn công
+      function playAttackSFX() {
+        const sfx = document.getElementById('sfx-attack');
+        sfx.currentTime = 0;
+        sfx.play();
+      }
+      // Phát SFX nhận sát thương
+      function playHitSFX() {
+        const sfx = document.getElementById('sfx-hit');
+        sfx.currentTime = 0;
+        sfx.play();
+      }
+
+      // Ví dụ: Gọi khi người chơi tấn công
+      document.querySelectorAll('.answer-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          if (btn.dataset.correct === "true") {
+            playAttackSFX(); // đúng thì tấn công quái
+          } else {
+            playHitSFX(); // sai thì bị quái đánh lại
+          }
+        });
+      });
+    </script>
+
+    <audio id="bg-music" autoplay loop>
+      <source src="/English-game/client/static/music/combat.wav" type="audio/wav">
+      Trình duyệt của bạn không hỗ trợ âm thanh.
+    </audio>
 </body>
 </html>
