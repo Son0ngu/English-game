@@ -8,7 +8,7 @@ class auth_service_database_interface:
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='auth_service'")
         table_exists = self.cursor.fetchone() is not None
         if not table_exists:
-            with open('user/userTable.sql', 'r') as file:
+            with open('auth_service/login_and_register_service/auth_service.sql', 'r') as file:
                 sql_script = file.read()
                 self.cursor.executescript(sql_script)
                 self.connection.commit()

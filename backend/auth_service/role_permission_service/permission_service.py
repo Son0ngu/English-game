@@ -62,7 +62,7 @@ class permission_service:
             return True
         else: return False
 
-    def add_permission_role(self, roles, path, service, method):
+    def add_permission(self, roles, path, service, method):
         if not isinstance(roles, list):
             roles = [roles]
 

@@ -45,7 +45,7 @@ class gateway_service:
                 if service_requested == "admin":
                     return self.services_route.handle_admin_service(destination, data, method)
                 elif service_requested == "auth":
-                    return self.services_route.auth_service(destination, data, method)
+                    return self.services_route.authenticating_service(destination, data, method)
                 elif service_requested == "classroom":
                     return self.services_route.classroom_service(destination, data, method)
                 elif service_requested == "course":
