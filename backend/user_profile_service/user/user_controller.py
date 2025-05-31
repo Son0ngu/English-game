@@ -33,23 +33,7 @@ class UserController:
         except Exception as e:
             return jsonify({"error": f"Get user error: {str(e)}"}), 500
 
-    def get_user_stats_only(self, user_id):
-        """Lấy chỉ ATK và HP của user"""
-        try:
-            user_data = self.user_service.get_user(user_id)
-            
-            if user_data:
-                # Chỉ trả về ATK và HP
-                stats = {
-                    "user_id": user_id,
-                    "atk": user_data.get('atk', 0),
-                    "hp": user_data.get('hp', 0)
-                }
-                return jsonify(stats), 200
-            else:
-                return jsonify({"error": "User not found"}), 404
-        except Exception as e:
-            return jsonify({"error": f"Get user stats error: {str(e)}"}), 500
+
 
     def update_user(self, user_id, data):
         """Cập nhật thông tin người dùng"""

@@ -1,5 +1,6 @@
 from flask import jsonify
 from admin_service.admin_service import AdminService
+import psutil
 import time
 
 class AdminController:
@@ -49,11 +50,23 @@ class AdminController:
         try:
             user_stats = self.admin_service.get_user_statistics()
             health_stats = self.admin_service.get_system_health()
-            
+            cpu = psutil.cpu_percent(interval=1)
+            memory = psutil.virtual_memory()
+            total_ram = memory.total  # Total RAM in bytes
+            used_ram = memory.used  # Used RAM in bytes
+            free_ram = memory.available  # Available RAM in bytes
+            ram_usage_percent = memory.percent
             return jsonify({
                 "user_statistics": user_stats,
                 "service_health": health_stats,
-                "timestamp": int(time.time())
+                "timestamp": int(time.time()),
+                "cpu_usage_percent": cpu,
+                "ram": {
+                    "total": total_ram,
+                    "used": used_ram,
+                    "free": free_ram,
+                    "usage_percent": ram_usage_percent
+                }
             }), 200
         except Exception as e:
             return jsonify({"error": f"Failed to get system stats: {str(e)}"}), 500
@@ -74,3 +87,13 @@ class AdminController:
             return jsonify({"users": users, "count": len(users), "role": role}), 200
         except Exception as e:
             return jsonify({"error": f"Failed to list users: {str(e)}"}), 500
+
+    def add_specialized_user(self, username, password, role):
+        try:
+            result = self.admin_service.add_specialized_user(username, password, role)
+            if result:
+                return jsonify({"success": True, "message": f"User {username} added successfully"}), 201
+            else:
+                return jsonify({"success": False, "error": "Failed to add user"}), 400
+        except Exception as e:
+            return jsonify({"error": f"Failed to add user: {str(e)}"}), 500

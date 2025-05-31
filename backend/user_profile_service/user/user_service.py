@@ -1,5 +1,5 @@
-from userProfile_service.user.user import UserProfile, StudentProfile, TeacherProfile
-from userProfile_service.user.user_repository import UserRepository
+from user_profile_service.user.user import UserProfile, StudentProfile, TeacherProfile
+from user_profile_service.user.user_repository import UserRepository
 import time
 from typing import Dict, List, Optional, Any
 
@@ -233,3 +233,21 @@ class UserProfileService:
                 "error": str(e),
                 "uptime_seconds": int(time.time() - self._startup_time)
             }
+
+    def get_user_stats_only(self, user_id):
+        """Lấy chỉ ATK và HP của user"""
+        try:
+            user_data = self.get_user(user_id)
+            if user_data:
+                atk = user_data.get('atk', 0),
+                hp = user_data.get('hp', 0)
+                return atk,hp
+            else:
+                print(f"User with ID {user_id} not found")
+                return None
+        except Exception as e:
+            print(f"User with ID {user_id} not found")
+            return None
+
+    def add_user_id_only(self,user_id):
+        return self.user_repository.add_user_id_only(user_id)

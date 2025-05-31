@@ -436,6 +436,32 @@ class UserProfileDatabaseInterface(DatabaseInterface):
             cursor.close()
             connection.close()
 
+    def add_user_id_only(self,user_id):
+        connection = self._get_connection()
+        cursor = connection.cursor()
+        try:
+            if user_id:
+                cursor.execute("SELECT id FROM user_profiles WHERE id = ?", (user_id,))
+                exists = cursor.fetchone() is not None
+            else:
+                exists = False
+            if not exists:
+                cursor.execute("INSERT INTO user_profiles (user_id) VALUES (?)", (user_id,))
+                connection.commit()
+                connection.close()
+                cursor.close()
+                return True
+            else:
+                print("User ID already exists (add_user_id_only)")
+                connection.close()
+                cursor.close()
+                return False
+        except Exception as e:
+            connection.rollback()
+            print(f"Error adding user ID: {str(e)}")
+            return False
+
+
 
 class ItemDatabaseInterface(DatabaseInterface):
     """Interface cho các thao tác với items trong database"""
@@ -668,3 +694,4 @@ class ItemDatabaseInterface(DatabaseInterface):
         finally:
             cursor.close()
             connection.close()
+

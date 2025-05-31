@@ -1,8 +1,8 @@
 import uuid
 import random
 from typing import List, Optional
-from classroom_model import Classroom, Topic, Question, DashboardEntry
-from userProfile_service.user.user_service import UserProfileService as UserProfileService
+from classroom_service.classroom_model import Classroom, Topic, Question, DashboardEntry
+from user_profile_service.user.user_service import UserProfileService as UserProfileService
 from game_service.gameroom.gameroom_service import game_service
 
 class ClassroomService:

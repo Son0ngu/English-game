@@ -1,6 +1,7 @@
 import time
 from typing import Dict, List, Any, Optional
-
+from auth_service.login_and_register_service.signup_service import signup_service as signup
+from auth_service.role_permission_service.permission_service import permission_service as permission_service
 class AdminService:
     """
     Dịch vụ quản trị hệ thống.
@@ -18,6 +19,8 @@ class AdminService:
         """
         self.user_service = user_service
         self.services = {}
+        self.signup = signup()
+        self.permission_service = permission_service()
         
     def register_service(self, name: str, service):
         """
@@ -121,3 +124,11 @@ class AdminService:
                 "status": "error",
                 "error": str(e)
             }
+    def add_specialized_user(self,username,password,role):
+        return self.signup.add_specialized_user(username,password,role)
+
+    def add_permission(self,roles, path, service, method):
+        self.permission_service.add_permission_role(roles, path, service, method)
+
+    def change_permission(self,roles, path, service, method):
+        self.permission_service.change_permission_to_existing_path(roles, path, service, method)

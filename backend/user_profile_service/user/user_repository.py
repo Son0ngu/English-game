@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict, Any
-from .user import UserProfile, StudentProfile, TeacherProfile
-from ..database_interface import UserProfileDatabaseInterface  # Import từ thư mục cha
+from user_profile_service.user.user import UserProfile, StudentProfile, TeacherProfile
+from user_profile_service.database_interface import UserProfileDatabaseInterface  # Import từ thư mục cha
 
 class UserRepository:
     def __init__(self):
@@ -152,3 +152,6 @@ class UserRepository:
         except Exception as e:
             print(f"Database connection failed: {e}")
             return False
+
+    def add_user_id_only(self,user_id):
+        return self.db.add_user_id_only(user_id)
