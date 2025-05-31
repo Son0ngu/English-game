@@ -1,5 +1,5 @@
 from flask import jsonify
-from progres-feedback.progress_service.progress_service import ProgressService
+from progress_feedback.progress_service.progress_service import ProgressService
 
 class ProgressController:
     def __init__(self, progress_service: ProgressService):

@@ -3,7 +3,6 @@ import random
 from typing import List, Optional
 from classroom_service.classroom_model import Classroom, Topic, Question, DashboardEntry
 from user_profile_service.user.user_service import UserProfileService as UserProfileService
-from game_service.gameroom.gameroom_service import game_service
 
 class ClassroomService:
     def __init__(self):
@@ -11,6 +10,7 @@ class ClassroomService:
         self.student_class_links = {}
         self.dashboard_data: List[DashboardEntry] = []
         self.user_service = UserProfileService
+        from game_service.gameroom.gameroom_service import game_service
         self.game = game_service()
 
     def create_class(self, name: str, teacher_id: str) -> Classroom:

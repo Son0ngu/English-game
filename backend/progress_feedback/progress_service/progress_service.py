@@ -1,5 +1,5 @@
-from .user_service import UserProfileService
-from .admin_service import AdminService
+from user_profile_service.user.user_service import UserProfileService
+from admin_service.admin_service import AdminService
 import time
 
 class ProgressService:

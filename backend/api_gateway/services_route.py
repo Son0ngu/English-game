@@ -3,18 +3,18 @@ from flask_jwt_extended import get_jwt_identity
 
 # Import các controller
 from game_service.game_service_controller import game_service_controller
-from progressandfeedback.progress_controller import ProgressController
-from progressandfeedback.feedback_controller import FeedbackController
+from progress_feedback.progress_service.progress_controller import ProgressController
+from progress_feedback.progress_service.feedback_controller import FeedbackController
 from admin_service.admin_controller import AdminController
-from userProfile_service.user.user_controller import UserController
-from userProfile_service.item.item_controller import ItemController
+from user_profile_service.user.user_controller import UserController
+from user_profile_service.item.item_controller import ItemController
 from classroom_service.classroom_controller import ClassroomController
 from classroom_service.classroom_service import ClassroomService
 
 # Import các service
-from progressandfeedback.progress_service.progress_service import ProgressService
-from userProfile_service.user.user_service import UserProfileService
-from userProfile_service.item.item_service import ItemService
+from progress_feedback.progress_service.progress_service import ProgressService
+from user_profile_service.user.user_service import UserProfileService
+from user_profile_service.item.item_service import ItemService
 from admin_service.admin_service import AdminService
 
 class services_route:

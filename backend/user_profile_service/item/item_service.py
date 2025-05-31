@@ -1,8 +1,8 @@
 from typing import Dict, List, Any, Optional, Tuple
-from userProfile_service.item.item import Item
-from userProfile_service.item.item_repository import ItemRepository
-from userProfile_service.user.user_repository import UserRepository
-from userProfile_service.user.user import StudentProfile
+from user_profile_service.item.item import Item
+from user_profile_service.item.item_repository import ItemRepository
+from user_profile_service.user.user_repository import UserRepository
+from user_profile_service.user.user import StudentProfile
 import time
 
 class ItemService:
