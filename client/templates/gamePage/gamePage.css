@@ -1,0 +1,294 @@
+@import url("https://fonts.googleapis.com/css2?family=Exo:ital,wght@1,700&display=swap");
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --player-color: #9acd32;
+    --monster-color: #cd5c5c;
+    --background: #282c34;
+    --text-color: #333333;
+    --border-color: #634b2d;
+    --question-bg: #d9bc8c;
+    --button-hover: #634b2d;
+    --button-bg: #e0c9a6;
+}
+
+body {
+    font-family: 'Exo', sans-serif;
+    background-color: var(--background);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.game-container {
+    width: 100%;
+    height: 100vh;
+    background: url('../../static/images/dungeon-bg.png') no-repeat center center;
+    background-size: cover;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.battle-scene {
+    flex: 1;
+    padding: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Health bars */
+.health-bars {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    z-index: 2;
+}
+
+.player-stats, .monster-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.player {
+    transform: translateX(-60px);
+}
+
+.monster {
+    transform: translateX(60px);
+}
+
+.health-bar {
+    width: 240px;
+    height: 30px;
+    background: #333;
+    border: 3px solid var(--border-color);
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+}
+
+.health-bar-fill {
+    height: 100%;
+    transition: width 0.5s ease-in-out;
+}
+
+.player-health {
+    background: linear-gradient(to right, var(--player-color), #d4e157);
+}
+
+.monster-health {
+    background: linear-gradient(to right, var(--monster-color), #ff8a80);
+}
+
+.health-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px black;
+}
+
+/*.player-level, .monster-level {
+    font-size: 24px;
+    font-weight: bold;
+    color: goldenrod;
+    text-shadow: 1px 1px 2px black;
+    margin-top: 5px;
+}*/
+
+.battle-characters {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    /* Change from center to flex-end to position lower */
+    align-items: flex-end;
+    position: relative;
+    z-index: 2;
+    gap: 100px; /* Controls the space between characters */
+    /* Add bottom padding to raise them slightly from the bottom edge */
+    padding-bottom: 60px;
+}
+
+.player img, .monster img {
+    height: 220px;
+    transition: transform 0.3s ease-in-out;
+}
+.player.attacking img {
+    animation: playerAttack 0.6s ease-in-out;
+}
+.monster.attacking img {
+    animation: monsterAttack 0.6s ease-in-out;
+}
+
+.attack-effect {
+  position: absolute;
+  top: 392px;  /* điều chỉnh thủ công dựa trên vị trí thanh kiếm */
+  left: 900px;
+  width: 100px;
+  height: 90px;
+  background: url('../../static/images/attack-effect.png') no-repeat center center;
+  background-size: contain;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+
+.damage-number {
+    font-size: 42px;
+    font-weight: bold;
+    color: #ff4500;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+
+/* Question area */
+.question-area {
+    background-color: var(--question-bg);
+    padding: 20px 40px 25px;
+    border-top: 4px solid var(--border-color);
+    max-width: 100%;
+}
+
+.question {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--text-color);
+    padding: 10px 0;
+}
+
+.question-text {
+    font-size: 28px;
+    font-weight: bold;
+    font-style: italic;
+    color: var(--text-color);
+}
+
+.answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 15px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.answer-btn {
+    padding: 15px 20px;
+    background-color: var(--button-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.answer-btn:hover {
+    background-color: var(--button-hover);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.correct {
+    background-color: #4caf50 !important;
+    color: white !important;
+}
+
+.incorrect {
+    background-color: #f44336 !important;
+    color: white !important;
+}
+
+/* Make sure the layout is responsive */
+@media (max-width: 800px) {
+    .battle-characters {
+        padding: 0 20px;
+    }
+    
+    .player img, .monster img {
+        height: 150px;
+    }
+    
+    .health-bar {
+        width: 150px;
+    }
+    
+    .question-text {
+        font-size: 20px;
+    }
+    
+    .answer-btn {
+        font-size: 16px;
+        padding: 10px;
+        min-height: 50px;
+    }
+}
+
+/* Animation effects */
+@keyframes playerAttack {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(30px); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes monsterAttack {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(-30px); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes damageNumber {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+}
+
+.attack-effect.active {
+    animation: attackFlash 0.6s ease-out forwards;
+}
+
+.damage-number.active {
+    animation: damageNumber 0.8s ease-out forwards;
+}
+
+/* Add background tint to make characters stand out */
+.battle-scene::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    z-index: 1;
+}

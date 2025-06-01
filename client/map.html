@@ -4,64 +4,55 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Game Map</title>
-  <link rel="stylesheet" href="static/css/style.css" />
+  <link rel="stylesheet" href="./static/css/style.css" />
 </head>
 <body class="map-page">
   <h1> Map </h1>
   <div class="map-container">
-    <img src="static/img/map.jpg" alt="Map" class="map-image">
+    <img src="./static/images/map.jpg" alt="Map" class="map-image">
     <div class="level-buttons">
       <!-- Các nút màn chơi được đặt trên bản đồ -->
-      <button class="level-btn" style="top: 85%; left: 27%;" onclick="goToLevel(1)">1</button>
-      <button class="level-btn" style="top: 100%; left: 40%;" onclick="goToLevel(2)">2</button>
-      <button class="level-btn" style="top: 91%; left: 48%;" onclick="goToLevel(3)">3</button>
-      <button class="level-btn" style="top: 70%; left: 63%;" onclick="goToLevel(4)">4</button>
-      <button class="level-btn" style="top: 60%; left: 75%;" onclick="goToLevel(5)">5</button>
-      <button class="level-btn" style="top: 48%; left: 67%;" onclick="goToLevel(6)">6</button>
-      <button class="level-btn" style="top: 57%; left: 59%;" onclick="goToLevel(7)">7</button>
-      <button class="level-btn" style="top: 55%; left: 46%;" onclick="goToLevel(8)">8</button>
-      <button class="level-btn" style="top: 45%; left: 30%;" onclick="goToLevel(9)">9</button>
-      <button class="level-btn" style="top: 30%; left: 50%;" onclick="goToLevel(10)">10</button>
+      <button class="level-btn no-hover" style="top: 85%; left: 27%;" onclick="goToLevel(1)">1</button>
+      <button class="level-btn no-hover" style="top: 100%; left: 40%;" onclick="goToLevel(2)">2</button>
+      <button class="level-btn no-hover" style="top: 91%; left: 48%;" onclick="goToLevel(3)">3</button>
+      <button class="level-btn no-hover" style="top: 70%; left: 63%;" onclick="goToLevel(4)">4</button>
+      <button class="level-btn no-hover" style="top: 60%; left: 75%;" onclick="goToLevel(5)">5</button>
+      <button class="level-btn no-hover" style="top: 48%; left: 67%;" onclick="goToLevel(6)">6</button>
+      <button class="level-btn no-hover" style="top: 57%; left: 59%;" onclick="goToLevel(7)">7</button>
+      <button class="level-btn no-hover" style="top: 55%; left: 46%;" onclick="goToLevel(8)">8</button>
+      <button class="level-btn no-hover" style="top: 45%; left: 30%;" onclick="goToLevel(9)">9</button>
+      <button class="level-btn no-hover" style="top: 30%; left: 50%;" onclick="goToLevel(10)">10</button>
       
     </div>
   </div>
   
+    <audio id="bg-music" autoplay loop>
+    <source src="./static/music/background.mp3" type="audio/mpeg">
+    Trình duyệt của bạn không hỗ trợ âm thanh.
+    </audio>
+
   <script>
-    async function goToLevel(levelNumber) {
-      const studentId = 'ronaldo';
-  
-      try {
-        const response = await fetch('http://localhost:5000/game/newroom', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ student_id: studentId })
-        });
-  
-        const result = await response.text();
-
-        try {
-          result = JSON.parse(resultText);
-        } catch (err) {
-          console.error("Không parse được JSON:", result);
-          alert("❌ Lỗi không hợp lệ từ server");
-          return;
-        }
-
-
-        if (response.ok) {
-          alert('✅ Phòng chơi đã được tạo!');
-          // ví dụ redirect tới phòng chơi hoặc màn chơi
-          window.location.href = `../client/level/level${levelNumber}.html`;
-        } else {
-          alert('❌ Lỗi tạo phòng: ' + result.error);
-        }
-      } catch (err) {
-        alert('❌ Lỗi kết nối server');
-        console.error(err);
-      }
+    function goToLevel(levelNumber) {
+    // Mapping level to gamePage file
+    let page = "templates/gamePage/gamePage.html";
+    if (levelNumber > 1) {
+        page = `templates/gamePage${levelNumber}/gamePage${levelNumber}.html`;
     }
+    window.location.href = page;
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const music = document.getElementById("bg-music");
+    
+        // Phát sau khi người dùng tương tác
+        document.body.addEventListener("click", () => {
+          if (music.paused) {
+            music.volume = 0.5; // Âm lượng 50%
+            music.play();
+          }
+        }, { once: true });
+      });
+    
   </script>
 
 </body>
