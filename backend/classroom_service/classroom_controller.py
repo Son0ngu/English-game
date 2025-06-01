@@ -78,6 +78,27 @@ class ClassroomController:
         return jsonify(classes), 200
 
     @jwt_required()
+    def create_question(self):
+        data = request.get_json()
+        required_fields = ["class_id", "text", "q_type", "difficulty", "choices", "correct_index"]
+
+        if not all(field in data for field in required_fields):
+            return jsonify({"error": "Missing required fields"}), 400
+
+        try:
+            question = self.service.create_question(
+                class_id=data["class_id"],
+                text=data["text"],
+                q_type=data["q_type"],
+                difficulty=data["difficulty"],
+                choices=data["choices"],
+                correct_index=int(data["correct_index"])
+            )
+            return jsonify({"success": True, "question": question.to_dict()}), 201
+        except Exception as e:
+            return jsonify({"error": f"Failed to create question: {str(e)}"}), 500
+
+    @jwt_required()
     def get_questions_by_criteria(self):
         class_id = request.args.get("class_id")
         if not class_id:

@@ -451,6 +451,8 @@ class services_route:
                 if not class_id:
                     return jsonify({"error": "class_id required in JSON"}), 400
                 return self.classroom_controller.get_dashboard(class_id)
+            elif destination == "add_question" and method == "POST":
+                return self.classroom_controller.create_question()
             elif destination == "student/classes" and method == "POST":
                 student_id = self._get_user_id_from_jwt()
                 if not student_id:
