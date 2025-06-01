@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class Question(ABC):
+class QuestionAbstract(ABC):
     def __init__(self, difficulty, question,answer):
         self.difficulty = difficulty
         self.question = question

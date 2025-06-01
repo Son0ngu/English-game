@@ -1,10 +1,10 @@
-from game_service.question.question import Question
+from game_service.question.question import QuestionAbstract
 import re
 from flask import jsonify
 def normalize(text):
     return re.sub(r'\W+', '', text.lower())
 
-class question_fill_in_the_blank(Question):
+class question_fill_in_the_blank(QuestionAbstract):
     def __init__(self, difficulty, question,answer):
         super().__init__(difficulty, question,answer)
 

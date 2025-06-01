@@ -35,14 +35,14 @@ INSERT INTO student_class (class_id, student_id) VALUES
 
 INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
   -- Multiple Choice (có thể có nhiều lựa chọn, correct_index là vị trí đầu tiên của đáp án đúng)
-  ('q1',  'class1', 'What is the capital of France?',      'multiple_choice', 'easy',   '["Paris","London","Berlin","Rome"]',                0),
-  ('q2',  'class1', 'Which words are verbs?',                'multiple_choice', 'medium', '["run","book","jump","table"]',                    0),
-  ('q3',  'class1', 'Which are prepositions?',              'multiple_choice', 'hard',   '["on","with","quickly","car"]',                     0),
+  ('dawdwad',  'class1', 'What is the capital of France?',      'multiple_choice', 'easy',   '["Paris","London","Berlin","Rome"]',                0),
+  ('rfwsavrnwoiv',  'class1', 'Which words are verbs?',                'multiple_choice', 'medium', '["run","book","jump","table"]',                    0),
+  ('cbepiorchweoihc',  'class1', 'Which are prepositions?',              'multiple_choice', 'hard',   '["on","with","quickly","car"]',                     0),
 
   -- True/False (choices cố định luôn là ["True","False"])
-  ('q4',  'class1', 'The sun rises in the east.',            'true_false',      'easy',   '["True","False"]',                                   0),
-  ('q5',  'class1', 'Bananas are vegetables.',               'true_false',      'medium', '["True","False"]',                                   1),
-  ('q6',  'class1', 'Light travels slower than sound.',      'true_false',      'hard',   '["True","False"]',                                   1),
+  ('ipouecsoic',  'class1', 'The sun rises in the east.',            'true_false',      'easy',   '["True","False"]',                                   0),
+  ('ubaiuduibwle',  'class1', 'Bananas are vegetables.',               'true_false',      'medium', '["True","False"]',                                   1),
+  ('bsfiubfesiufbviesu',  'class1', 'Light travels slower than sound.',      'true_false',      'hard',   '["True","False"]',                                   1),
 
   -- Fill in the Blank (không có choices; ở đây ta ghi choices = '[]' và correct_index = 0,
   --   phần kiểm tra đáp án fill-in phải được xử lý riêng trong ứng dụng)

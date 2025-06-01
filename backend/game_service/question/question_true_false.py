@@ -1,6 +1,6 @@
-from game_service.question.question import Question
+from game_service.question.question import QuestionAbstract
 from flask import jsonify
-class question_true_false(Question):
+class question_true_false(QuestionAbstract):
     def __init__(self, difficulty, question, answer):
         super().__init__(difficulty, question,answer)
 

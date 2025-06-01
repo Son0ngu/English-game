@@ -1,3 +1,5 @@
+from flask import jsonify
+
 import game_service.question.question
 from game_service.question.question_fill_in_the_blank import question_fill_in_the_blank
 from game_service.question.question_multiple_choice import question_multiple_choice
@@ -10,9 +12,16 @@ class game_resource_interface:
         self.classroom_service = classroom_service()
         pass
 
-    def get_question(self, difficulty,qtype):
-        question = self.classroom_service.get_questions_by_criteria(class_id,difficulty,qtype)
-        return question
+    def get_question(self,class_id, difficulty,qtype):
+        QUESTION_TYPES = {
+            1: "multiple_choice",
+            2: "fill_in_the_blank",
+            3: "true_false",
+            4: "single_choice"
+        }
+        qtype_str = QUESTION_TYPES.get(qtype)
+        question = self.classroom_service.get_questions_by_criteria(class_id,difficulty,qtype_str)
+        return jsonify(question)
 
     # Question type:
     # 1: Multiple choice: difficulty, question, ans1, ans2, ans3, ans4, right_answer[array]

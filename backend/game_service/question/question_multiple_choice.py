@@ -1,8 +1,8 @@
-from game_service.question.question import Question
+from game_service.question.question import QuestionAbstract
 import array
 from flask import jsonify
 
-class question_multiple_choice(Question):
+class question_multiple_choice(QuestionAbstract):
     def __init__(self, difficulty, question, ans1, ans2, ans3, ans4, answer:array):
         super().__init__(difficulty, question,answer)
         self.ans1 = ans1
