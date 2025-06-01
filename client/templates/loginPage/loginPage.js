@@ -1,49 +1,143 @@
-const form = document.getElementsByTagName('form')[0];
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
 
-const usernameLabel = document.querySelector('[for="username"]');
-const usernameError = document.querySelector('[for="username"] + .error')
-const usernameInput = document.getElementById('username');
+    const showLoginLink = document.getElementById("showLogin");
+    const showRegisterLink = document.getElementById("showRegister");
+    const loginDiv = document.querySelector(".login-form");
+    const registerDiv = document.querySelector(".register-form");
 
-const passwordLabel = document.querySelector('[for="password"]');
-const passwordError = document.querySelector('[for="password"] + .error')
-const passwordInput = document.getElementById('password');
+    // Gắn sự kiện form
+    if (loginForm) loginForm.addEventListener("submit", handleLogin);
+    if (registerForm) registerForm.addEventListener("submit", handleRegister);
 
-const submitButton = document.querySelector('button[type="submit"]')
+    // Toggle login/register
+    if (showRegisterLink)
+        showRegisterLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            loginDiv.style.display = "none";
+            registerDiv.style.display = "block";
+        });
 
-const ssrLoadingRead = document.getElementById('js-loadingMsg')
+    if (showLoginLink)
+        showLoginLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            loginDiv.style.display = "block";
+            registerDiv.style.display = "none";
+        });
+
+    // Nếu đã login trước đó thì hiển thị username
+    const token = localStorage.getItem("token");
+    if (token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const username = payload.sub;
+            const loginTabItem = document.querySelector('a[href="#login"]')?.closest("li");
+            const userTabLink = document.querySelector('a[href="#userprofile"]');
+            const userTabItem = document.querySelector('#nav-user');
+
+            if (loginTabItem) loginTabItem.style.display = "none";
+            if (userTabLink && userTabItem) {
+                userTabLink.textContent = payload.sub;
+                userTabItem.style.display = "block";
+                const activeTab = document.querySelector('.nav-link.active');
+                if (activeTab && activeTab.getAttribute("href") === "#login") {
+                    userTabLink.click();
+                }
+            }
 
 
+            // Ẩn login/register nếu đã login
+            if (loginDiv) loginDiv.style.display = "none";
+            if (registerDiv) registerDiv.style.display = "none";
+        } catch (err) {
+            console.warn("Invalid token format", err);
+        }
+    }
+});
 
-function timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+async function handleLogin(event) {
+    event.preventDefault();
+
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!username || !password) {
+        alert("Please fill in all fields");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:5000/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+
+        const result = await response.json();
+        console.log("Login response:", result);
+
+        if (response.ok) {
+            alert("Login successful!");
+            localStorage.setItem("token", result.access_token);
+
+            // Decode username từ token
+            const payload = JSON.parse(atob(result.access_token.split('.')[1]));
+            const loginTab = document.querySelector('a[href="#login"]');
+            if (loginTab) loginTab.textContent = payload.sub;
+
+            // Ẩn form
+            document.querySelector(".login-form").style.display = "none";
+            document.querySelector(".register-form").style.display = "none";
+
+            window.location.reload();
+        } else {
+            alert(result.error || "Login failed.");
+        }
+    } catch (err) {
+        console.error("Login error:", err);
+        alert("Something went wrong.");
+    }
 }
 
-let isSubmitting = false
-async function onSubmit(event) {
-    event.preventDefault()
-    if (isSubmitting) return
-    isSubmitting = true
-    usernameLabel.parentElement.classList.remove('active-error')
-    usernameError.textContent = ''
-    passwordLabel.parentElement.classList.remove('active-error')
-    passwordError.textContent = ''
-    if (!passwordInput.validity.valid) {
-        passwordLabel.parentElement.classList.add('active-error')
-        passwordError.textContent = '- Invalid Password'
-        passwordInput.focus()
+async function handleRegister(event) {
+    event.preventDefault();
+
+    const username = document.getElementById("newUsername").value.trim();
+    const password = document.getElementById("newPassword").value.trim();
+    const confirm = document.getElementById("confirmPassword").value.trim();
+
+    if (!username || !password || !confirm) {
+        alert("Please fill in all fields");
+        return;
     }
-    if (!usernameInput.validity.valid) {
-        usernameLabel.parentElement.classList.add('active-error')
-        usernameError.textContent = '- Invalid Username'
-        usernameInput.focus()
+
+    if (password !== confirm) {
+        alert("Passwords do not match");
+        return;
     }
-    if (passwordInput.validity.valid && usernameInput.validity.valid) {
-        submitButton.textContent = "Loading..."
-        ssrLoadingRead.textContent = "Logging in. Please wait..."
-        await timeout(2000)
-        ssrLoadingRead.textContent = ""
-        submitButton.textContent = "Login"
+
+    try {
+        const response = await fetch("http://localhost:5000/auth/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+
+        const result = await response.json();
+        console.log("Register response:", result);
+
+        if (response.ok) {
+            alert("Registration successful!");
+            document.querySelector(".login-form").style.display = "block";
+            document.querySelector(".register-form").style.display = "none";
+
+            window.location.reload();
+        } else {
+            alert(result.error || "Registration failed.");
+        }
+    } catch (err) {
+        console.error("Register error:", err);
+        alert("Something went wrong.");
     }
-    // probably have error messages for each `.validity.tooShort` etc...
-    isSubmitting = false
 }

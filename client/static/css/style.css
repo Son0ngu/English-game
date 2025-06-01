@@ -83,6 +83,10 @@ i {
     transform: rotate(90deg);
 }
 
+#nav-user {
+    display: none;
+}
+
 .hori-selector {
     display: inline-block;
     position: absolute;
@@ -242,9 +246,12 @@ button:hover {
 }
 
 .map-image {
-    width: 100%;         /* co lại theo chiều ngang màn hình */
-    height: auto;        /* giữ tỉ lệ ảnh */
-    max-width: fit-content;    /* giới hạn chiều rộng tối đa */
+    width: 100%;
+    /* co lại theo chiều ngang màn hình */
+    height: auto;
+    /* giữ tỉ lệ ảnh */
+    max-width: fit-content;
+    /* giới hạn chiều rộng tối đa */
     display: block;
     margin: auto;
 }
@@ -264,4 +271,198 @@ button:hover {
     border-radius: 50%;
     background-color: #6b4226;
     font-weight: bold;
+}
+
+/* ===== USER PROFILE FORM ===== */
+
+.profile-form {
+    max-width: 500px;
+    margin: 40px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+.profile-form h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 1.8rem;
+    color: #333;
+}
+
+.avatar-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.avatar-section img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ccc;
+    background-color: #f3f3f3;
+}
+
+.avatar-label {
+    display: inline-block;
+    margin-top: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #5161ce;
+}
+
+.field {
+    margin-bottom: 15px;
+}
+
+.field label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #444;
+}
+
+.field input {
+    width: 100%;
+    padding: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+details.change-password summary {
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    margin-top: 15px;
+}
+
+button[type="submit"],
+#logoutBtn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 15px;
+    margin-right: 10px;
+}
+
+button[type="submit"] {
+    background-color: #5161ce;
+    color: white;
+}
+
+#logoutBtn {
+    background-color: #dc3545;
+    color: white;
+}
+
+button[type="submit"]:hover,
+#logoutBtn:hover {
+    opacity: 0.9;
+}
+
+.error {
+    color: red;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+/* Toàn bộ khu vực Quản lý Lớp */
+#classSection {
+    text-align: left;
+    max-width: 500px;
+    margin: 0 auto 40px auto;
+    font-family: Arial, sans-serif;
+}
+
+#classSection h3 {
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+/* Khung nhập tên lớp và nút “Tạo lớp” */
+#newClassForm {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+#newClassName {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.2s;
+}
+
+#newClassName:focus {
+    outline: none;
+    border-color: #5161ce;
+}
+
+#createClassBtn {
+    padding: 8px 16px;
+    background-color: #5161ce;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#createClassBtn:hover {
+    background-color: #3f4db5;
+}
+
+/* Danh sách lớp */
+#classList {
+    max-height: 210px; /* hoặc chiều cao tùy ý */
+    overflow-y: auto;  /* tạo thanh cuộn bên trong */
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+/* Mỗi thẻ <li> đại diện cho một lớp */
+#classList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+#classList li:hover {
+    background-color: #eef2ff;
+    box-shadow: 0 2px 6px rgba(81, 97, 206, 0.2);
+}
+
+#classList li .name {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #333;
+}
+
+#classList li .code {
+    font-size: 0.9rem;
+    color: #555;
+    background-color: #e0e4f7;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
 }

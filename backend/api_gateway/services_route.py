@@ -1,7 +1,8 @@
 from flask import jsonify
-from flask_jwt_extended import get_jwt_identity, get_jwt, create_access_token
+from flask_jwt_extended import get_jwt_identity, get_jwt, create_access_token, jwt_required
 from flask import request
 
+from auth_service.auth_service_controller import auth_service_controller
 # Import các controller
 from game_service.game_service_controller import game_service_controller
 from progress_feedback.progress_service.progress_controller import ProgressController
@@ -68,7 +69,7 @@ class services_route:
             
             # Classroom service
             try:
-                classroom_service = ClassroomService(self.user_service_obj)
+                classroom_service = ClassroomService()
                 self.classroom_controller = ClassroomController(classroom_service)
             except:
                 # Fallback
@@ -397,9 +398,10 @@ class services_route:
                     return jsonify({"error": "Game service not available"}), 503
                     
                 student_id = get_jwt_identity()
+                difficulty = data.get('difficulty')
                 if student_id:
-                    self.game_service.create_game_room(student_id)
-                    return jsonify({"message": "Game room created successfully"}), 200
+                    response = self.game_service.create_game_room(student_id,difficulty)
+                    return response, 200
                 else:
                     return jsonify({"error": "Student ID is required"}), 400
 
@@ -423,45 +425,44 @@ class services_route:
         except Exception as e:
             return jsonify({"error": f"Game service error: {str(e)}"}), 500
 
+    @jwt_required()
     def classroom_service(self, destination, data, method):
-        """Điều hướng classroom service - Lấy user_id từ JWT khi cần"""
         if not self.classroom_controller:
             return jsonify({"error": "Classroom service not available"}), 503
-            
+
         try:
             if destination == "health" and method == "GET":
                 return self.classroom_controller.check_health()
             elif destination == "create" and method == "POST":
                 return self.classroom_controller.create_class(data)
+            elif destination == "classes" and method == "POST":
+                return self.classroom_controller.get_teachers_classes()
             elif destination == "join" and method == "POST":
                 return self.classroom_controller.join_class(data)
-            
-            # Class-based endpoints - từ JSON data
             elif destination == "students" and method == "POST":
-                class_id = data.get('class_id')
+                print('DEBUG calling students')
+                class_id = data.get("class_id")
                 if not class_id:
                     return jsonify({"error": "class_id required in JSON"}), 400
+                print(class_id)
                 return self.classroom_controller.get_students(class_id)
-            
             elif destination == "dashboard" and method == "POST":
-                class_id = data.get('class_id')
+                class_id = data.get("class_id")
                 if not class_id:
                     return jsonify({"error": "class_id required in JSON"}), 400
                 return self.classroom_controller.get_dashboard(class_id)
-            
-            # 🔄 CHUYỂN: Student classes từ JWT
             elif destination == "student/classes" and method == "POST":
                 student_id = self._get_user_id_from_jwt()
                 if not student_id:
                     return jsonify({"error": "Authentication required"}), 401
                 return self.classroom_controller.get_student_classes(student_id)
-            
+            elif destination == "kick" and method == "POST":
+                return self.classroom_controller.kick_student(data)
             elif destination == "questions" and method == "POST":
-                class_id = data.get('class_id')
+                class_id = data.get("class_id")
                 if not class_id:
                     return jsonify({"error": "class_id required in JSON"}), 400
                 return self.classroom_controller.get_questions_by_criteria(class_id)
-            
             else:
                 return jsonify({"error": f"Classroom endpoint '{destination}' not found"}), 404
         except Exception as e:
@@ -478,7 +479,7 @@ class services_route:
                     id = self.auth.get_id_from_username(username)
                     role = self.auth.get_role_from_id(id)
                     additional_claims = {"role": role}
-                    access_token = create_access_token(identity=username,additional_claims=additional_claims)
+                    access_token = create_access_token(identity=id,additional_claims=additional_claims)
                     print("Crafted access token:", access_token," (service_route)")
                     return {"access_token": access_token}, 200
                 else:
@@ -499,7 +500,7 @@ class services_route:
                     id = self.auth.get_id_from_username(username)
                     role = self.auth.get_role_from_id(id)
                     additional_claims = {"role": role}
-                    access_token = create_access_token(identity=username, additional_claims=additional_claims)
+                    access_token = create_access_token(identity=id, additional_claims=additional_claims)
                     print("Crafted access token:", access_token, " (service_route)")
                     return {"message": "User created successfully","access_token":access_token}, 200
                 else:

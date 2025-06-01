@@ -55,6 +55,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#game" data-toggle="tab">Play Game</a>
                 </li>
+                <li class="nav-item" id="nav-user">
+                    <a class="nav-link" href="#userprofile" data-toggle="tab">Username</a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -78,20 +81,20 @@
                     <button onclick="window.location.href='setting.html'">Setting</button>
                     <button onclick="toggleInstruction()">Instruction</button>
                 </div>
-                
+
                 <div id="setting-panel" class="panel hidden">
                     <h2>⚙️ Settings</h2>
                     <p>Chưa có cài đặt nào.</p>
                     <button onclick="toggleSetting()">Đóng</button>
                 </div>
-                
+
                 <div id="instruction-panel" class="panel hidden">
                     <h2>📜 Hướng dẫn</h2>
                     <p>Bạn sẽ điều khiển dũng sĩ vượt qua 10 màn chơi bằng cách học từ vựng và câu tiếng Anh!</p>
                     <p>Mỗi màn là một thử thách: nối từ, chọn hình, nghe và điền từ, v.v.</p>
                     <button onclick="toggleInstruction()">Đóng</button>
                 </div>
-                
+
                 <audio id="bg-music" autoplay loop>
                     <source src="static/music/background.mp3" type="audio/mpeg">
                     Trình duyệt của bạn không hỗ trợ âm thanh.
@@ -130,18 +133,103 @@
                     <button onclick="window.location.href='setting.html'">Setting</button>
                     <button onclick="toggleInstruction()" id>Instruction</button>
                 </div>
-                
+
                 <div id="instruction-panel" class="panel hidden">
                     <h2>📜 Hướng dẫn</h2>
                     <p>Bạn sẽ điều khiển dũng sĩ vượt qua 10 màn chơi bằng cách học từ vựng và câu tiếng Anh!</p>
                     <p>Mỗi màn là một thử thách: nối từ, chọn hình, nghe và điền từ, v.v.</p>
                     <button onclick="toggleInstruction()">Đóng</button>
                 </div>
-                
+
                 <audio id="bg-music" autoplay loop>
                     <source src="static/music/background.mp3" type="audio/mpeg">
                     Trình duyệt của bạn không hỗ trợ âm thanh.
                 </audio>
+            </div>
+
+
+            <!-- User Profile Tab -->
+            <div class="tab-pane fade" id="userprofile">
+                <form class="container profile-form" id="userProfileForm" novalidate>
+                    <h2>User Profile</h2>
+
+                    <!-- Avatar
+                        <div class="avatar-section">
+                            <img id="avatarPreview" src="default-avatar.png" alt="Avatar Preview">
+                            <label for="avatar" class="avatar-label">Thay ảnh đại diện</label>
+                            <input type="file" id="avatar" accept="image/*">
+                            <span class="error" id="avatarError" aria-live="polite"></span>
+                        </div> -->
+
+                    <!-- Username -->
+                    <div class="field">
+                        <label for="profileUsername">Username</label>
+                        <input id="profileUsername" type="text" required minlength="4">
+                        <span class="error" aria-live="polite"></span>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="field">
+                        <label for="profileEmail">Email</label>
+                        <input id="profileEmail" type="email" required>
+                        <span class="error" aria-live="polite"></span>
+                    </div>
+
+                    <!-- Change Password -->
+                    <details class="change-password">
+                        <summary>Đổi mật khẩu</summary>
+                        <div class="field">
+                            <label for="currentPassword">Mật khẩu hiện tại</label>
+                            <input id="currentPassword" type="password" minlength="8">
+                            <span class="error" aria-live="polite"></span>
+                        </div>
+                        <div class="field">
+                            <label for="newPassword">Mật khẩu mới</label>
+                            <input id="newPassword" type="password" minlength="8">
+                            <span class="error" aria-live="polite"></span>
+                        </div>
+                        <div class="field">
+                            <label for="confirmPassword">Xác nhận mật khẩu</label>
+                            <input id="confirmPassword" type="password" minlength="8">
+                            <span class="error" aria-live="polite"></span>
+                        </div>
+                    </details>
+
+                    <!-- Action Buttons -->
+                    <button type="submit">Lưu thay đổi</button>
+                    <button type="button" id="logoutBtn" style="margin-left: 10px;">Đăng xuất</button>
+
+                    <!-- Phần Quản lý Lớp (mới) -->
+                    <hr style="margin: 20px 0;">
+                    <h3>Quản lý Lớp</h3>
+                    <div id="classSection">
+                        <div id="newClassForm">
+                            <input type="text" id="newClassName" placeholder="Nhập tên lớp" />
+                            <button type="button" id="createClassBtn">
+                                Tạo lớp
+                            </button>
+                        </div>
+
+                        <ul id="classList">
+                            <!-- Danh sách lớp sẽ được JS đổ vào đây -->
+                        </ul>
+                    </div>
+
+                    <span id="loadingMsg" class="sr-only" aria-live="assertive"></span>
+                </form>
+
+                <!-- Chi tiết lớp, ẩn ban đầu -->
+                <div id="classDetails" style="display: none;">
+                    <button onclick="backToProfile()" class="btn btn-secondary mb-3">← Quay lại</button>
+
+                    <h3 id="classDetailsName">Tên lớp</h3>
+
+                    <h4>Dashboard</h4>
+                    <div id="dashboard"></div>
+
+                    <h4>Danh sách học sinh</h4>
+                    <ul id="studentList"></ul>
+                </div>
             </div>
 
 
@@ -155,32 +243,37 @@
                         <form id="loginForm">
                             <div class="form-group">
                                 <label for="username">Username</label>
-                                <input type="text" class="form-control" id="username" placeholder="Enter username" required>
+                                <input type="text" class="form-control" id="username" placeholder="Enter username"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="password">Password</label>
-                                <input type="password" class="form-control" id="password" placeholder="Password" required>
+                                <input type="password" class="form-control" id="password" placeholder="Password"
+                                    required>
                             </div>
                             <button type="submit" class="btn btn-primary">Login</button>
                         </form>
                         <p class="mt-3">Don't have an account? <a href="#" id="showRegister">Register here</a></p>
                     </div>
-    
+
                     <div class="register-form" style="display:none;">
                         <!-- Register Form -->
                         <h2>Register</h2>
                         <form id="registerForm">
                             <div class="form-group">
                                 <label for="newUsername">Username</label>
-                                <input type="text" class="form-control" id="newUsername" placeholder="Enter username" required>
+                                <input type="text" class="form-control" id="newUsername" placeholder="Enter username"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="newPassword">Password</label>
-                                <input type="password" class="form-control" id="newPassword" placeholder="Password" required>
+                                <input type="password" class="form-control" id="newPassword" placeholder="Password"
+                                    required>
                             </div>
                             <div class="form-group">
                                 <label for="confirmPassword">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
+                                <input type="password" class="form-control" id="confirmPassword"
+                                    placeholder="Confirm Password" required>
                             </div>
                             <button type="submit" class="btn btn-primary">Register</button>
                         </form>
@@ -195,34 +288,7 @@
     <script src="./static/js/script.js"></script>
     <script>
         function goToMap() {
-          window.location.href = 'map.html';
-        }
-        /*
-        function toggleSetting() {
-          document.getElementById("setting-panel").classList.toggle("hidden");
-        }
-        */
-        function toggleInstruction() {
-          document.getElementById("instruction-panel").classList.toggle("hidden");
-        }
-    
-        window.addEventListener("DOMContentLoaded", () => {
-        const music = document.getElementById("bg-music");
-    
-        // Phát sau khi người dùng tương tác
-        document.body.addEventListener("click", () => {
-          if (music.paused) {
-            music.volume = 0.5; // Âm lượng 50%
-            music.play();
-          }
-        }, { once: true });
-      });
-      </script>
-</body>
-
-        <script>
-        function goToMap() {
-          window.location.href = 'map.html';
+            window.location.href = 'map.html';
         }
         /*
         function toggleSetting() {
@@ -232,20 +298,50 @@
         function toggleInstruction() {
             document.getElementById("instruction-panel").classList.toggle("hidden");
         }
-        
-    
+
         window.addEventListener("DOMContentLoaded", () => {
+            const music = document.getElementById("bg-music");
+
+            // Phát sau khi người dùng tương tác
+            document.body.addEventListener("click", () => {
+                if (music.paused) {
+                    music.volume = 0.5; // Âm lượng 50%
+                    music.play();
+                }
+            }, { once: true });
+        });
+    </script>
+</body>
+
+<script>
+    function goToMap() {
+        window.location.href = 'map.html';
+    }
+    /*
+    function toggleSetting() {
+      document.getElementById("setting-panel").classList.toggle("hidden");
+    }
+    */
+    function toggleInstruction() {
+        document.getElementById("instruction-panel").classList.toggle("hidden");
+    }
+
+
+    window.addEventListener("DOMContentLoaded", () => {
         const music = document.getElementById("bg-music");
-    
+
         // Phát sau khi người dùng tương tác
         document.body.addEventListener("click", () => {
-          if (music.paused) {
-            music.volume = 0.5; // Âm lượng 50%
-            music.play();
-          }
+            if (music.paused) {
+                music.volume = 0.5; // Âm lượng 50%
+                music.play();
+            }
         }, { once: true });
-      });
+    });
+</script>
 
-      </script>
+<script src="./templates/loginPage/loginPage.js"></script>
+<script src="./templates/userPage/userPage.js"></script>
+<script src="./templates/classDetail/classDetails.js"></script>
 
 </html>

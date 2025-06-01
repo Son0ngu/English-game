@@ -12,18 +12,33 @@ class game_service:
         self.user_service = userService()
         self.monster_service = monster_service()
 
-    def create_game_room(self,student_id,diffculty):
+    def create_game_room(self,student_id,difficulty,class_id):
         session_id=uuid.uuid1()
         atk, hp = self.user_service.get_user_stats_only(student_id)
-        monster = self.monster_service.create_monster_based_on_difficulty(student_id,diffculty,hp,atk)
+        monster = self.monster_service.create_monster_based_on_difficulty(student_id,difficulty,hp,atk)
         monster_hp = monster.monster_hp
         monster_atk = monster.monster_atk
         money_win = monster.money_win
-        game_logic_handler_instance = game_logic_handler(hp, atk, monster_hp, monster_atk, diffculty)
-        self.game_room_list[session_id] = self.game_room(session_id, student_id, game_logic_handler_instance,diffculty,monster,money_win)
+        game_logic_handler_instance = game_logic_handler(hp, atk, monster_hp, monster_atk, difficulty)
+        self.game_room_list[session_id] = self.game_room(session_id, student_id, game_logic_handler_instance,difficulty,monster,money_win)
         self.student_id_to_session_id[student_id]=session_id
         self.game_room_list[session_id].status = 0
-        return self.game_room_list[session_id]
+        return {
+            "session_id": session_id,
+            "student_id": student_id,
+            "class_id": class_id,
+            "difficulty": difficulty,
+            "status": self.game_room_list[session_id].status,
+            "player_stats": {
+                "hp": hp,
+                "atk": atk
+            },
+            "monster_stats": {
+                "hp": monster_hp,
+                "atk": monster_atk,
+                "money_win": money_win
+            }
+        }
 
     def get_game_room_state(self,student_id):
         session_id = self.student_id_to_session_id.get(student_id)
