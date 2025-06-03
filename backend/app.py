@@ -19,7 +19,7 @@ def create_app(config_object=None):
         app.config.from_object(config_object)
     
     # Configure CORS
-    CORS(app)
+    CORS(app,supports_credentials=True)
     
     # Simple configuration
     app.config['DEBUG'] = True
