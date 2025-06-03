@@ -10,18 +10,43 @@ class UserProfileService:
         self._stats = {"profile_updates": 0, "progress_updates": 0}
         self.user_repository = UserRepository()
     
-    def get_user(self, user_id: int) -> Optional[dict]:
+    def get_user(self, user_id: str) -> Optional[dict]:
         """Get user details by ID"""
         try:
+            print(f"Looking for user: {user_id}")
             user = self.user_repository.find_by_id(user_id)
+            
+            if not user:
+                # Tự động tạo user profile nếu chưa có
+                print(f"User {user_id} not found, creating new profile...")
+                
+                # Xác định role dựa trên user_id hoặc có thể gọi auth service để lấy
+                default_role = "student"
+                if "teacher" in user_id.lower():
+                    default_role = "teacher"
+                elif "admin" in user_id.lower():
+                    default_role = "admin"
+                
+                # Tạo user profile mới
+                created = self.add_user_id_only(user_id)
+                if created:
+                    print(f"Created user profile for {user_id}")
+                    # Lấy lại user vừa tạo
+                    user = self.user_repository.find_by_id(user_id)
+            
             if user:
+                print(f"Found user: {user.to_dict()}")
                 return user.to_dict()
+            else:
+                print(f"User {user_id} not found and could not create")
+                
             return None
         except Exception as e:
+            print(f"💥 Error getting user {user_id}: {e}")
             self._last_error = e
             return None
     
-    def update_profile(self, user_id: int, updates: dict) -> dict:
+    def update_profile(self, user_id: str, updates: dict) -> dict:
         """Update user profile attributes"""
         self._stats["profile_updates"] += 1
         try:
@@ -239,9 +264,9 @@ class UserProfileService:
         try:
             user_data = self.get_user(user_id)
             if user_data:
-                atk = user_data.get('atk', 0),
+                atk = user_data.get('atk', 0)
                 hp = user_data.get('hp', 0)
-                return atk,hp
+                return {"atk": atk, "hp": hp}
             else:
                 print(f"User with ID {user_id} not found")
                 return None

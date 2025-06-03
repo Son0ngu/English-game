@@ -21,6 +21,7 @@ INSERT INTO auth_service (user_id, username, password, role) VALUES
 -- CLASSES
 INSERT INTO classes (id, name, code, teacher_id) VALUES
   ('class1', 'English A1',          'ENG-A1',  'teacher1'),
+  ('0c8b623a', '123',          'ENG-A1',  'teacher1'),
   ('class2', 'Grammar Basic',       'GRM-BSC', 'teacher1'),
   ('class3', 'Vocabulary Advanced', 'VOC-ADV', 'teacher2');
 
@@ -32,6 +33,14 @@ INSERT INTO student_class (class_id, student_id) VALUES
   ('class2', 'student2'),
   ('class2', 'student4'),
   ('class3', 'student3');
+
+INSERT INTO student_class (class_id, student_id) VALUES
+  ('9c5f8697', 'student1'),
+  ('9c5f8697', 'student2'),
+  ('9c5f8697', 'student3'),
+  ('9c5f8697', 'student2'),
+  ('9c5f8697', 'student4'),
+  ('9c5f8697', 'student3');
 
 INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
   -- Multiple Choice (có thể có nhiều lựa chọn, correct_index là vị trí đầu tiên của đáp án đúng)

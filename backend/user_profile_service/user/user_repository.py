@@ -80,7 +80,7 @@ class UserRepository:
             
         return user
     
-    def find_by_id(self, user_id: int) -> Optional[UserProfile]:
+    def find_by_id(self, user_id: str) -> Optional[UserProfile]:
         """
         Tìm người dùng theo ID
         
@@ -90,6 +90,7 @@ class UserRepository:
         Returns:
             Đối tượng UserProfile hoặc None nếu không tìm thấy
         """
+        print("find_by_id", user_id)
         user_dict = self.db.get_user_by_id(user_id)
         return self._dict_to_user(user_dict)
     

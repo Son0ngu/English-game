@@ -210,7 +210,7 @@ class UserProfileDatabaseInterface(DatabaseInterface):
             cursor.close()
             connection.close()
     
-    def get_user_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
+    def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
         """
         Lấy thông tin người dùng theo ID
         
@@ -220,6 +220,7 @@ class UserProfileDatabaseInterface(DatabaseInterface):
         Returns:
             Dictionary chứa thông tin người dùng hoặc None
         """
+        print("get_user_by_id", user_id)
         connection = self._get_connection()
         cursor = connection.cursor()
         
@@ -274,7 +275,7 @@ class UserProfileDatabaseInterface(DatabaseInterface):
             cursor.close()
             connection.close()
     
-    def get_students(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+    def  get_students(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
         """
         Lấy danh sách học sinh
         
@@ -436,7 +437,7 @@ class UserProfileDatabaseInterface(DatabaseInterface):
             cursor.close()
             connection.close()
 
-    def add_user_id_only(self,user_id):
+    def add_user_id_only(self, user_id):
         connection = self._get_connection()
         cursor = connection.cursor()
         try:
@@ -445,23 +446,49 @@ class UserProfileDatabaseInterface(DatabaseInterface):
                 exists = cursor.fetchone() is not None
             else:
                 exists = False
+            
             if not exists:
-                cursor.execute("INSERT INTO user_profiles (user_id) VALUES (?)", (user_id,))
+                # Xác định role dựa trên user_id
+                default_role = "student"
+                if "teacher" in user_id.lower():
+                    default_role = "teacher"
+                elif "admin" in user_id.lower():
+                    default_role = "admin"
+                    
+                cursor.execute("""
+                    INSERT INTO user_profiles (id, email, role, created_at, last_login) 
+                    VALUES (?, ?, ?, ?, ?)
+                """, (user_id, f"user_{user_id}@temp.com", default_role, int(time.time()), int(time.time())))
+                
+                # Nếu là student, tạo thêm student_profile
+                if default_role == "student":
+                    cursor.execute("""
+                        INSERT INTO student_profiles (id, language_level, points, money, hp, atk, items) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (user_id, 1, 0, 100, 100, 10, "[]"))
+                    
+                # Nếu là teacher, tạo thêm teacher_profile  
+                elif default_role == "teacher":
+                    cursor.execute("""
+                        INSERT INTO teacher_profiles (id, subjects) 
+                        VALUES (?, ?)
+                    """, (user_id, "[]"))
+                
                 connection.commit()
-                connection.close()
-                cursor.close()
+                print(f"✅ Created {default_role} profile for {user_id}")
                 return True
             else:
-                print("User ID already exists (add_user_id_only)")
-                connection.close()
-                cursor.close()
-                return False
+                print(f"User profile {user_id} already exists")
+                return True
+            
         except Exception as e:
+            print(f"Error adding user profile: {str(e)}")
             connection.rollback()
-            print(f"Error adding user ID: {str(e)}")
             return False
-
-
+        finally:
+            cursor.close()
+            connection.close()
+    
 
 class ItemDatabaseInterface(DatabaseInterface):
     """Interface cho các thao tác với items trong database"""

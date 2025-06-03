@@ -16,9 +16,13 @@ async function loadDashboard(classId) {
     const token = localStorage.getItem("token");
     const resp = await fetch("http://localhost:5000/classroom/dashboard", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: { 
+            "Content-Type": "application/json", 
+            "Authorization": `Bearer ${token}` 
+        },
         body: JSON.stringify({ class_id: classId })
     });
+    console.log(classId)
     const data = await resp.json();
     document.getElementById('dashboard').textContent = JSON.stringify(data.dashboard);
 }
