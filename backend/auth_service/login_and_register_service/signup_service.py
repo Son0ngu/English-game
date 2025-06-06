@@ -22,7 +22,7 @@ class signup_service:
     def add_specialized_user(self,username,password,role):
         if not self.auth_service_database_interface.check_if_user_exist(username):
             user_id = str(uuid.uuid4())
-            self.user.add_user_id_only(user_id)
+            self.user.add_user_id_only(user_id, role)
             self.auth_service_database_interface.add_user(user_id, username, password,role=role)
             return True
         else:

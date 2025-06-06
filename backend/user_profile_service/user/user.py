@@ -32,59 +32,150 @@ class UserProfile:
         return cls(**data)
 
 class StudentProfile(UserProfile):
-    """Student profile with game stats"""
+    """Student profile with game stats và map progression"""
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.language_level = kwargs.get('language_level', 1)
         self.points = kwargs.get('points', 0)
-        # BỎ: self.money = kwargs.get('money', 100)
+        self.money = kwargs.get('money', 100)
         self.hp = kwargs.get('hp', 100)
         self.atk = kwargs.get('atk', 10)
-        self._items = "[]"
+        
+        # Map progression fields
+        self.current_map = kwargs.get('current_map', 1)
+        self.max_map_unlocked = kwargs.get('max_map_unlocked', 1)
+        self._maps_completed = kwargs.get('maps_completed', '[]')
+        
+        # Items
+        self._items = kwargs.get('items', '[]')
+        
+        # Initialize items properly
         if 'items' in kwargs:
             self.set_items(kwargs['items'])
-    
+
     def get_items(self) -> List[Dict[str, Any]]:
-        """Get student's items as Python list"""
+        """Get items as Python list"""
         try:
-            return json.loads(self._items)
+            if isinstance(self._items, str):
+                return json.loads(self._items)
+            elif isinstance(self._items, list):
+                return self._items
+            else:
+                return []
         except:
             return []
             
     def set_items(self, items_list: List[Dict[str, Any]]) -> None:
-        """Save items list back to storage format"""
-        self._items = json.dumps(items_list)
+        """Save items list"""
+        if isinstance(items_list, list):
+            self._items = json.dumps(items_list)
+        elif isinstance(items_list, str):
+            self._items = items_list
+        else:
+            self._items = '[]'
     
-    def add_item(self, item: Dict[str, Any]) -> None:
-        """Add item to student's inventory"""
-        items = self.get_items()
-        items.append(item)
-        self.set_items(items)
+    def add_item(self, item: Dict[str, Any]) -> bool:
+        """Add an item to inventory"""
+        try:
+            items = self.get_items()
+            items.append(item)
+            self.set_items(items)
+            return True
+        except:
+            return False
     
+    def remove_item(self, item_id: str) -> bool:
+        """Remove an item from inventory"""
+        try:
+            items = self.get_items()
+            items = [item for item in items if item.get('id') != item_id]
+            self.set_items(items)
+            return True
+        except:
+            return False
+
+    def get_maps_completed(self) -> List[int]:
+        """Get completed maps as Python list"""
+        try:
+            if isinstance(self._maps_completed, str):
+                return json.loads(self._maps_completed)
+            elif isinstance(self._maps_completed, list):
+                return self._maps_completed
+            else:
+                return []
+        except:
+            return []
+            
+    def set_maps_completed(self, maps_list: List[int]) -> None:
+        """Save completed maps list"""
+        if isinstance(maps_list, list):
+            self._maps_completed = json.dumps(maps_list)
+        elif isinstance(maps_list, str):
+            self._maps_completed = maps_list
+        else:
+            self._maps_completed = '[]'
     
+    def complete_map(self, map_number: int) -> bool:
+        """Mark map as completed and unlock next map"""
+        completed_maps = self.get_maps_completed()
+        
+        # Chỉ complete map theo thứ tự
+        if map_number == self.current_map and map_number not in completed_maps:
+            completed_maps.append(map_number)
+            self.set_maps_completed(completed_maps)
+            
+            # Unlock next map
+            self.current_map = map_number + 1
+            self.max_map_unlocked = max(self.max_map_unlocked, map_number + 1)
+            
+            return True
+        return False
     
-    def view_progress(self) -> Dict[str, Any]:
-        """Get student's learning progress"""
+    def can_access_map(self, map_number: int) -> bool:
+        """Check if student can access specific map"""
+        return map_number <= self.max_map_unlocked
+    
+    def get_map_progress(self) -> Dict[str, Any]:
+        """Get map progression summary"""
+        completed_maps = self.get_maps_completed()
         return {
-            "level": self.language_level,
-            "points": self.points,
-            "items_count": len(self.get_items()),
-            "progress_percent": min(100, (self.points / 1000) * 100)  # Giả sử 1000 điểm = 100%
+            "current_map": self.current_map,
+            "max_map_unlocked": self.max_map_unlocked,
+            "completed_maps": completed_maps,
+            "total_completed": len(completed_maps),
+            "progress_percent": (len(completed_maps) / 10) * 100  # Giả sử có 10 maps
         }
-    
+
+    def view_progress(self) -> Dict[str, Any]:
+        """View detailed progress information"""
+        return {
+            "user_id": self.id,
+            "language_level": self.language_level,
+            "points": self.points,
+            "money": self.money,
+            "hp": self.hp,
+            "atk": self.atk,
+            "map_progression": self.get_map_progress(),
+            "total_items": len(self.get_items()),
+            "last_updated": int(time.time())
+        }
+
     def to_dict(self) -> Dict[str, Any]:
-        """Override to_dict to include student-specific fields"""
-        data = super().to_dict()
-        data.update({
+        """Convert to dictionary for database storage"""
+        base_dict = super().to_dict()
+        base_dict.update({
             'language_level': self.language_level,
             'points': self.points,
-            # BỎ: 'money': self.money,
+            'money': self.money,
             'hp': self.hp,
             'atk': self.atk,
-            'items': self.get_items()
+            'current_map': self.current_map,
+            'max_map_unlocked': self.max_map_unlocked,
+            'maps_completed': self._maps_completed,
+            'items': self._items
         })
-        return data
-    
+        return base_dict
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]):
         """Create StudentProfile from dictionary"""

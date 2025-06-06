@@ -17,28 +17,12 @@ class UserProfileService:
             user = self.user_repository.find_by_id(user_id)
             
             if not user:
-                # Tự động tạo user profile nếu chưa có
-                print(f"User {user_id} not found, creating new profile...")
-                
-                # Xác định role dựa trên user_id hoặc có thể gọi auth service để lấy
-                default_role = "student"
-                if "teacher" in user_id.lower():
-                    default_role = "teacher"
-                elif "admin" in user_id.lower():
-                    default_role = "admin"
-                
-                # Tạo user profile mới
-                created = self.add_user_id_only(user_id)
-                if created:
-                    print(f"Created user profile for {user_id}")
-                    # Lấy lại user vừa tạo
-                    user = self.user_repository.find_by_id(user_id)
+                print(f"User {user_id} not found")
+                return None
             
             if user:
                 print(f"Found user: {user.to_dict()}")
                 return user.to_dict()
-            else:
-                print(f"User {user_id} not found and could not create")
                 
             return None
         except Exception as e:
@@ -274,5 +258,68 @@ class UserProfileService:
             print(f"User with ID {user_id} not found")
             return None
 
-    def add_user_id_only(self,user_id):
-        return self.user_repository.add_user_id_only(user_id)
+    def add_user_id_only(self, user_id, role="student"):
+        """Add user profile với role được chỉ định"""
+        return self.user_repository.add_user_id_only(user_id, role)
+
+    def change_user_role(self, user_id: str, new_role: str) -> dict:
+        """Thay đổi role của user"""
+        try:
+            # Validate role
+            valid_roles = ['student', 'teacher', 'admin']
+            if new_role not in valid_roles:
+                return {
+                    "success": False,
+                    "error": f"Invalid role '{new_role}'. Must be one of: {valid_roles}"
+                }
+            
+            # Lấy user hiện tại
+            current_user = self.get_user(user_id)
+            if not current_user:
+                return {
+                    "success": False,
+                    "error": f"User with ID '{user_id}' not found"
+                }
+            
+            old_role = current_user.get('role', 'student')
+            
+            # Nếu role giống nhau, không cần thay đổi
+            if old_role == new_role:
+                return {
+                    "success": True,
+                    "message": f"User already has role '{new_role}'",
+                    "user": {
+                        "user_id": user_id,
+                        "old_role": old_role,
+                        "new_role": new_role,
+                        "changed": False
+                    }
+                }
+            
+            # Thay đổi role trong database
+            result = self.user_repository.change_user_role(user_id, new_role)
+            
+            if result:
+                return {
+                    "success": True,
+                    "message": f"User role changed from '{old_role}' to '{new_role}' successfully",
+                    "user": {
+                        "user_id": user_id,
+                        "old_role": old_role,
+                        "new_role": new_role,
+                        "changed": True,
+                        "permissions_updated": True
+                    }
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Failed to change user role in database"
+                }
+                
+        except Exception as e:
+            print(f"Error changing user role: {e}")
+            return {
+                "success": False,
+                "error": f"Failed to change user role: {str(e)}"
+            }

@@ -8,18 +8,10 @@ class UserRepository:
         self.db = UserProfileDatabaseInterface()
     
     def _dict_to_user(self, user_dict: Dict[str, Any]) -> Optional[UserProfile]:
-        """
-        Chuyển đổi dictionary thành đối tượng UserProfile
-        
-        Args:
-            user_dict: Dictionary chứa dữ liệu người dùng
-            
-        Returns:
-            Đối tượng UserProfile, StudentProfile hoặc TeacherProfile
-        """
+        """Convert dictionary to User object"""
         if not user_dict:
             return None
-            
+        
         role = user_dict.get('role', 'student')
         
         if role == 'student':
@@ -32,11 +24,30 @@ class UserRepository:
             )
             user.language_level = user_dict.get('language_level', 1)
             user.points = user_dict.get('points', 0)
-            # BỎ: user.money = user_dict.get('money', 100)
+            user.money = user_dict.get('money', 100)
             user.hp = user_dict.get('hp', 100)
             user.atk = user_dict.get('atk', 10)
-            user.set_items(user_dict.get('items', []))
             
+            #  THÊM: Map progression fields
+            user.current_map = user_dict.get('current_map', 1)
+            user.max_map_unlocked = user_dict.get('max_map_unlocked', 1)
+            user._maps_completed = user_dict.get('maps_completed', '[]')
+            
+            # SỬA: Items handling với defensive programming
+            items_data = user_dict.get('items', '[]')
+            try:
+                if isinstance(items_data, str):
+                    user._items = items_data
+                elif isinstance(items_data, list):
+                    user._items = json.dumps(items_data)
+                else:
+                    user._items = '[]'
+            except Exception as e:
+                print(f"Warning: Could not process items for user {user_dict.get('id')}: {e}")
+                user._items = '[]'
+            
+            return user
+        
         elif role == 'teacher':
             user = TeacherProfile(
                 id=user_dict.get('id'),
@@ -45,9 +56,18 @@ class UserRepository:
                 created_at=user_dict.get('created_at'),
                 last_login=user_dict.get('last_login')
             )
-            user.set_subjects(user_dict.get('subjects', []))
-            
+            # SỬA: Subjects handling với defensive programming
+            subjects_data = user_dict.get('subjects', [])
+            try:
+                user.set_subjects(subjects_data)
+            except Exception as e:
+                print(f"Warning: Could not process subjects for teacher {user_dict.get('id')}: {e}")
+                user._subjects = '[]'
+        
+            return user
+        
         else:
+            # Generic user profile
             user = UserProfile(
                 id=user_dict.get('id'),
                 email=user_dict.get('email'),
@@ -55,7 +75,7 @@ class UserRepository:
                 created_at=user_dict.get('created_at'),
                 last_login=user_dict.get('last_login')
             )
-            
+        
         return user
     
     def save(self, user: UserProfile) -> UserProfile:
@@ -154,5 +174,10 @@ class UserRepository:
             print(f"Database connection failed: {e}")
             return False
 
-    def add_user_id_only(self,user_id):
-        return self.db.add_user_id_only(user_id)
+    def add_user_id_only(self, user_id, role="student"):
+        """Add user với role được chỉ định"""
+        return self.db.add_user_id_only(user_id, role)
+
+    def change_user_role(self, user_id: str, new_role: str) -> bool:
+        """Thay đổi role của user"""
+        return self.db.change_user_role(user_id, new_role)
