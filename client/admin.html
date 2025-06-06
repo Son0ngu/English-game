@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Dashboard</title>
+    <!-- Bootstrap 4 CSS (bỏ integrity/crossorigin để tránh lỗi) -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        h1,
+        h2 {
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        section {
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        pre {
+            background-color: #e9ecef;
+            padding: 1rem;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .form-inline .form-control {
+            width: auto;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .mt-2 {
+            margin-top: 0.5rem !important;
+        }
+
+        /* Ẩn dashboard ban đầu, chỉ show khi login thành công */
+        #dashboard {
+            display: none;
+        }
+
+        /* Căn giữa form login */
+        #login-container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #login-box {
+            width: 320px;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ========== Form Login ========== -->
+    <div id="login-container">
+        <div id="login-box">
+            <h3 class="text-center mb-4">Đăng nhập Admin</h3>
+            <div class="form-group">
+                <label for="admin-password">Mật khẩu Admin:</label>
+                <input type="password" id="admin-password" class="form-control" placeholder="Nhập mật khẩu" />
+            </div>
+            <button id="btn-login" class="btn btn-primary btn-block">Đăng nhập</button>
+            <p id="login-error" class="text-danger mt-2 text-center" style="display:none;">
+                Mật khẩu không đúng!
+            </p>
+        </div>
+    </div>
+
+    <!-- ========== Toàn bộ Dashboard Ẩn Đi, chỉ hiện khi login thành công ========== -->
+    <div id="dashboard" class="container">
+        <h1 class="text-center">Admin Dashboard</h1>
+
+        <!-- ========== Section 1: Kiểm tra sức khỏe hệ thống ========== -->
+        <section id="system-health">
+            <h2>1. Kiểm Tra Sức Khỏe Hệ Thống</h2>
+            <div class="form-inline mb-2">
+                <input type="text" id="health-service-name" placeholder="Tên service (tùy chọn)"
+                    class="form-control mr-2" />
+                <button id="btn-check-health" class="btn btn-primary">
+                    Kiểm tra
+                </button>
+            </div>
+            <pre id="health-result">Kết quả sẽ hiển thị ở đây...</pre>
+        </section>
+
+        <hr />
+
+        <!-- ========== Section 2: Danh sách Dịch vụ ========== -->
+        <section id="services-list">
+            <h2>2. Danh Sách Dịch Vụ</h2>
+            <button id="btn-list-services" class="btn btn-secondary mb-2">
+                Tải danh sách dịch vụ
+            </button>
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Tên dịch vụ</th>
+                    </tr>
+                </thead>
+                <tbody id="services-table-body">
+                    <!-- Nội dung sẽ được đổ vào bằng JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <hr />
+
+        <!-- ========== Section 3: Thống kê hệ thống ========== -->
+        <section id="system-stats">
+            <h2>3. Thống Kê Hệ Thống</h2>
+            <button id="btn-get-stats" class="btn btn-secondary mb-2">
+                Tải thống kê
+            </button>
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Trường</th>
+                        <th>Giá trị</th>
+                    </tr>
+                </thead>
+                <tbody id="stats-table-body">
+                    <!-- Nội dung sẽ được đổ vào bằng JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <hr />
+
+        <!-- ========== Section 4: Danh sách Người dùng ========== -->
+        <section id="users-list">
+            <h2>4. Danh Sách Người Dùng</h2>
+            <button id="btn-list-users" class="btn btn-secondary mb-2">
+                Tải tất cả người dùng
+            </button>
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>User ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <!-- Nội dung sẽ được đổ vào bằng JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <hr />
+
+        <!-- ========== Section 5: Thêm Người dùng ========== -->
+        <section id="add-user">
+            <h2>5. Thêm Người Dùng Mới</h2>
+            <form id="form-add-user">
+                <div class="form-group">
+                    <label for="add-username">Username:</label>
+                    <input type="text" id="add-username" class="form-control" placeholder="Nhập username" required />
+                </div>
+                <div class="form-group">
+                    <label for="add-password">Password:</label>
+                    <input type="password" id="add-password" class="form-control" placeholder="Nhập password"
+                        required />
+                </div>
+                <div class="form-group">
+                    <label for="add-role">Role:</label>
+                    <select id="add-role" class="form-control" required>
+                        <option value="teacher">Teacher</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Thêm người dùng</button>
+            </form>
+            <pre id="add-user-result" class="mt-2">Kết quả sẽ hiển thị ở đây...</pre>
+        </section>
+
+        <hr />
+
+        <!-- ========== Section 6: Đổi Role cho Người dùng ========== -->
+        <section id="change-role">
+            <h2>6. Đổi Role Cho Người Dùng</h2>
+            <form id="form-change-role">
+                <div class="form-group">
+                    <label for="cr-user-id">User ID:</label>
+                    <input type="text" id="cr-user-id" class="form-control" placeholder="Nhập user_id" required />
+                </div>
+                <div class="form-group">
+                    <label for="cr-new-role">New Role:</label>
+                    <select id="cr-new-role" class="form-control" required>
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-warning">Đổi Role</button>
+            </form>
+            <pre id="change-role-result" class="mt-2">Kết quả sẽ hiển thị ở đây...</pre>
+        </section>
+
+        <hr />
+
+        <!-- ========== Section 7: Danh sách Permission ========== -->
+        <section id="permissions-list">
+            <h2>7. Danh Sách Permission</h2>
+            <button id="btn-list-permissions" class="btn btn-secondary mb-2">
+                Tải permission
+            </button>
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Role</th>
+                        <th>Service</th>
+                        <th>Path</th>
+                        <th>Method</th>
+                    </tr>
+                </thead>
+                <tbody id="permissions-table-body">
+                    <!-- Nội dung sẽ được đổ vào bằng JS -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <!-- jQuery Slim, Popper.js, Bootstrap JS (bỏ integrity/crossorigin) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- ========== JavaScript để gọi API ========== -->
+    <script>
+        // Luôn gọi về đúng host + port 5000 (Flask)
+        const BASE_URL = "http://127.0.0.1:5000";
+
+        // Mật khẩu admin tạm thời (có thể đổi nếu cần)
+        const ADMIN_PASSWORD = "admin123";
+
+        // Khi bấm nút Đăng nhập
+        document.getElementById("btn-login").addEventListener("click", () => {
+            const pwInput = document.getElementById("admin-password").value;
+            const loginError = document.getElementById("login-error");
+
+            if (pwInput === ADMIN_PASSWORD) {
+                // Nếu đúng, ẩn form login và show dashboard
+                document.getElementById("login-container").style.display = "none";
+                document.getElementById("dashboard").style.display = "block";
+            } else {
+                // Nếu sai, show error
+                loginError.style.display = "block";
+            }
+        });
+
+        // 1. Kiểm tra sức khỏe hệ thống (bây giờ luôn dùng POST thay vì GET)
+        document.getElementById("btn-check-health").addEventListener("click", () => {
+            const service = document.getElementById("health-service-name").value.trim();
+            const resultPre = document.getElementById("health-result");
+            resultPre.textContent = "Đang gửi yêu cầu...";
+
+            // Nếu có tên service → body = {service: "..."}; nếu không → body = {}
+            const payload = service ? { service } : {};
+
+            fetch(`${BASE_URL}/admin/health`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+                .then(resp => {
+                    if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
+                    return resp.json();
+                })
+                .then(data => {
+                    // Hiển thị kết quả JSON
+                    resultPre.textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(err => {
+                    resultPre.textContent = "Lỗi khi gọi API: " + err;
+                });
+        });
+
+        // 2. Danh sách dịch vụ (GET /admin/services)
+        document.getElementById("btn-list-services").addEventListener("click", () => {
+            const tbody = document.getElementById("services-table-body");
+            tbody.innerHTML = `<tr><td>Đang tải...</td></tr>`;
+
+            // *** CHỈ GỌI fetch(url) MÀ KHÔNG CẦN THÊM TÙY CHỌN NÀO ***
+            fetch(`${BASE_URL}/admin/services`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})  // Thêm header nếu cần
+            })
+                .then(resp => {
+                    if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
+                    return resp.json();
+                })
+                .then(res => {
+                    tbody.innerHTML = "";
+                    // Giả sử server trả về: { success: true, data: { services: [...], count: N } }
+                    if (res.success && res.data && Array.isArray(res.data.services)) {
+                        res.data.services.forEach(svc => {
+                            const tr = document.createElement("tr");
+                            tr.innerHTML = `<td>${svc}</td>`;
+                            tbody.appendChild(tr);
+                        });
+                        if (res.data.services.length === 0) {
+                            tbody.innerHTML = `<tr><td>Chưa có service nào.</td></tr>`;
+                        }
+                    } else {
+                        // Nếu server trả ra field error hoặc không đúng định dạng
+                        tbody.innerHTML = `<tr><td>Lỗi hoặc không có dữ liệu: ${res.error || "Không xác định"}</td></tr>`;
+                    }
+                })
+                .catch(err => {
+                    tbody.innerHTML = `<tr><td>Lỗi khi gọi API: ${err}</td></tr>`;
+                });
+        });
+
+
+        // 3. Thống kê hệ thống (GET /admin/system-stats)
+        document.getElementById("btn-get-stats").addEventListener("click", () => {
+            const tbody = document.getElementById("stats-table-body");
+            tbody.innerHTML = `<tr><td colspan="2">Đang tải...</td></tr>`;
+
+            fetch(`${BASE_URL}/admin/system-stats`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})  // Thêm header nếu cần
+            })
+                .then(resp => {
+                    if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
+                    return resp.json();
+                })
+                .then(res => {
+                    tbody.innerHTML = "";
+                    if (res.success && res.data) {
+                        const stats = res.data;
+                        if (stats.user_statistics) {
+                            Object.keys(stats.user_statistics).forEach(key => {
+                                const tr = document.createElement("tr");
+                                tr.innerHTML = `<td>user_statistics.${key}</td><td>${stats.user_statistics[key]}</td>`;
+                                tbody.appendChild(tr);
+                            });
+                        }
+                        if (stats.service_info) {
+                            Object.keys(stats.service_info).forEach(key => {
+                                const tr = document.createElement("tr");
+                                tr.innerHTML = `<td>service_info.${key}</td><td>${stats.service_info[key]}</td>`;
+                                tbody.appendChild(tr);
+                            });
+                        }
+                        if (stats.timestamp) {
+                            const trTime = document.createElement("tr");
+                            trTime.innerHTML = `<td>timestamp</td><td>${stats.timestamp}</td>`;
+                            tbody.appendChild(trTime);
+                        }
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="2">Lỗi hoặc không có dữ liệu: ${res.error || "Không xác định"}</td></tr>`;
+                    }
+                })
+                .catch(err => {
+                    tbody.innerHTML = `<tr><td colspan="2">Lỗi khi gọi API: ${err}</td></tr>`;
+                });
+        });
+
+        // 4. Danh sách người dùng (GET /admin/users)
+        document.getElementById("btn-list-users").addEventListener("click", () => {
+            const tbody = document.getElementById("users-table-body");
+            tbody.innerHTML = `<tr><td colspan="3">Đang tải...</td></tr>`;
+
+            fetch(`${BASE_URL}/admin/users`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ role: "all" })  // Thêm header nếu cần
+            })
+                .then(resp => {
+                    if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
+                    return resp.json();
+                })
+                .then(res => {
+                    tbody.innerHTML = "";
+                    if (res.success && res.data && Array.isArray(res.data.users)) {
+                        res.data.users.forEach(u => {
+                            const tr = document.createElement("tr");
+                            tr.innerHTML = `<td>${u.user_id || u.id}</td><td>${u.username}</td><td>${u.role}</td>`;
+                            tbody.appendChild(tr);
+                        });
+                        if (res.data.users.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="3">Chưa có user nào.</td></tr>`;
+                        }
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="3">Lỗi hoặc không có dữ liệu: ${res.error || "Không xác định"}</td></tr>`;
+                    }
+                })
+                .catch(err => {
+                    tbody.innerHTML = `<tr><td colspan="3">Lỗi khi gọi API: ${err}</td></tr>`;
+                });
+        });
+
+        // 5. Thêm người dùng mới (POST /admin/users/add)
+        document.getElementById("form-add-user").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const username = document.getElementById("add-username").value.trim();
+            const password = document.getElementById("add-password").value;
+            const role = document.getElementById("add-role").value;
+            const resultPre = document.getElementById("add-user-result");
+            resultPre.textContent = "Đang gửi yêu cầu...";
+
+            fetch(`${BASE_URL}/admin/users/add`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password, role })
+            })
+                .then(resp => {
+                    if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
+                    return resp.json();
+                })
+                .then(res => {
+                    resultPre.textContent = JSON.stringify(res, null, 2);
+                    document.getElementById("form-add-user").reset();
+                })
+                .catch(err => {
+                    resultPre.textContent = "Lỗi khi gọi API: " + err;
+                });
+        });
+
+        // 6. Đổi Role cho Người dùng (POST /admin/users/change-role)
+        document.getElementById("form-change-role").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const userId = document.getElementById("cr-user-id").value.trim();
+            const newRole = document.getElementById("cr-new-role").value;
+            const resultPre = document.getElementById("change-role-result");
+            resultPre.textContent = "Đang gửi yêu cầu...";
+
+            fetch(`${BASE_URL}/admin/users/change-role`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: userId, new_role: newRole })
+            })
+                .then(resp => {
+                    if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
+                    return resp.json();
+                })
+                .then(res => {
+                    resultPre.textContent = JSON.stringify(res, null, 2);
+                    document.getElementById("form-change-role").reset();
+                })
+                .catch(err => {
+                    resultPre.textContent = "Lỗi khi gọi API: " + err;
+                });
+        });
+
+        // 7. Danh sách Permission (POST /admin/permissions/list)
+        document.getElementById("btn-list-permissions").addEventListener("click", () => {
+            const tbody = document.getElementById("permissions-table-body");
+            tbody.innerHTML = `<tr><td colspan="4">Đang tải...</td></tr>`;
+
+            fetch(`${BASE_URL}/admin/permissions/list`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})  // gửi body rỗng
+            })
+                .then(resp => {
+                    if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
+                    return resp.json();
+                })
+                .then(res => {
+                    tbody.innerHTML = "";
+                    if (res.success && Array.isArray(res.permissions)) {
+                        res.permissions.forEach(p => {
+                            const tr = document.createElement("tr");
+                            tr.innerHTML = `<td>${p.role}</td><td>${p.service}</td><td>${p.path}</td><td>${p.method}</td>`;
+                            tbody.appendChild(tr);
+                        });
+                        if (res.permissions.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="4">Chưa có permission nào.</td></tr>`;
+                        }
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="4">Lỗi hoặc không có dữ liệu: ${res.error || "Không xác định"}</td></tr>`;
+                    }
+                })
+                .catch(err => {
+                    tbody.innerHTML = `<tr><td colspan="4">Lỗi khi gọi API: ${err}</td></tr>`;
+                });
+        });
+    </script>
+</body>
+
+</html>

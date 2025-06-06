@@ -218,23 +218,26 @@ class services_route:
         
         try:
             # Handle từng route riêng biệt
-            if destination == 'health' and method == 'GET':
+            if destination == 'health' and method == 'POST':
                 service_name = data.get('service') if data else None
                 return self.admin_controller.check_health(service_name)
             
-            elif destination == 'services' and method == 'GET':
+            elif destination == 'services' and method == 'POST':
+                print('calling admin services')
                 return self.admin_controller.list_services()
             
-            elif destination == 'system-stats' and method == 'GET':
+            elif destination == 'system-stats' and method == 'POST':
                 return self.admin_controller.get_system_stats()
             
-            elif destination == 'users' and method == 'GET':
+            elif destination == 'users' and method == 'POST':
                 role = data.get('role') if data else None
+                print('calling admin users with role: ', role)
                 return self.admin_controller.list_users(role)
             
             elif destination == 'users/add' and method == 'POST':
-                if not data:
-                    return jsonify({"error": "Request body required"}), 400
+                print('running add specialized user: ', data)
+                # if not data:
+                #     return jsonify({"error": "Request body required"}), 400
                 return self.admin_controller.add_specialized_user(data)
             
             elif destination == 'users/change-role' and method == 'POST':
@@ -268,8 +271,8 @@ class services_route:
             
             else:
                 available_endpoints = [
-                    "GET /admin/health", "GET /admin/services", "GET /admin/system-stats",
-                    "GET /admin/users", "POST /admin/users/add", "POST /admin/users/change-role",
+                    "POST /admin/health", "POST /admin/services", "POST /admin/system-stats",
+                    "POST /admin/users", "POST /admin/users/add", "POST /admin/users/change-role",
                     "POST /admin/permissions/add", "POST /admin/permissions/list",
                     "POST /admin/permissions/delete", "POST /admin/permissions/check", 
                     "POST /admin/permissions/role"

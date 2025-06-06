@@ -74,14 +74,14 @@ class AdminController:
         except Exception as e:
             return self._standard_response(False, error=f"Failed to get system stats: {str(e)}", status_code=500)
 
-    def list_users(self, role=None):
+    def list_users(self, role):
         """Lấy danh sách người dùng theo role - Chuẩn hóa response"""
         try:
             if role == 'student':
                 users = self.admin_service.user_service.get_all_students()
             elif role == 'teacher':
                 users = self.admin_service.user_service.get_all_teachers()
-            else:
+            elif role == 'None' or role == 'all':
                 students = self.admin_service.user_service.get_all_students()
                 teachers = self.admin_service.user_service.get_all_teachers()
                 users = students + teachers
@@ -97,6 +97,7 @@ class AdminController:
             return self._standard_response(False, error=f"Failed to list users: {str(e)}", status_code=500)
 
     def add_specialized_user(self, data):
+        print('gọi hàm add_specialized_user', data)
         """Thêm user mới với validation enhanced"""
         try:
             #  Enhanced validation
