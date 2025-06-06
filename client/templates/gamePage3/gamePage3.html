@@ -8,22 +8,41 @@
 </head>
 <body>
     <div class="game-container">
-        <div class="battle-scene">
+        <!-- Timer display in top-right corner -->
+        <div class="timer-display" id="timerDisplay" style="display: none;">
+            Time: 30
+        </div>
+        
+        <!-- Loading Screen -->
+        <div class="loading-screen" id="loadingScreen">
+            <div class="loading-text">Loading game...</div>
+            <div class="loading-spinner"></div>
+        </div>
+        
+        <!-- Error Screen -->
+        <div class="error-message" id="errorMessage" style="display: none;">
+            <h2>Failed to Load Game</h2>
+            <p>Please refresh the page or try again later.</p>
+            <button onclick="location.reload()" class="retry-btn">Retry</button>
+        </div>
+
+        <!-- Battle Scene -->
+        <div class="battle-scene" id="battleScene" style="display: none;">
             <!-- Health bars -->
             <div class="health-bars">
                 <div class="player-stats">
                     <div class="health-bar">
-                        <div class="health-bar-fill player-health" style="width: 76%"></div>
-                        <span class="health-text">76</span>
+                        <div class="health-bar-fill player-health" style="width: 0%"></div>
+                        <span class="health-text">0</span>
                     </div>
-                    <div class="player-level"></div>
+                    <div class="player-level">Level: <span id="playerLevel">-</span></div>
                 </div>
                 <div class="monster-stats">
                     <div class="health-bar">
-                        <div class="health-bar-fill monster-health" style="width: 45%"></div>
-                        <span class="health-text">45</span>
+                        <div class="health-bar-fill monster-health" style="width: 0%"></div>
+                        <span class="health-text">0</span>
                     </div>
-                    <div class="monster-level"></div>
+                    <div class="monster-level">Level: <span id="monsterLevel">-</span></div>
                 </div>
             </div>
             
@@ -32,77 +51,136 @@
                 <div class="player">
                     <img src="../../static/images/player.png" alt="Player character">
                 </div>
-                <div class="damage-number" id="damageNumber">32</div>
-                <div class="attack-effect" id="attackEffect"></div>
+                <div class="damage-number" id="damageNumber" style="opacity: 0;">0</div>
+                <div class="attack-effect" id="attackEffect" style="opacity: 0;"></div>
                 <div class="monster">
                     <img src="../../static/images/dragon.png" alt="Monster">
                 </div>
             </div>
         </div>
         
-        <!-- Question area -->
-    <div class="question-area">
-        <div class="question">
-            <div class="question-text">Which word is a synonym for "happy"?</div>
+        <!-- Question area - positioned at bottom -->
+        <div class="question-area" id="questionArea" style="display: none;">
+            <!-- Multiple Choice Questions -->
+            <div class="question-type multiple-choice" id="multipleChoiceQuestion" style="display: none;">
+                <div class="question">
+                    <div class="question-text" id="questionText">Loading question...</div>
+                </div>
+                <div class="answers" id="answersContainer">
+                    <button class="answer-btn" data-index="0"></button>
+                    <button class="answer-btn" data-index="1"></button>
+                    <button class="answer-btn" data-index="2"></button>
+                    <button class="answer-btn" data-index="3"></button>
+                </div>
+            </div>
+
+            <!-- Fill in the Blank Questions -->
+            <div class="question-type fill-in-blank" id="fillInBlankQuestion" style="display: none;">
+                <div class="question">
+                    <div class="question-text" id="fillInBlankText">Complete the sentence:</div>
+                    <div class="sentence-container">
+                        <span class="sentence-part" id="sentenceBefore">Loading...</span>
+                        <input type="text" class="blank-input" id="blankInput" placeholder="____" autocomplete="off">
+                        <span class="sentence-part" id="sentenceAfter">...</span>
+                    </div>
+                    <div class="hint-text" id="hintText" style="display: none;">
+                        Hint: Loading...
+                    </div>
+                </div>
+                <div class="fill-controls">
+                    <button class="submit-answer-btn" id="submitAnswerBtn">Submit Answer</button>
+                    <button class="show-hint-btn" id="showHintBtn" style="display: none;">Show Hint</button>
+                    <button class="clear-btn" id="clearBtn">Clear</button>
+                </div>
+                <div class="feedback-area" id="feedbackArea" style="display: none;">
+                    <div class="feedback-text" id="feedbackText"></div>
+                    <button class="next-question-btn" id="nextQuestionBtn" style="display: none;">Next Question</button>
+                </div>
+            </div>
         </div>
-        <div class="answers">
-            <button class="answer-btn" data-correct="false">sad</button>
-            <button class="answer-btn" data-correct="true">joyful</button>
-            <button class="answer-btn" data-correct="false">angry</button>
-            <button class="answer-btn" data-correct="false">tired</button>
+
+        <!-- Game info display -->
+        <div class="game-info" id="gameInfo" style="display: none;">
+            <div class="difficulty">Difficulty: <span id="gameDifficulty">-</span></div>
+            <div class="session">Session: <span id="sessionId">-</span></div>
+            <div class="question-type-display">Type: <span id="questionTypeDisplay">-</span></div>
         </div>
     </div>
-    </div>
 
-    <audio id="sfx-attack">
-    <source src="../../static/music/attack.wav" type="audio/wav">
+    <!-- Audio SFX -->
+    <audio id="sfx-attack" preload="auto">
+        <source src="../../static/music/attack.wav" type="audio/wav">
+        <source src="../../static/music/attack.mp3" type="audio/mpeg">
     </audio>
-    <audio id="sfx-hit">
-    <source src="../../static/music/hit.wav" type="audio/wav">
-    </audio>
-
-    <script src="gamePage3.js"></script>
-    <script>
-        window.addEventListener("DOMContentLoaded", () => {
-        const music = document.getElementById("bg-music");
     
-        // Phát sau khi người dùng tương tác
-        document.body.addEventListener("click", () => {
-          if (music.paused) {
-            music.volume = 0.3; // Âm lượng 
-            music.play();
-          }
-        }, { once: true });
-      });
-
-      // Phát SFX tấn công
-      function playAttackSFX() {
-        const sfx = document.getElementById('sfx-attack');
-        sfx.currentTime = 0;
-        sfx.play();
-      }
-      // Phát SFX nhận sát thương
-      function playHitSFX() {
-        const sfx = document.getElementById('sfx-hit');
-        sfx.currentTime = 0;
-        sfx.play();
-      }
-
-      // Ví dụ: Gọi khi người chơi tấn công
-      document.querySelectorAll('.answer-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          if (btn.dataset.correct === "true") {
-            playAttackSFX(); // đúng thì tấn công quái
-          } else {
-            playHitSFX(); // sai thì bị quái đánh lại
-          }
-        });
-      });
-
-    </script>
-    <audio id="bg-music" autoplay loop>
-    <source src="/English-game/client/static/music/combat.wav" type="audio/wav">
-    Trình duyệt của bạn không hỗ trợ âm thanh.
+    <audio id="sfx-hit" preload="auto">
+        <source src="../../static/music/hit.wav" type="audio/wav">
+        <source src="../../static/music/hit.mp3" type="audio/mpeg">
     </audio>
+
+    <audio id="bg-music" loop preload="auto">
+        <source src="../../static/music/combat.wav" type="audio/wav">
+        <source src="../../static/music/combat.mp3" type="audio/mpeg">
+        Your browser does not support audio.
+    </audio>
+
+    <!-- Load JavaScript -->
+    <script src="gamePage3.js"></script>
+    
+    <script>
+        // Global audio functions
+        function playAttackSFX() {
+            try {
+                const sfx = document.getElementById('sfx-attack');
+                if (sfx) {
+                    sfx.currentTime = 0;
+                    sfx.volume = 0.5;
+                    const playPromise = sfx.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(e => console.log('Attack SFX play failed:', e));
+                    }
+                }
+            } catch (error) {
+                console.log('Attack SFX error:', error);
+            }
+        }
+
+        function playHitSFX() {
+            try {
+                const sfx = document.getElementById('sfx-hit');
+                if (sfx) {
+                    sfx.currentTime = 0;
+                    sfx.volume = 0.5;
+                    const playPromise = sfx.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(e => console.log('Hit SFX play failed:', e));
+                    }
+                }
+            } catch (error) {
+                console.log('Hit SFX error:', error);
+            }
+        }
+
+        // Background music handling
+        window.addEventListener("DOMContentLoaded", () => {
+            const music = document.getElementById("bg-music");
+            
+            if (music) {
+                // Enable audio after user interaction
+                document.body.addEventListener("click", () => {
+                    if (music.paused) {
+                        music.volume = 0.3;
+                        music.play().catch(e => console.log('Music play failed:', e));
+                    }
+                }, { once: true });
+            }
+
+            console.log('HTML loaded, showing loading screen');
+        });
+
+        // Make functions globally available
+        window.playAttackSFX = playAttackSFX;
+        window.playHitSFX = playHitSFX;
+    </script>
 </body>
 </html>
