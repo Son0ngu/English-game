@@ -138,3 +138,14 @@ class UserController:
                 return jsonify({"error": result.get('error', 'Failed to get stats')}), 500
         except Exception as e:
             return jsonify({"error": f"Get stats error: {str(e)}"}), 500
+
+    def get_user_stats_only(self, user_id):
+        """Lấy stats của user (ATK, HP)"""
+        try:
+            result = self.user_service.get_user_stats_only(user_id)
+            if result:
+                return jsonify({"success": True, "stats": result}), 200
+            else:
+                return jsonify({"error": "User not found"}), 404
+        except Exception as e:
+            return jsonify({"error": f"Get stats error: {str(e)}"}), 500

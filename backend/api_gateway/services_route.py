@@ -1,5 +1,5 @@
 from flask import jsonify
-from flask_jwt_extended import get_jwt_identity, get_jwt, create_access_token, jwt_required
+from flask_jwt_extended import get_jwt_identity, get_jwt, create_access_token, jwt_required, verify_jwt_in_request
 from flask import request
 
 from auth_service.auth_service_controller import auth_service_controller
@@ -29,7 +29,12 @@ class services_route:
                 self.auth = auth_service_controller()
             except Exception as e:
                 print("❌ ERROR while initializing self.auth:", str(e))
-                self.auth = None
+                self.auth = None                
+                {
+                    "status": "healthy",
+                    "uptime_seconds": 123456,
+                    "repository_status": "connected"
+                }
             # Core services
             self.user_service_obj = UserProfileService()
             self.item_service_obj = ItemService()
@@ -113,93 +118,89 @@ class services_route:
     def _get_user_id_from_jwt(self):
         """Helper method để lấy user_id từ JWT token"""
         try:
-            username = get_jwt_identity()
-            if not username:
-                return None
+            verify_jwt_in_request()
+            user_id = get_jwt_identity()
+                  
+            if user_id:
+                return str(user_id)  
             
-            # Sử dụng auth service để convert username thành user_id
-            if self.auth:
-                return self.auth.get_id_from_username(username)
             return None
         except Exception as e:
             print(f"Error getting user_id from JWT: {e}")
             return None
 
     def handle_user_service(self, destination, data, method):
-        """Điều hướng user service - Lấy user_id từ JWT"""
+        """Điều hướng user service - LOẠI BỎ progress endpoints cũ"""
         if not self.user_controller:
             return jsonify({"error": "User service not available"}), 503
-            
+        
         try:
             if destination == 'health' and method == 'GET':
                 return self.user_controller.check_health()
             
-            # 🔄 CHUYỂN: Lấy user_id từ JWT
+            
             elif destination == 'get' and method == 'POST':
-                user_id = self._get_user_id_from_jwt()
-                if not user_id:
-                    return jsonify({"error": "Authentication required"}), 401
-                return self.user_controller.get_user(int(user_id))
+                try:
+                    user_id = self._get_user_id_from_jwt()
+                    if not user_id:
+                        return jsonify({"error": "Authentication required - Please login first"}), 401
+                    return self.user_controller.get_user(user_id)
+                except Exception as e:
+                    return jsonify({"error": f"JWT Error: {str(e)}"}), 401
                 
             elif destination == 'update' and method == 'POST':
-                user_id = self._get_user_id_from_jwt()
-                if not user_id:
-                    return jsonify({"error": "Authentication required"}), 401
-                return self.user_controller.update_user(int(user_id), data)
-                
+                try:
+                    user_id = self._get_user_id_from_jwt()
+                    if not user_id:
+                        return jsonify({"error": "Authentication required - Please login first"}), 401
+                    return self.user_controller.update_user(user_id, data)
+                except Exception as e:
+                    return jsonify({"error": f"JWT Error: {str(e)}"}), 401
+            
             elif destination == 'delete' and method == 'POST':
                 user_id = self._get_user_id_from_jwt()
                 if not user_id:
                     return jsonify({"error": "Authentication required"}), 401
-                return self.user_controller.delete_user(int(user_id))
+                return self.user_controller.delete_user(user_id)
             
-            # 🔄 CHUYỂN: Stats từ JWT
             elif destination == 'stats-only' and method == 'POST':
                 user_id = self._get_user_id_from_jwt()
                 if not user_id:
                     return jsonify({"error": "Authentication required"}), 401
-                return self.user_controller.get_user_stats_only(int(user_id))
+                return self.user_controller.get_user_stats_only(user_id)
             
-            # 🔄 CHUYỂN: Progress từ JWT
-            elif destination == 'progress/update' and method == 'POST':
-                user_id = self._get_user_id_from_jwt()
-                if not user_id:
-                    return jsonify({"error": "Authentication required"}), 401
-                return self.user_controller.update_progress(int(user_id), data)
-                
-            elif destination == 'progress/get' and method == 'POST':
-                user_id = self._get_user_id_from_jwt()
-                if not user_id:
-                    return jsonify({"error": "Authentication required"}), 401
-                return self.user_controller.get_student_progress(int(user_id))
-            
-            # 🔄 CHUYỂN: Stats management từ JWT
-            elif destination == 'stats/update' and method == 'POST':
-                user_id = self._get_user_id_from_jwt()
-                if not user_id:
-                    return jsonify({"error": "Authentication required"}), 401
-                return self.user_controller.update_student_stats(int(user_id), data)
-            
-            # 🆕 Admin-only endpoints - lấy từ JSON data
+            # ❌ XÓA HOÀN TOÀN: Các progress endpoints cũ 
+            elif destination in ['progress/update', 'progress/get']:
+                return jsonify({
+                    "message": "Progress endpoints moved to /progress service",
+                    "deprecated": True,
+                    "redirect": {
+                        "progress/update": "POST /progress/complete-map",
+                        "progress/get": "POST /progress/user/maps"
+                    }
+                }), 410  # Gone
+        
             elif destination == 'get/admin' and method == 'POST':
-                # Admin có thể get user khác
                 jwt_role = get_jwt().get("role")
                 if jwt_role != "admin":
                     return jsonify({"error": "Admin access required"}), 403
                 user_id = data.get('user_id')
                 if not user_id:
                     return jsonify({"error": "user_id required in JSON"}), 400
-                return self.user_controller.get_user(int(user_id))
-            
-            # List users có thể giữ GET
-            elif destination == 'students' and method == 'GET':
-                limit = data.get('limit', 100) if data else 100
-                offset = data.get('offset', 0) if data else 0
+                return self.user_controller.get_user(user_id)
+          
+            elif destination == 'students' and method == 'POST':
+                print('post')
+                from flask import request
+                limit = request.args.get('limit', 100, type=int)
+                offset = request.args.get('offset', 0, type=int)
+                print(data)
                 return self.user_controller.get_all_students(limit, offset)
                 
             elif destination == 'teachers' and method == 'GET':
-                limit = data.get('limit', 100) if data else 100
-                offset = data.get('offset', 0) if data else 0
+                from flask import request
+                limit = request.args.get('limit', 100, type=int)
+                offset = request.args.get('offset', 0, type=int)
                 return self.user_controller.get_all_teachers(limit, offset)
                 
             elif destination == 'stats' and method == 'GET':
@@ -211,59 +212,81 @@ class services_route:
             return jsonify({"error": f"User service error: {str(e)}"}), 500
 
     def handle_admin_service(self, destination, data, method):
-        """Điều hướng admin service - TẤT CẢ từ JSON"""
+        """Admin service routing - An toàn và chuẩn hóa"""
         if not self.admin_controller:
             return jsonify({"error": "Admin service not available"}), 503
         
         try:
-            if destination == 'health' and method == 'GET':
+            # Handle từng route riêng biệt
+            if destination == 'health' and method == 'POST':
                 service_name = data.get('service') if data else None
                 return self.admin_controller.check_health(service_name)
-            elif destination == 'services' and method == 'GET':
+            
+            elif destination == 'services' and method == 'POST':
+                print('calling admin services')
                 return self.admin_controller.list_services()
-            elif destination == 'system-stats' and method == 'GET':
+            
+            elif destination == 'system-stats' and method == 'POST':
                 return self.admin_controller.get_system_stats()
-            elif destination == 'users' and method == 'GET':
+            
+            elif destination == 'users' and method == 'POST':
                 role = data.get('role') if data else None
+                print('calling admin users with role: ', role)
                 return self.admin_controller.list_users(role)
             
-            # 🔄 CHUYỂN: Change user role từ JSON
-            elif destination == 'users/change-role' and method == 'POST':
-                return self.admin_controller.change_user_role(data)
-            
-            # ✨ MỚI: Add specialized user từ JSON
             elif destination == 'users/add' and method == 'POST':
+                print('running add specialized user: ', data)
+                # if not data:
+                #     return jsonify({"error": "Request body required"}), 400
                 return self.admin_controller.add_specialized_user(data)
             
-            # 🎯 PERMISSION MANAGEMENT ENDPOINTS
+            elif destination == 'users/change-role' and method == 'POST':
+                if not data:
+                    return jsonify({"error": "Request body required"}), 400
+                return self.admin_controller.change_user_role(data)
             
-            # Add permission
+            # Permission endpoints
             elif destination == 'permissions/add' and method == 'POST':
+                if not data:
+                    return jsonify({"error": "Request body required"}), 400
                 return self.admin_controller.add_permission(data)
             
-            # List permissions (with optional filters)
             elif destination == 'permissions/list' and method == 'POST':
-                return self.admin_controller.list_permissions(data)
+                return self.admin_controller.list_permissions(data or {})
             
-            # Delete permission
             elif destination == 'permissions/delete' and method == 'POST':
+                if not data:
+                    return jsonify({"error": "Request body required"}), 400
                 return self.admin_controller.delete_permission(data)
             
-            # Check permission
             elif destination == 'permissions/check' and method == 'POST':
+                if not data:
+                    return jsonify({"error": "Request body required"}), 400
                 return self.admin_controller.check_permission(data)
             
-            # Get role permissions
             elif destination == 'permissions/role' and method == 'POST':
+                if not data:
+                    return jsonify({"error": "Request body required"}), 400
                 return self.admin_controller.get_role_permissions(data)
             
             else:
-                return jsonify({"error": f"Admin endpoint '{destination}' not found"}), 404
+                available_endpoints = [
+                    "POST /admin/health", "POST /admin/services", "POST /admin/system-stats",
+                    "POST /admin/users", "POST /admin/users/add", "POST /admin/users/change-role",
+                    "POST /admin/permissions/add", "POST /admin/permissions/list",
+                    "POST /admin/permissions/delete", "POST /admin/permissions/check", 
+                    "POST /admin/permissions/role"
+                ]
+                return jsonify({
+                    "error": f"Admin endpoint '{destination}' not found",
+                    "available_endpoints": available_endpoints
+                }), 404
+                
         except Exception as e:
             return jsonify({"error": f"Admin service error: {str(e)}"}), 500
 
     def handle_progress_service(self, destination, data, method):
-        """Điều hướng progress service - Lấy user_id từ JWT"""
+        """Điều hướng progress service - Enhanced với endpoints mới"""
         if not self.progress_controller:
             return jsonify({"error": "Progress service not available"}), 503
         
@@ -271,33 +294,46 @@ class services_route:
             if destination == 'health' and method == 'GET':
                 return self.progress_controller.check_health()
 
-            elif destination == 'record' and method == 'POST':
-                return self.progress_controller.record_activity(data)
-            
-            # 🔄 CHUYỂN: Lấy user_id từ JWT
-            elif destination == 'user/progress' and method == 'POST':
+            elif destination == 'complete-map' and method == 'POST':
                 user_id = self._get_user_id_from_jwt()
                 if not user_id:
                     return jsonify({"error": "Authentication required"}), 401
-                return self.progress_controller.get_user_progress(user_id)
+                data['user_id'] = user_id
+                return self.progress_controller.complete_map(data)
             
-            elif destination == 'user/grade' and method == 'POST':
-                user_id = self._get_user_id_from_jwt()
-                difficulty = data.get('difficulty')
-                if not user_id:
-                    return jsonify({"error": "Authentication required"}), 401
-                if not difficulty:
-                    return jsonify({"error": "difficulty required in JSON"}), 400
-                return self.progress_controller.get_average_grade(user_id, difficulty)
-            
-            elif destination == 'user/performance' and method == 'POST':
+            elif destination == 'user/maps' and method == 'POST':
                 user_id = self._get_user_id_from_jwt()
                 if not user_id:
                     return jsonify({"error": "Authentication required"}), 401
-                return self.progress_controller.get_performance_by_difficulty(user_id)
+                return self.progress_controller.get_user_map_progress(user_id)
+            
+            # ✅ THÊM: User progress summary
+            elif destination == 'user/summary' and method == 'POST':
+                user_id = self._get_user_id_from_jwt()
+                if not user_id:
+                    return jsonify({"error": "Authentication required"}), 401
+                return self.progress_controller.get_user_progress_summary(user_id)
+            
+            elif destination == 'leaderboard' and method == 'POST':
+                return self.progress_controller.get_map_leaderboard(data)
+            
+            # ✅ THÊM: Map statistics  
+            elif destination == 'map/statistics' and method == 'POST':
+                return self.progress_controller.get_map_statistics(data)
             
             else:
-                return jsonify({"error": f"Progress endpoint '{destination}' not found"}), 404
+                return jsonify({
+                    "error": f"Progress endpoint '{destination}' not found",
+                    "available_endpoints": [
+                        "GET /progress/health",
+                        "POST /progress/complete-map",
+                        "POST /progress/user/maps", 
+                        "POST /progress/user/summary",
+                        "POST /progress/leaderboard",
+                        "POST /progress/map/statistics"
+                    ]
+                }), 404
+            
         except Exception as e:
             return jsonify({"error": f"Progress service error: {str(e)}"}), 500
 
@@ -332,58 +368,26 @@ class services_route:
             return jsonify({"error": f"Feedback service error: {str(e)}"}), 500
 
     def handle_item_service(self, destination, data, method):
-        """Điều hướng item service - Lấy user_id từ JWT"""
+        """Điều hướng item service - CHỈ hỗ trợ sword system"""
         if not self.item_controller:
             return jsonify({"error": "Item service not available"}), 503
-            
+        
         try:
             if destination == 'health' and method == 'GET':
                 return self.item_controller.check_health()
-            
-            # 🔄 CHUYỂN: Lấy user_id từ JWT
-            elif destination == 'user/weapons' and method == 'POST':
+        
+            elif destination == 'user/sword' and method == 'POST':
                 user_id = self._get_user_id_from_jwt()
                 if not user_id:
                     return jsonify({"error": "Authentication required"}), 401
-                return self.item_controller.get_user_items(str(user_id))
+                return self.item_controller.get_user_sword(str(user_id))
             
-            elif destination == 'user/upgradeable' and method == 'POST':
+            elif destination == 'sword/upgrade' and method == 'POST':
                 user_id = self._get_user_id_from_jwt()
                 if not user_id:
                     return jsonify({"error": "Authentication required"}), 401
-                return self.item_controller.get_upgradeable_items(str(user_id))
+                return self.item_controller.upgrade_sword(str(user_id))
             
-            elif destination == 'user/available' and method == 'POST':
-                user_id = self._get_user_id_from_jwt()
-                if not user_id:
-                    return jsonify({"error": "Authentication required"}), 401
-                return self.item_controller.get_available_weapons(str(user_id))
-            
-            # Get item details - từ JSON data (public)
-            elif destination == 'get' and method == 'POST':
-                item_id = data.get('item_id')
-                if not item_id:
-                    return jsonify({"error": "item_id required in JSON"}), 400
-                return self.item_controller.get_item(item_id)
-            
-            # Select weapon - user_id từ JWT
-            elif destination == 'select' and method == 'POST':
-                user_id = self._get_user_id_from_jwt()
-                if not user_id:
-                    return jsonify({"error": "Authentication required"}), 401
-                data['user_id'] = int(user_id)  # Override user_id từ JWT
-                return self.item_controller.select_weapon(data)
-            
-            # Upgrade weapon - user_id từ JWT
-            elif destination == 'upgrade' and method == 'POST':
-                user_id = self._get_user_id_from_jwt()
-                if not user_id:
-                    return jsonify({"error": "Authentication required"}), 401
-                data['user_id'] = int(user_id)  # Override user_id từ JWT
-                return self.item_controller.upgrade_weapon(data)
-            
-            else:
-                return jsonify({"error": f"Item endpoint '{destination}' not found"}), 404
         except Exception as e:
             return jsonify({"error": f"Item service error: {str(e)}"}), 500
     @jwt_required()
@@ -445,7 +449,6 @@ class services_route:
     def classroom_service(self, destination, data, method):
         if not self.classroom_controller:
             return jsonify({"error": "Classroom service not available"}), 503
-
         try:
             if destination == "health" and method == "GET":
                 return self.classroom_controller.check_health()
@@ -456,11 +459,8 @@ class services_route:
             elif destination == "join" and method == "POST":
                 return self.classroom_controller.join_class(data)
             elif destination == "students" and method == "POST":
-                print('DEBUG calling students')
-                class_id = data.get("class_id")
-                if not class_id:
-                    return jsonify({"error": "class_id required in JSON"}), 400
-                print(class_id)
+                class_id = data.get("class_id") if data else None
+                print("Student", class_id)
                 return self.classroom_controller.get_students(class_id)
             elif destination == "dashboard" and method == "POST":
                 class_id = data.get("class_id")
@@ -473,14 +473,11 @@ class services_route:
                 student_id = self._get_user_id_from_jwt()
                 if not student_id:
                     return jsonify({"error": "Authentication required"}), 401
-                return self.classroom_controller.get_student_classes(student_id)
+                return self.classroom_controller.get_student_classes()
             elif destination == "kick" and method == "POST":
                 return self.classroom_controller.kick_student(data)
             elif destination == "questions" and method == "POST":
-                class_id = data.get("class_id")
-                if not class_id:
-                    return jsonify({"error": "class_id required in JSON"}), 400
-                return self.classroom_controller.get_questions_by_criteria(class_id)
+                return self.classroom_controller.get_questions_by_criteria()
             else:
                 return jsonify({"error": f"Classroom endpoint '{destination}' not found"}), 404
         except Exception as e:
@@ -537,8 +534,3 @@ class services_route:
                 print("Permission added successfully (service_route)")
                 return {"message": "Permission added successfully"}, 200
         return None
-    
-    def course_service(self, destination, data, method):
-        if destination == 'health' and method == 'GET':
-            return jsonify({"status": "healthy", "service": "course"}), 200
-        return jsonify({"error": "Course service not implemented"}), 501

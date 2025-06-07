@@ -3,47 +3,58 @@ import uuid
 from typing import Dict, Any
 
 class Item:
-    """Item model for weapons in the game"""
+    """Item model for sword system only"""
     
     def __init__(self, **kwargs):
         self.id = kwargs.get('id')
         self.name = kwargs.get('name', '')
         self.description = kwargs.get('description', '')
-        # BỎ: self.price = kwargs.get('price', 0)
-        self.effect = kwargs.get('effect', 0)
-        self.type = kwargs.get('type', '')
+        self.effect = kwargs.get('effect', 5)  # Sword damage
+        self.type = kwargs.get('type', 'weapon')  # Always weapon
         self.level = kwargs.get('level', 1)
-        self.max_level = kwargs.get('max_level', 1)
-        self.tier = kwargs.get('tier', 'common')  # common, rare, legendary
-        self.unlock_level = kwargs.get('unlock_level', 1)  # Level required to unlock
+        self.max_level = kwargs.get('max_level', 10)
         self.created_at = kwargs.get('created_at', int(time.time()))
         self.owner_id = kwargs.get('owner_id')
         self.is_template = kwargs.get('is_template', False)
         
-        # Tạo ID nếu chưa được cung cấp
+        # Auto-generate ID if not provided
         if not self.id:
-            self.id = str(uuid.uuid4())[:8]
-    
+            if self.owner_id and not self.is_template:
+                self.id = f"sword_{self.owner_id}"  # Unique sword per user
+            else:
+                self.id = str(uuid.uuid4())[:8]
+
     def to_dict(self) -> Dict[str, Any]:
-        """Convert item to dictionary"""
+        """Convert to dictionary for database storage"""
         return {
             'id': self.id,
             'name': self.name,
             'description': self.description,
-            # BỎ: 'price': self.price,
             'effect': self.effect,
             'type': self.type,
             'level': self.level,
             'max_level': self.max_level,
-            'tier': self.tier,
-            'unlock_level': self.unlock_level,
             'created_at': self.created_at,
             'owner_id': self.owner_id,
-            'is_template': self.is_template,
-            'can_upgrade': self.level < self.max_level
+            'is_template': self.is_template
         }
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]):
-        """Create Item from dictionary"""
-        return cls(**data)
+
+    def can_upgrade(self) -> bool:
+        """Check if sword can be upgraded"""
+        return self.level < self.max_level
+
+    def get_upgrade_cost(self) -> int:
+        """Calculate upgrade cost: level^2 * 50"""
+        return (self.level ** 2) * 50
+
+    def upgrade(self) -> bool:
+        """Upgrade sword level and effect"""
+        if not self.can_upgrade():
+            return False
+        
+        self.level += 1
+        self.effect = int(self.effect * 1.3)  # 30% increase per level
+        return True
+
+    def __str__(self):
+        return f"{self.name} (Level {self.level}/{self.max_level}, Effect: {self.effect})"

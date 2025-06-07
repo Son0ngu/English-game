@@ -2,6 +2,8 @@ import uuid
 import json
 from typing import List, Dict, Any, Optional
 
+from flask import jsonify
+
 from classroom_service.classroom_model import Classroom, Classroom as ClassroomObj, Question
 from classroom_service.classroom_db import get_db_connection
 from user_profile_service.user.user_service import UserProfileService as UserService
@@ -54,18 +56,21 @@ class ClassroomService:
         return True
 
     def get_class_students(self, class_id: str) -> List[Dict[str, Any]]:
+        print("class_id for db2: ", class_id)
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT student_id FROM student_class WHERE class_id = ?;", (class_id,))
         rows = cursor.fetchall()
         conn.close()
-
+        print('rows: ', rows)
         result = []
         for r in rows:
+            print(r["student_id"])
             sid = r["student_id"]
-            user = self.user_service.get_user(sid)
-            if user:
-                result.append(user)
+            user_data = self.user_service.get_user(sid)
+            print("user_data:", user_data)
+            if user_data:
+                result.append(user_data)
         return result
 
     def get_classes_by_teacher(self, teacher_id: str) -> List[Dict[str, Any]]:
@@ -138,24 +143,30 @@ class ClassroomService:
 
         return [Question.from_row(r).to_dict() for r in rows]
 
-    def get_student_classes(self, student_id: str) -> List[Dict[str, Any]]:
+    def get_student_classes(self, student_id: str) -> Dict[str, Any]:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT class_id FROM student_class WHERE student_id = ?;", (student_id,))
+        cursor.execute(
+            "SELECT class_id FROM student_class WHERE student_id = ?;",
+            (student_id,)
+        )
         rows = cursor.fetchall()
 
-        result = []
+        class_list = []
         for r in rows:
             cid = r["class_id"]
             cursor2 = conn.cursor()
             cursor2.execute("SELECT * FROM classes WHERE id = ?;", (cid,))
             row_cls = cursor2.fetchone()
-            if row_cls:
-                result.append(Classroom.from_row(row_cls).to_dict())
             cursor2.close()
 
+            if row_cls:
+                class_list.append(Classroom.from_row(row_cls).to_dict())
+
         conn.close()
-        return result
+
+        classes_dict = { item["id"]: item for item in class_list }
+        return classes_dict
 
     def get_class_dashboard(self, class_id: str) -> List[Dict[str, Any]]:
         try:

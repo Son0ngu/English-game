@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginDiv = document.querySelector(".login-form");
     const registerDiv = document.querySelector(".register-form");
 
+    form.addEventListener("submit", handleRegister);
+
     // Gắn sự kiện form
     if (loginForm) loginForm.addEventListener("submit", handleLogin);
     if (registerForm) registerForm.addEventListener("submit", handleRegister);
@@ -62,6 +64,8 @@ async function handleLogin(event) {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
 
+    console.log("Logging in with:", { username, password });
+
     if (!username || !password) {
         alert("Please fill in all fields");
         return;
@@ -103,9 +107,11 @@ async function handleLogin(event) {
 async function handleRegister(event) {
     event.preventDefault();
 
-    const username = document.getElementById("newUsername").value.trim();
-    const password = document.getElementById("newPassword").value.trim();
-    const confirm = document.getElementById("confirmPassword").value.trim();
+    const username = document.getElementById("registerUsername").value.trim();
+    const password = document.getElementById("registerPassword").value.trim();
+    const confirm = document.getElementById("registerPasswordConfirm").value.trim();
+
+    console.log("Registering with:", { username, password, confirm });
 
     if (!username || !password || !confirm) {
         alert("Please fill in all fields");

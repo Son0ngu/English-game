@@ -466,3 +466,78 @@ button[type="submit"]:hover,
     border-radius: 3px;
     font-family: monospace;
 }
+
+
+/* Homepage chatgpt */
+.rounded-banner {
+    border-radius: 15px;
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    margin: 15px 0;
+}
+
+.hero-banner {
+    padding: 0 15px;
+}
+
+.content-grid {
+    padding: 0 15px;
+}
+
+.grid-section img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+}
+
+.image-gallery {
+    position: relative;
+    padding: 0 40px;
+}
+
+.gallery-container {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.gallery-slide {
+    display: inline-block;
+    width: 100%;
+    padding: 0 10px;
+}
+
+.gallery-slide img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+
+.gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 50%;
+}
+
+.prev {
+    left: 0;
+}
+
+.next {
+    right: 0;
+}
+
+.social-links a {
+    margin-right: 15px;
+    font-size: 20px;
+    color: #333;
+}
+
+footer {
+    background-color: #f8f9fa;
+}
