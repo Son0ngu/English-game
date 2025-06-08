@@ -9,19 +9,30 @@
 <body class="map-page">
   <h1> Map </h1>
   <div class="map-container">
+    <div id="progress-container" style="width: 60%; margin: 30px auto 10px auto;">
+        <div style="font-weight: bold; margin-bottom: 4px;">Your Progress</div>
+          <div style="background: #eee; border-radius: 20px; height: 24px; width: 100%;">
+            <div id="progress-bar"
+                style="background: linear-gradient(90deg, #00c6fb 0%, #005bea 100%);
+                      height: 100%; width: 0%; border-radius: 20px; color: #fff; text-align: center; line-height: 24px; font-weight: bold;">
+                0%
+            </div>
+        </div>
+    </div>
+
     <img src="./static/images/map.jpg" alt="Map" class="map-image">
     <div class="level-buttons">
       <!-- Các nút màn chơi được đặt trên bản đồ -->
-      <button class="level-btn no-hover" style="top: 85%; left: 27%;" onclick="goToLevel(1)">1</button>
-      <button class="level-btn no-hover" style="top: 100%; left: 40%;" onclick="goToLevel(2)">2</button>
-      <button class="level-btn no-hover" style="top: 91%; left: 48%;" onclick="goToLevel(3)">3</button>
-      <button class="level-btn no-hover" style="top: 70%; left: 63%;" onclick="goToLevel(4)">4</button>
-      <button class="level-btn no-hover" style="top: 60%; left: 75%;" onclick="goToLevel(5)">5</button>
-      <button class="level-btn no-hover" style="top: 48%; left: 67%;" onclick="goToLevel(6)">6</button>
-      <button class="level-btn no-hover" style="top: 57%; left: 59%;" onclick="goToLevel(7)">7</button>
-      <button class="level-btn no-hover" style="top: 55%; left: 46%;" onclick="goToLevel(8)">8</button>
-      <button class="level-btn no-hover" style="top: 45%; left: 30%;" onclick="goToLevel(9)">9</button>
-      <button class="level-btn no-hover" style="top: 30%; left: 50%;" onclick="goToLevel(10)">10</button>
+      <button class="level-btn no-hover" id="btn-level-1" style="top: 85%; left: 27%;" onclick="goToLevel(1)">1</button>
+      <button class="level-btn no-hover" id="btn-level-2" style="top: 100%; left: 40%;" onclick="goToLevel(2)" disabled >2</button>
+      <button class="level-btn no-hover" id="btn-level-3" style="top: 91%; left: 48%;" onclick="goToLevel(3)" disabled>3</button>
+      <button class="level-btn no-hover" id="btn-level-4" style="top: 70%; left: 63%;" onclick="goToLevel(4)" disabled>4</button>
+      <button class="level-btn no-hover" id="btn-level-5" style="top: 60%; left: 75%;" onclick="goToLevel(5)" disabled>5</button>
+      <button class="level-btn no-hover" id="btn-level-6" style="top: 48%; left: 67%;" onclick="goToLevel(6)" disabled>6</button>
+      <button class="level-btn no-hover" id="btn-level-7" style="top: 57%; left: 59%;" onclick="goToLevel(7)" disabled>7</button>
+      <button class="level-btn no-hover" id="btn-level-8" style="top: 55%; left: 46%;" onclick="goToLevel(8)" disabled>8</button>
+      <button class="level-btn no-hover" id="btn-level-9" style="top: 45%; left: 30%;" onclick="goToLevel(9)" disabled>9</button>
+      <button class="level-btn no-hover" id="btn-level-10" style="top: 30%; left: 50%;" onclick="goToLevel(10)" disabled>10</button>
       
     </div>
   </div>
@@ -34,16 +45,10 @@
   <script>
    // Khai báo hàm goToLevel trong global scope
     function goToLevel(levelNumber) {
-      // Giả sử bạn dùng logic chuyển trang như đã nói trước đó:
-      let page;
-      if (levelNumber >= 1 && levelNumber <= 3) {
-        page = "templates/gamePage/gamePage.html";
-      } else if (levelNumber >= 4 && levelNumber <= 6) {
-        page = "templates/gamePage2/gamePage2.html";
-      } else {
-        page = "templates/gamePage3/gamePage3.html";
+      if (levelNumber >= 1 && levelNumber <= 10) {
+        localStorage.setItem('currentLevel', levelNumber);
+        window.location.href = `templates/gamePage/gamePage.html?level=${levelNumber}`;
       }
-      window.location.href = page;
     }
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -58,6 +63,37 @@
         }, { once: true });
       });
     
+    function getCompletedLevels() {
+        return JSON.parse(localStorage.getItem('completedLevels') || '[]');
+    }
+
+    function updateProgressBar() {
+        const completed = getCompletedLevels();
+        const total = 3;
+        const percent = Math.min(100, Math.round((completed.length / total) * 100));
+        const bar = document.getElementById('progress-bar');
+        bar.style.width = percent + '%';
+        bar.textContent = percent + '%';
+    }
+
+    function updateLevelButtons() {
+        const completed = getCompletedLevels();
+
+        document.getElementById('btn-level-1').disabled = false;
+
+        for (let i = 2; i <= 10; i++) {
+          const btn = document.getElementById(`btn-level-${i}`);
+          if (btn) {
+              btn.disabled = !completed.includes(i - 1);
+          }
+        }
+      }
+
+     window.addEventListener('DOMContentLoaded', () => {
+        updateProgressBar();
+        updateLevelButtons();
+    });
+
   </script>
 
 </body>

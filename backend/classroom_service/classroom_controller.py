@@ -13,7 +13,7 @@ DIFFICULTY_MAP = {
 }
 
 QUESTION_TYPE_MAP = {
-    1: "multiple_choice",
+    1: "",
     2: "true_false",
     3: "fill_in_the_blank",
     4: "single_choice"
