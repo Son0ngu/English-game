@@ -89,18 +89,20 @@ class ClassroomService:
         q_type: str,
         difficulty: str,
         choices: List[str],
-        correct_index: int
+        correct_index=None,
+        correct_answers=None,
     ) -> Question:
         question_id = str(uuid.uuid4())[:8]
         choices_json = json.dumps(choices, ensure_ascii=False)
-
+        answers_json = (json.dumps(correct_answers, ensure_ascii=False)
+                        if correct_answers else None)
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO questions
-            (id, class_id, question, q_type, difficulty, choices, correct_index)
-            VALUES (?, ?, ?, ?, ?, ?, ?);
-        """, (question_id, class_id, text, q_type, difficulty, choices_json, correct_index))
+            (id, class_id, question, q_type, difficulty, choices, correct_index, correct_answers)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+        """, (question_id, class_id, text, q_type, difficulty, choices_json, correct_index, answers_json))
         conn.commit()
         conn.close()
 
@@ -110,6 +112,7 @@ class ClassroomService:
             difficulty=difficulty,
             choices=choices,
             correct_index=correct_index,
+            correct_answers=correct_answers,
             q_type=q_type,
             class_id=class_id
         )
@@ -169,13 +172,25 @@ class ClassroomService:
         return classes_dict
 
     def get_class_dashboard(self, class_id: str) -> List[Dict[str, Any]]:
-        try:
-            from game_service.gameroom.gameroom_service import game_service
-            game = game_service()
-            entries = game.get_dashboard_for_class(class_id)
-            return [e.to_dict() for e in entries]
-        except Exception:
-            return []
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT student_id, wins FROM student_class 
+            WHERE class_id = ?
+            ORDER BY wins DESC;
+        """, (class_id,))
+        rows = cursor.fetchall()
+        conn.close()
+
+        result = []
+        for r in rows:
+            sid = r["student_id"]
+            wins = r["wins"]
+            user_data = self.user_service.get_user(sid)
+            if user_data:
+                user_data["wins"] = wins
+                result.append(user_data)
+        return result
 
     def remove_student_from_class(self, class_id: str, student_id: str) -> bool:
         conn = get_db_connection()
@@ -213,3 +228,18 @@ class ClassroomService:
             return [row["difficulty"], row["question"], correct_answer]
         else:
             return None
+
+    def increment_student_win(self, class_id: str, student_id: str) -> bool:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "UPDATE student_class SET wins = wins + 1 WHERE class_id = ? AND student_id = ?;",
+                (class_id, student_id)
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception:
+            return False
+        finally:
+            conn.close()

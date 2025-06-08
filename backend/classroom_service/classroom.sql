@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS questions (
     q_type TEXT NOT NULL,
     difficulty TEXT NOT NULL,
     choices TEXT NOT NULL,
-    correct_index INTEGER NOT NULL,
+    correct_index INTEGER,
+    correct_answers TEXT,
     FOREIGN KEY(class_id) REFERENCES classes(id) ON DELETE CASCADE
 );
 
@@ -23,5 +24,6 @@ CREATE TABLE IF NOT EXISTS student_class (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     class_id TEXT NOT NULL,
     student_id TEXT NOT NULL,
+    wins INTEGER DEFAULT 0,
     FOREIGN KEY(class_id) REFERENCES classes(id) ON DELETE CASCADE
 );

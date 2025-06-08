@@ -462,6 +462,8 @@ class services_route:
                 class_id = data.get("class_id") if data else None
                 print("Student", class_id)
                 return self.classroom_controller.get_students(class_id)
+            elif destination == "increment_win" and method == "POST":
+                return self.classroom_controller.increment_win()
             elif destination == "dashboard" and method == "POST":
                 class_id = data.get("class_id")
                 if not class_id:
