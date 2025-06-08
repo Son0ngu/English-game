@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const playerHealth = document.querySelector('.player-health');
     const monsterHealth = document.querySelector('.monster-health');
+    const monsterATK = document.getElementById('monsterATK');
     const damageNumber = document.getElementById('damageNumber');
     const attackEffect = document.getElementById('attackEffect');
     const answerButtons = document.querySelectorAll('.answer-btn');
@@ -22,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let timeLeft = 0;
     const QUESTION_TIME_LIMIT = 30; // 30 seconds per question
 
-    // Game mechanics constants
+    // Game mechanics constants, SAIIIIIIIII
     const PLAYER_DAMAGE = 10;
     const MONSTER_DAMAGE = 5;
 
@@ -168,146 +169,146 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // REPLACE your handleTimeOut function:
 
-async function handleTimeOut() {
-    stopQuestionTimer();
-    
-    console.log('Time is up! Auto-submitting answer "sai"');
-    
-    // Disable all interactions
-    answerButtons.forEach(btn => btn.disabled = true);
-    const blankInput = document.getElementById('blankInput');
-    const submitBtn = document.getElementById('submitAnswerBtn');
-    if (blankInput) blankInput.disabled = true;
-    if (submitBtn) submitBtn.disabled = true;
-    
-    // Submit answer "sai" to backend
-    const result = await submitAnswer("sai");
-    
-    // Determine which question type we're handling
-    const fillInBlankElement = document.getElementById('fillInBlankQuestion');
-    const isFillinBlank = fillInBlankElement && fillInBlankElement.style.display !== 'none';
-    
-    if (isFillinBlank) {
-        // Handle as fill-in-blank timeout with auto-advance
-        await handleFillInBlankTimeout(result);
-    } else {
-        // Handle as multiple choice timeout with auto-advance
-        await handleMultipleChoiceTimeout(result);
+    async function handleTimeOut() {
+        stopQuestionTimer();
+        
+        console.log('Time is up! Auto-submitting answer "sai"');
+        
+        // Disable all interactions
+        answerButtons.forEach(btn => btn.disabled = true);
+        const blankInput = document.getElementById('blankInput');
+        const submitBtn = document.getElementById('submitAnswerBtn');
+        if (blankInput) blankInput.disabled = true;
+        if (submitBtn) submitBtn.disabled = true;
+        
+        // Submit answer "sai" to backend
+        const result = await submitAnswer("sai");
+        
+        // Determine which question type we're handling
+        const fillInBlankElement = document.getElementById('fillInBlankQuestion');
+        const isFillinBlank = fillInBlankElement && fillInBlankElement.style.display !== 'none';
+        
+        if (isFillinBlank) {
+            // Handle as fill-in-blank timeout with auto-advance
+            await handleFillInBlankTimeout(result);
+        } else {
+            // Handle as multiple choice timeout with auto-advance
+            await handleMultipleChoiceTimeout(result);
+        }
     }
-}
 
-// REPLACE your handleMultipleChoiceTimeout function:
-async function handleMultipleChoiceTimeout(result) {
-    // Show timeout styling
-    answerButtons.forEach(btn => {
-        btn.classList.add('timeout');
-    });
-    
-    // Show timeout indicator
-    const questionTextElement = document.getElementById('questionText');
-    if (questionTextElement) {
-        const originalText = questionTextElement.textContent;
-        questionTextElement.textContent = `⏰ TIMEOUT: ${originalText}`;
-        questionTextElement.style.color = '#ff6b35';
-    }
-    
-    // Treat timeout as incorrect answer
-    try {
-        if (typeof playHitSFX === 'function') playHitSFX();
-    } catch (error) {
-        console.log('Hit SFX failed:', error);
-    }
-    
-    // Monster attack animation
-    if (monster) monster.style.transform = 'translateX(-30px)';
-    setTimeout(() => {
-        // Update player health locally
-        playerHealthValue = Math.max(0, playerHealthValue - MONSTER_DAMAGE);
-        updateHealthBars();
+    // REPLACE your handleMultipleChoiceTimeout function:
+    async function handleMultipleChoiceTimeout(result) {
+        // Show timeout styling
+        answerButtons.forEach(btn => {
+            btn.classList.add('timeout');
+        });
         
-        if (player) player.style.transform = 'translateX(-15px) rotate(-5deg)';
+        // Show timeout indicator
+        const questionTextElement = document.getElementById('questionText');
+        if (questionTextElement) {
+            const originalText = questionTextElement.textContent;
+            questionTextElement.textContent = `⏰ TIMEOUT: ${originalText}`;
+            questionTextElement.style.color = '#ff6b35';
+        }
         
-        setTimeout(async () => {
-            if (monster) monster.style.transform = '';
-            if (player) player.style.transform = '';
-            
-            // Reset button styling
-            answerButtons.forEach(btn => {
-                btn.classList.remove('timeout');
-                btn.disabled = false;
-            });
-            
-            // Reset question text color
-            if (questionTextElement) {
-                questionTextElement.style.color = '';
-            }
-            
-            // Check lose condition locally
-            if (playerHealthValue <= 0) {
-                handleGameEnd(false);
-            } else {
-                // AUTO-ADVANCE: Get next question (same as incorrect answer flow)
-                console.log('Timeout - auto-advancing to next question');
-                await getQuestion();
-            }
-        }, 1000);
-    }, 200);
-}
-// REPLACE your handleFillInBlankTimeout function:
-async function handleFillInBlankTimeout(result) {
-    const blankInput = document.getElementById('blankInput');
-    
-    if (blankInput) {
-        blankInput.value = 'TIMEOUT';
-        blankInput.classList.add('timeout');
-        blankInput.style.backgroundColor = '#fff3cd';
-        blankInput.style.borderColor = '#ffc107';
-    }
-    
-    // Show timeout message in question text
-    const questionTextElement = document.getElementById('questionText');
-    if (questionTextElement) {
-        const originalText = questionTextElement.textContent;
-        questionTextElement.textContent = `⏰ TIMEOUT: ${originalText}`;
-        questionTextElement.style.color = '#ff6b35';
-    }
-    
-    try {
-        if (typeof playHitSFX === 'function') playHitSFX();
-    } catch (error) {
-        console.log('Hit SFX failed:', error);
-    }
-    
-    // Monster attack animation
-    if (monster) monster.style.transform = 'translateX(-30px)';
-    setTimeout(() => {
-        // Update player health locally
-        playerHealthValue = Math.max(0, playerHealthValue - MONSTER_DAMAGE);
-        updateHealthBars();
+        // Treat timeout as incorrect answer
+        try {
+            if (typeof playHitSFX === 'function') playHitSFX();
+        } catch (error) {
+            console.log('Hit SFX failed:', error);
+        }
         
-        if (player) player.style.transform = 'translateX(-15px) rotate(-5deg)';
+        // Monster attack animation
+        if (monster) monster.style.transform = 'translateX(-30px)';
+        setTimeout(() => {
+            // Update player health locally
+            playerHealthValue = Math.max(0, playerHealthValue - MONSTER_DAMAGE);
+            updateHealthBars();
+            
+            if (player) player.style.transform = 'translateX(-15px) rotate(-5deg)';
+            
+            setTimeout(async () => {
+                if (monster) monster.style.transform = '';
+                if (player) player.style.transform = '';
+                
+                // Reset button styling
+                answerButtons.forEach(btn => {
+                    btn.classList.remove('timeout');
+                    btn.disabled = false;
+                });
+                
+                // Reset question text color
+                if (questionTextElement) {
+                    questionTextElement.style.color = '';
+                }
+                
+                // Check lose condition locally
+                if (playerHealthValue <= 0) {
+                    handleGameEnd(false);
+                } else {
+                    // AUTO-ADVANCE: Get next question (same as incorrect answer flow)
+                    console.log('Timeout - auto-advancing to next question');
+                    await getQuestion();
+                }
+            }, 1000);
+        }, 200);
+    }
+    // REPLACE your handleFillInBlankTimeout function:
+    async function handleFillInBlankTimeout(result) {
+        const blankInput = document.getElementById('blankInput');
         
-        setTimeout(async () => {
-            if (monster) monster.style.transform = '';
-            if (player) player.style.transform = '';
+        if (blankInput) {
+            blankInput.value = 'TIMEOUT';
+            blankInput.classList.add('timeout');
+            blankInput.style.backgroundColor = '#fff3cd';
+            blankInput.style.borderColor = '#ffc107';
+        }
+        
+        // Show timeout message in question text
+        const questionTextElement = document.getElementById('questionText');
+        if (questionTextElement) {
+            const originalText = questionTextElement.textContent;
+            questionTextElement.textContent = `⏰ TIMEOUT: ${originalText}`;
+            questionTextElement.style.color = '#ff6b35';
+        }
+        
+        try {
+            if (typeof playHitSFX === 'function') playHitSFX();
+        } catch (error) {
+            console.log('Hit SFX failed:', error);
+        }
+        
+        // Monster attack animation
+        if (monster) monster.style.transform = 'translateX(-30px)';
+        setTimeout(() => {
+            // Update player health locally
+            playerHealthValue = Math.max(0, playerHealthValue - MONSTER_DAMAGE);
+            updateHealthBars();
             
-            // Reset question text color
-            if (questionTextElement) {
-                questionTextElement.style.color = '';
-            }
+            if (player) player.style.transform = 'translateX(-15px) rotate(-5deg)';
             
-            // Check game status
-            if (playerHealthValue <= 0) {
-                handleGameEnd(false);
-            } else {
-                // AUTO-ADVANCE: Get next question (same as incorrect answer flow)
-                console.log('Timeout - auto-advancing to next question');
-                resetFillInBlankUI();
-                await getQuestion();
-            }
-        }, 1000);
-    }, 200);
-}
+            setTimeout(async () => {
+                if (monster) monster.style.transform = '';
+                if (player) player.style.transform = '';
+                
+                // Reset question text color
+                if (questionTextElement) {
+                    questionTextElement.style.color = '';
+                }
+                
+                // Check game status
+                if (playerHealthValue <= 0) {
+                    handleGameEnd(false);
+                } else {
+                    // AUTO-ADVANCE: Get next question (same as incorrect answer flow)
+                    console.log('Timeout - auto-advancing to next question');
+                    resetFillInBlankUI();
+                    await getQuestion();
+                }
+            }, 1000);
+        }, 200);
+    }
     
     async function handleMultipleChoiceTimeout(result) {
         // Show timeout message
@@ -407,8 +408,11 @@ async function handleFillInBlankTimeout(result) {
             // Handle the response exactly like in your example
             const sessionId = data.session_id;
             const monsterHP = data.monster_stats.hp;
+            const monsterATK = data.monster_stats.atk;
             const playerHP = data.player_stats.hp;
             const playerATK = data.player_stats.atk;
+
+            const reward = data.monster_stats.money_win || 0;
             
             console.log('Session data:', { sessionId, monsterHP, playerHP, playerATK });
             
@@ -421,6 +425,7 @@ async function handleFillInBlankTimeout(result) {
             
             monsterHealthValue = monsterHP;
             monsterMaxHealth = monsterHP;
+            monsterATK = monsterATK || 5; // Default monster ATK if not provided
             
             // Update UI with backend data
             updateGameInfo(data);
@@ -529,61 +534,61 @@ async function handleFillInBlankTimeout(result) {
     // Submit answer to backend
    // REPLACE your submitAnswer function with this DEBUG version:
 
-async function submitAnswer(answer) {
-    if (!gameSession || !currentQuestion) {
-        console.error('Cannot submit answer: missing session or question');
-        return null;
-    }
-    
-    // Stop timer when answer is submitted
-    stopQuestionTimer();
-    
-    try {
-        console.log('=== DEBUG SUBMIT ANSWER ===');
-        console.log('User answer:', answer);
-        console.log('Current question:', currentQuestion);
-        console.log('Session ID:', gameSession.session_id);
-        console.log('Question ID:', currentQuestion.id);
-        console.log('Question type:', currentQuestion.type);
-        console.log('Question choices:', currentQuestion.choices);
-        
-        const payload = {
-            session_id: gameSession.session_id,
-            question_id: currentQuestion.id,
-            answer: answer
-        };
-        console.log('Sending payload:', JSON.stringify(payload, null, 2));
-        
-        const response = await fetch('http://127.0.0.1:5000/game/check_answer', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getJWTToken()}`
-            },
-            body: JSON.stringify(payload)
-        });
-        
-        console.log(`API Response status: ${response.status}`);
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Response error:', errorText);
-            throw new Error(`HTTP error! status: ${response.status}`);
+    async function submitAnswer(answer) {
+        if (!gameSession || !currentQuestion) {
+            console.error('Cannot submit answer: missing session or question');
+            return null;
         }
+    
+        // Stop timer when answer is submitted
+        stopQuestionTimer();
         
-        const result = await response.json();
-        console.log('=== BACKEND RESPONSE ===');
-        console.log('Full result:', JSON.stringify(result, null, 2));
-        console.log('Status:', result.status);
-        console.log('Expected answer might be:', result.correct_answer || result.expected_answer);
-        console.log('========================');
-        
-        return result;
-    } catch (error) {
-        console.error('Failed to submit answer:', error);
-        return null;
+        try {
+            console.log('=== DEBUG SUBMIT ANSWER ===');
+            console.log('User answer:', answer);
+            console.log('Current question:', currentQuestion);
+            console.log('Session ID:', gameSession.session_id);
+            console.log('Question ID:', currentQuestion.id);
+            console.log('Question type:', currentQuestion.type);
+            console.log('Question choices:', currentQuestion.choices);
+            
+            const payload = {
+                session_id: gameSession.session_id,
+                question_id: currentQuestion.id,
+                answer: answer
+            };
+            console.log('Sending payload:', JSON.stringify(payload, null, 2));
+            
+            const response = await fetch('http://127.0.0.1:5000/game/check_answer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getJWTToken()}`
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            console.log(`API Response status: ${response.status}`);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Response error:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log('=== BACKEND RESPONSE ===');
+            console.log('Full result:', JSON.stringify(result, null, 2));
+            console.log('Status:', result.status);
+            console.log('Expected answer might be:', result.correct_answer || result.expected_answer);
+            console.log('========================');
+            
+            return result;
+        } catch (error) {
+            console.error('Failed to submit answer:', error);
+            return null;
+        }
     }
-}
 
     // Update health bars with smooth animation
     function updateHealthBars() {
@@ -611,7 +616,7 @@ async function submitAnswer(answer) {
     // Load a question from backend data
     // REPLACE your loadQuestion function with this UPDATED version:
 
-function loadQuestion(questionData) {
+    function loadQuestion(questionData) {
     if (!questionData || !questionData.question) {
         console.error('Invalid question data:', questionData);
         if (questionText) {
@@ -666,12 +671,12 @@ function loadQuestion(questionData) {
         loadMultipleChoiceQuestion(questionData);
         setupAnswerButtonListeners();
     }
-}
+    }
 
 // ADD these NEW functions after your existing load functions:
 
 // Load true/false question
-function loadTrueFalseQuestion(questionData) {
+    function loadTrueFalseQuestion(questionData) {
     console.log('Loading true/false question:', questionData);
     
     // Hide other question types
@@ -715,10 +720,10 @@ function loadTrueFalseQuestion(questionData) {
     });
     
     console.log('True/False question loaded successfully');
-}
+    }
 
 // Setup event listeners for true/false questions
-function setupTrueFalseListeners() {
+    function setupTrueFalseListeners() {
     // Get fresh button references
     const trueFalseButtons = document.querySelectorAll('.answer-btn');
     
@@ -757,7 +762,7 @@ function setupTrueFalseListeners() {
     });
     
     console.log('True/False listeners setup complete');
-}
+    }
     
     // Load multiple choice question with proper data mapping
     function loadMultipleChoiceQuestion(questionData) {
