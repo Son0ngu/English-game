@@ -17,21 +17,10 @@ class game_service:
     def create_game_room(self, student_id, difficulty, class_id):
         try:
             session_id = str(uuid.uuid4())
-            print("session_id:", session_id)
-            stats = self.user_service.get_user_stats_only(student_id)
-
-            atk = stats["atk"]
-            hp = stats["hp"]
-            #atk hp chuyen sang int
-
-            print(f"User stats - ATK: {atk}, HP: {hp}")
-            print(type(atk), type(hp))
-
-            #atk = atk[0] if isinstance(atk, (list, tuple)) else atk
+            atk, hp = self.user_service.get_user_stats_only(student_id)
+            atk = atk[0] if isinstance(atk, (list, tuple)) else atk
             if atk is None or hp is None:
                 raise ValueError("Stats not found")
-            
-            print("DEBUG:", atk, type(atk), hp, type(hp))
             monster = self.monster_service.create_monster_based_on_difficulty(
                 student_id, difficulty, hp, atk
             )

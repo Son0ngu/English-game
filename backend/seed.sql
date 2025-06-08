@@ -9,7 +9,7 @@ DELETE FROM auth_service  WHERE 1=1;
 PRAGMA foreign_keys = ON;    -- Bật lại kiểm tra khóa ngoại
 
 -- USERS
-INSERT OR IGNORE INTO auth_service (user_id, username, password, role) VALUES
+INSERT INTO auth_service (user_id, username, password, role) VALUES
   ('admin01',   'admin01',   'admin123', 'admin'),
   ('teacher1',  'teacher1',  'teach123', 'teacher'),
   ('teacher2',  'teacher2',  'teach234', 'teacher'),
@@ -19,14 +19,14 @@ INSERT OR IGNORE INTO auth_service (user_id, username, password, role) VALUES
   ('student4',  'student4',  'stud345',  'student');
 
 -- CLASSES
-INSERT OR IGNORE INTO classes (id, name, code, teacher_id) VALUES
+INSERT INTO classes (id, name, code, teacher_id) VALUES
   ('class1', 'English A1',          'ENG-A1',  'teacher1'),
   ('0c8b623a', '123',          'ENG-A1',  'teacher1'),
   ('class2', 'Grammar Basic',       'GRM-BSC', 'teacher1'),
   ('class3', 'Vocabulary Advanced', 'VOC-ADV', 'teacher2');
 
 -- STUDENTS IN CLASS
-INSERT OR IGNORE INTO student_class (class_id, student_id) VALUES
+INSERT INTO student_class (class_id, student_id) VALUES
   ('class1', 'student1'),
   ('class1', 'student2'),
   ('class1', 'student3'),
@@ -34,7 +34,7 @@ INSERT OR IGNORE INTO student_class (class_id, student_id) VALUES
   ('class2', 'student4'),
   ('class3', 'student3');
 
-INSERT OR IGNORE INTO student_class (class_id, student_id) VALUES
+INSERT INTO student_class (class_id, student_id) VALUES
   ('6f3303f2', 'student1'),
   ('6f3303f2', 'student2'),
   ('6f3303f2', 'student3'),
@@ -42,7 +42,7 @@ INSERT OR IGNORE INTO student_class (class_id, student_id) VALUES
   ('6f3303f2', 'student4'),
   ('6f3303f2', 'student3');
 
-INSERT OR IGNORE INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
+INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
   -- Multiple Choice (có thể có nhiều lựa chọn, correct_index là vị trí đầu tiên của đáp án đúng)
   ('dawdwad',  'class1', 'What is the capital of France?',      'multiple_choice', 'easy',   '["Paris","London","Berlin","Rome"]',                0),
   ('rfwsavrnwoiv',  'class1', 'Which words are verbs?',                'multiple_choice', 'medium', '["run","book","jump","table"]',                    0),
@@ -65,7 +65,7 @@ INSERT OR IGNORE INTO questions (id, class_id, question, q_type, difficulty, cho
   ('q12', 'class1', 'Which is an adverb?',                   'single_choice',   'hard',   '["quick","quickly","quicker","quickest"]',           1);
 
 -- Thêm 5 câu MULTIPLE CHOICE (q_type = 'multiple')
-INSERT OR IGNORE INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
+INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
   ('mcq01', 'class1', 'Which planet is known as the Red Planet?', 'multiple', 'easy',
              '["Mercury","Mars","Jupiter","Venus"]', 1),
   ('mcq02', 'class1', 'What is the boiling point of water at SEA LEVEL?', 'multiple', 'easy',
@@ -79,7 +79,7 @@ INSERT OR IGNORE INTO questions (id, class_id, question, q_type, difficulty, cho
 
 -- Thêm 5 câu TRUE/FALSE (q_type = 'true_false')
 --    (choices cố định: ["True","False"], chỉ cần đúng vị trí 0= True, 1= False)
-INSERT OR IGNORE INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
+INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
   ('tf01', 'class1', 'The programming language Python was named after a snake.', 'true_false', 'easy',
             '["True","False"]', 1),
   ('tf02', 'class1', 'Light travels faster than sound.', 'true_false', 'easy',
@@ -94,7 +94,7 @@ INSERT OR IGNORE INTO questions (id, class_id, question, q_type, difficulty, cho
 -- Thêm 5 câu FILL-IN-THE-BLANK (q_type = 'fill_blank')
 --    Ở đây ta đặt choices = '[]' (chuỗi JSON rỗng) và correct_index = 0 (mặc định)
 --    Khi kiểm tra đáp án, ứng dụng phía client/server phải so sánh thủ công.
-INSERT OR IGNORE INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
+INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
   ('fb01', 'class1', 'The capital of Japan is ___.', 'fill_blank', 'easy', '[]', 0),
   ('fb02', 'class1', '___ is known as the powerhouse of the cell.', 'fill_blank', 'medium', '[]', 0),
   ('fb03', 'class1', 'Water freezes at ___ degrees Celsius.', 'fill_blank', 'easy', '[]', 0),
@@ -103,7 +103,7 @@ INSERT OR IGNORE INTO questions (id, class_id, question, q_type, difficulty, cho
 
 -- Thêm 5 câu SINGLE CHOICE (q_type = 'single')
 --    (tương tự MCQ, nhưng chỉ có đúng 1 đáp án)
-INSERT OR IGNORE INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
+INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
   ('sc01', 'class1', 'Which country hosted the 2016 Summer Olympics?', 'single', 'easy',
              '["China","Brazil","UK","Russia"]', 1),
   ('sc02', 'class1', 'What is the square root of 64?', 'single', 'easy',
