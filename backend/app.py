@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,render_template
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 import os
@@ -12,7 +12,7 @@ from user_profile_service.database_interface import DatabaseInterface, UserProfi
 dotenv.load_dotenv()
 
 def create_app(config_object=None):
-    app = Flask(__name__)
+    app = Flask(__name__,template_folder="templates")
     
     # Apply configuration if provided
     if config_object:
@@ -72,7 +72,12 @@ def create_app(config_object=None):
         pass
     except Exception as e:
         pass
-    
+
+
+
+    @app.route("/")
+    def home():
+        return render_template("index.html")
     # Add API Gateway catchall route (override default routing)
     @app.route('/', defaults={'path': ''}, methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
     @app.route('/<path:path>', methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
