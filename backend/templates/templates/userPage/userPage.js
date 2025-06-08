@@ -120,9 +120,87 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    loadClasses(); // hoặc tuỳ vào hàm loadClasses() bạn đang dùng
-    console.log("dang goi ham loadclasses")
+// document.addEventListener("DOMContentLoaded", () => {
+//     loadClasses(); // hoặc tuỳ vào hàm loadClasses() bạn đang dùng
+//     console.log("dang goi ham loadclasses")
+
+
+// });
+
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Lấy user hiện tại
+    const resp = await fetch('http://localhost:5000/auth/HuyTranLayRoleTuID', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem("token")}` },
+        body: JSON.stringify({})
+    });
+    if (!resp.ok) return console.error('Không lấy được thông tin user');
+    const user = await resp.json();
+    const role = user.role; // "teacher" hoặc "student"
+
+    console.log("role:", role);
+
+    // 2. Hiển thị section tương ứng
+    if (role === 'teacher') {
+        document.getElementById('teacherSection').style.display = 'block';
+        loadTeacherClasses();
+    } else {
+        document.getElementById('studentSection').style.display = 'block';
+        loadStudentClasses();
+    }
+
+    // Hàm load danh sách lớp của teacher
+    async function loadTeacherClasses() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("Bạn cần đăng nhập trước.");
+            return;
+        }
+        try {
+            const resp = await fetch("http://localhost:5000/classroom/classes", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({})
+            });
+
+            if (resp.ok) {
+                const classesArray = await resp.json();
+                listContainer.innerHTML = "";
+
+                if (!Array.isArray(classesArray) || classesArray.length === 0) {
+                    listContainer.innerHTML = "<li>Chưa có lớp nào.</li>";
+                    return;
+                }
+
+                classesArray.forEach(cls => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                    <span class="name">${cls.name}</span>
+                    <span class="code">${cls.code}</span>
+                `;
+
+                    // Thêm sự kiện click để chuyển hướng đến trang chi tiết lớp
+                    li.addEventListener('click', () => {
+                        showClassDetails(cls.id, cls.name);
+                    });
+
+                    listContainer.appendChild(li);
+                });
+
+            } else {
+                const text = await resp.text();
+                console.error("Server returned non-OK status:", resp.status, text);
+            }
+        } catch (err) {
+            console.error("load classes error:", err);
+            alert("Lỗi khi kết nối server.");
+        }
+    }
 
     // 2. Gán event cho nút Tạo lớp
     const createClassBtn = document.getElementById("createClassBtn");
@@ -186,57 +264,71 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-});
 
-
-
-// Hàm load danh sách lớp của teacher
-async function loadClasses() {
-    const token = localStorage.getItem("token");
-    if (!token) {
-        alert("Bạn cần đăng nhập trước.");
-        return;
+    // 3 --- Event: Student join lớp ---
+    const joinClassBtn = document.getElementById("joinClassBtn");
+    if (joinClassBtn) {
+        joinClassBtn.addEventListener('click', async () => {
+            console.log("dang bam join class")
+            const code = document.getElementById('joinClassCode').value.trim();
+            if (!code) return alert('Nhập mã lớp');
+            console.log("code:", code);
+            const r = await fetch('http://localhost:5000/classroom/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem("token")}` },
+                body: JSON.stringify({ class_code: code })
+            });
+            if (r.ok) {
+                document.getElementById('joinClassCode').value = '';
+                loadStudentClasses();
+            } else {
+                const e = await r.json();
+                alert(e.error || 'Tham gia thất bại');
+            }
+        });
     }
-    try {
-        const resp = await fetch("http://localhost:5000/classroom/classes", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
+
+    // --- Hàm cho Student load danh sách lớp đã join ---
+    async function loadStudentClasses() {
+        const r = await fetch('http://localhost:5000/classroom/student/classes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem("token")}` },
             body: JSON.stringify({})
         });
-
-        if (resp.ok) {
-            const classesArray = await resp.json();
-            listContainer.innerHTML = "";
-
-            if (!Array.isArray(classesArray) || classesArray.length === 0) {
-                listContainer.innerHTML = "<li>Chưa có lớp nào.</li>";
-                return;
-            }
-
-            classesArray.forEach(cls => {
-                const li = document.createElement("li");
-                li.innerHTML = `
-                    <span class="name">${cls.name}</span>
-                    <span class="code">${cls.code}</span>
-                `;
-
-                // Thêm sự kiện click để chuyển hướng đến trang chi tiết lớp
-                li.addEventListener('click', () => {
-                    showClassDetails(cls.id, cls.name);
-                });
-
-                listContainer.appendChild(li);
-            });
-
-        } else {
-            const text = await resp.text();
-            console.error("Server returned non-OK status:", resp.status, text);
-        }
-    } catch (err) {
-        console.error("load classes error:", err);
-        alert("Lỗi khi kết nối server.");
+        const { classes } = await r.json();
+        // classes là object { id1: {…}, id2: {…}, … }
+        const ul = document.getElementById('joinedClassList');
+        ul.innerHTML = '';
+        Object.values(classes).forEach(c => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `
+        <span>${c.name} (${c.code})</span>
+        <button class="btn btn-sm btn-outline-secondary view-students" data-id="${c.id}">
+          Xem SV
+        </button>
+      `;
+            ul.appendChild(li);
+        });
+        document.querySelectorAll('#joinedClassList .view-students').forEach(btn =>
+            btn.addEventListener('click', () => loadStudentsInClass(btn.dataset.id))
+        );
     }
-}
+
+    // --- Hàm chung: load danh sách sinh viên trong 1 lớp ---
+    async function loadStudentsInClass(classId) {
+        const r = await fetch('http://localhost:5000/classroom/students', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem("token")}` },
+            body: JSON.stringify({ class_id: classId })
+        });
+        if (!r.ok) {
+            const e = await r.json();
+            return alert(e.error || 'Không lấy được danh sách sinh viên');
+        }
+        const { students } = await r.json();
+        // Hiển thị popup hoặc modal, ở đây tạm dùng alert
+        const names = students.map(s => `${s.id} — ${s.email}`).join('\n');
+        alert(`Sinh viên lớp ${classId}:\n` + names);
+    }
+});

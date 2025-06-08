@@ -117,12 +117,14 @@ class ClassroomController:
 
     @jwt_required()
     def get_dashboard(self, class_id):
-        print("Dashboard", class_id)
+        print("Dashboard1", class_id)
         if not class_id:
             return jsonify({"error": "class_id required"}), 400
 
-        dashboard = self.service.get_class_dashboard(class_id)
+        # dashboard = self.service.get_class_dashboard(class_id)
+        dashboard = "abc" # Placeholder for actual dashboard data
         return jsonify({"dashboard": dashboard}), 200
+
 
     @jwt_required()
     def kick_student(self, data):

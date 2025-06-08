@@ -112,6 +112,7 @@ class UserRepository:
         """
         print("find_by_id", user_id)
         user_dict = self.db.get_user_by_id(user_id)
+        print("user_dict", user_dict)
         return self._dict_to_user(user_dict)
     
     def find_students(self, limit: int = 100, offset: int = 0) -> List[StudentProfile]:
