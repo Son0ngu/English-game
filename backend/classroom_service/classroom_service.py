@@ -89,19 +89,18 @@ class ClassroomService:
         q_type: str,
         difficulty: str,
         choices: List[str],
-        correct_answers=List[str],
+        correct_index: int
     ) -> Question:
         question_id = str(uuid.uuid4())[:8]
         choices_json = json.dumps(choices, ensure_ascii=False)
-        answers_json = json.dumps(correct_answers, ensure_ascii=False)
 
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO questions
-            (id, class_id, question, q_type, difficulty, choices, correct_answers)
-            VALUES (?, ?, ?, ?, ?, ?, ?);
-        """, (question_id, class_id, text, q_type, difficulty, choices_json, answers_json))
+                    INSERT INTO questions
+                    (id, class_id, question, q_type, difficulty, choices, correct_index)
+                    VALUES (?, ?, ?, ?, ?, ?, ?);
+                """, (question_id, class_id, text, q_type, difficulty, choices_json, correct_index))
         conn.commit()
         conn.close()
 
@@ -110,7 +109,7 @@ class ClassroomService:
             text=text,
             difficulty=difficulty,
             choices=choices,
-            correct_answers=correct_answers,
+            correct_index=correct_index,
             q_type=q_type,
             class_id=class_id
         )

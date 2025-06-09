@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS questions (
     q_type TEXT NOT NULL,
     difficulty TEXT NOT NULL,
     choices TEXT NOT NULL,
-    correct_answers TEXT,
+    correct_index INTEGER NOT NULL,
     FOREIGN KEY(class_id) REFERENCES classes(id) ON DELETE CASCADE
 );
 
