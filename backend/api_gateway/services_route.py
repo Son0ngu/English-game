@@ -500,6 +500,7 @@ class services_route:
                     additional_claims = {"role": role}
                     access_token = create_access_token(identity=id,additional_claims=additional_claims)
                     print("Crafted access token:", access_token," (service_route)")
+                    print("login",id)
                     return {"access_token": access_token}, 200
                 else:
                     print("Invalid credentials (service_route)")

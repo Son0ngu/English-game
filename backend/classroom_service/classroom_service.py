@@ -114,33 +114,31 @@ class ClassroomService:
             class_id=class_id
         )
 
-    def get_questions_by_criteria(
-        self,
-        class_id: str,
-        difficulty: Optional[str],
-        q_type: Optional[str],
-        limit: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
+    def get_questions_by_criteria(self, class_id, difficulty=None, q_type=None, limit=1):
         base_sql = "SELECT * FROM questions WHERE class_id = ?"
         params = [class_id]
-        print(class_id)
-        print(q_type)
-        if difficulty:
+
+        if difficulty is not None:
             base_sql += " AND difficulty = ?"
             params.append(difficulty)
-        if q_type:
+        if q_type is not None:
             base_sql += " AND q_type = ?"
             params.append(q_type)
+        if limit is not None:
+            base_sql += " ORDER BY RANDOM() LIMIT ?"
+            params.append(limit)
 
-        if limit:
-            base_sql += f" ORDER BY RANDOM() LIMIT {limit}"
+        # DEBUG
+        print("SQL →", base_sql)
+        print("PARAMS →", params)
 
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute(base_sql + ";", tuple(params))
+        cursor.execute(base_sql, tuple(params))
         rows = cursor.fetchall()
         conn.close()
 
+        print("ROWS →", rows)
         return [Question.from_row(r).to_dict() for r in rows]
 
     def get_student_classes(self, student_id: str) -> Dict[str, Any]:
