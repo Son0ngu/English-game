@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Elements
     const playerHealth = document.querySelector('.player-health');
     const monsterHealth = document.querySelector('.monster-health');
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (elements.gameInfo) elements.gameInfo.style.display = 'none';
         if (elements.errorMessage) elements.errorMessage.style.display = 'none';
         if (elements.timerDisplay) elements.timerDisplay.style.display = 'none';
-        
+
         console.log('Showing loading screen');
     }
 
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (elements.gameInfo) elements.gameInfo.style.display = 'block';
         if (elements.errorMessage) elements.errorMessage.style.display = 'none';
         if (elements.timerDisplay) elements.timerDisplay.style.display = 'block';
-        
+
         console.log('Showing game screen');
     }
 
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (elements.gameInfo) elements.gameInfo.style.display = 'none';
         if (elements.errorMessage) elements.errorMessage.style.display = 'block';
         if (elements.timerDisplay) elements.timerDisplay.style.display = 'none';
-        
+
         console.log('Showing error screen');
     }
 
@@ -92,31 +92,31 @@ document.addEventListener('DOMContentLoaded', function() {
     function hideAllQuestionTypes() {
         const multipleChoiceElement = document.getElementById('multipleChoiceQuestion');
         const fillInBlankElement = document.getElementById('fillInBlankQuestion');
-        
+
         if (multipleChoiceElement) multipleChoiceElement.style.display = 'none';
         if (fillInBlankElement) fillInBlankElement.style.display = 'none';
-        
+
         // Clear the main question text when hiding
         const questionTextElement = document.getElementById('questionText');
         if (questionTextElement) {
             questionTextElement.textContent = 'Loading next question...';
         }
-        
+
         console.log('All question types hidden and text cleared');
     }
 
     // JWT Token management with fallback for testing
     function getJWTToken() {
         const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
-        
+
         // TEMPORARY: Fallback to test token if no token found
         if (!token) {
             console.log('No JWT token found, using test token');
-            const testToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0OTMyMDU3OCwianRpIjoiNmIxMjAzYzctMWVjNS00YjM1LTlkMGEtZWU3NWVhNGMwZDYyIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImYxYTFkNTc3LWMyNjctNDk4YS1hZmRkLTg3NTg3ZTA2Nzc1YSIsIm5iZiI6MTc0OTMyMDU3OCwiY3NyZiI6ImVmYTJiNjU4LWNkNDQtNDUyZS1iYjFlLThlMDQwNTIyOWNlNCIsImV4cCI6MTc0OTMyNzc3OCwicm9sZSI6InN0dWRlbnQifQ.4MouUV8_HSb2c0cPrwkAXD6u8M2O_aOydextqG2pVjA';
+            const testToken = localStorage.getItem("token");
             localStorage.setItem('jwtToken', testToken);
             return testToken;
         }
-        
+
         return token;
     }
 
@@ -126,22 +126,22 @@ document.addEventListener('DOMContentLoaded', function() {
         if (questionTimer) {
             clearInterval(questionTimer);
         }
-        
+
         timeLeft = QUESTION_TIME_LIMIT;
         updateTimerDisplay();
-        
+
         questionTimer = setInterval(() => {
             timeLeft--;
             updateTimerDisplay();
-            
+
             if (timeLeft <= 0) {
                 handleTimeOut();
             }
         }, 1000);
-        
+
         console.log('Question timer started');
     }
-    
+
     function stopQuestionTimer() {
         if (questionTimer) {
             clearInterval(questionTimer);
@@ -149,13 +149,13 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Question timer stopped');
         }
     }
-    
+
     // Update timer display with visual feedback
     function updateTimerDisplay() {
         const timerElement = document.getElementById('timerDisplay');
         if (timerElement) {
             timerElement.textContent = `Time: ${timeLeft}`;
-            
+
             // Change styling based on time left
             if (timeLeft <= 5) {
                 timerElement.className = 'timer-display danger';
@@ -166,28 +166,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
+
     // REPLACE your handleTimeOut function:
 
     async function handleTimeOut() {
         stopQuestionTimer();
-        
+
         console.log('Time is up! Auto-submitting answer "sai"');
-        
+
         // Disable all interactions
         answerButtons.forEach(btn => btn.disabled = true);
         const blankInput = document.getElementById('blankInput');
         const submitBtn = document.getElementById('submitAnswerBtn');
         if (blankInput) blankInput.disabled = true;
         if (submitBtn) submitBtn.disabled = true;
-        
+
         // Submit answer "sai" to backend
         const result = await submitAnswer("sai");
-        
+
         // Determine which question type we're handling
         const fillInBlankElement = document.getElementById('fillInBlankQuestion');
         const isFillinBlank = fillInBlankElement && fillInBlankElement.style.display !== 'none';
-        
+
         if (isFillinBlank) {
             // Handle as fill-in-blank timeout with auto-advance
             await handleFillInBlankTimeout(result);
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
         answerButtons.forEach(btn => {
             btn.classList.add('timeout');
         });
-        
+
         // Show timeout indicator
         const questionTextElement = document.getElementById('questionText');
         if (questionTextElement) {
@@ -211,38 +211,38 @@ document.addEventListener('DOMContentLoaded', function() {
             questionTextElement.textContent = `⏰ TIMEOUT: ${originalText}`;
             questionTextElement.style.color = '#ff6b35';
         }
-        
+
         // Treat timeout as incorrect answer
         try {
             if (typeof playHitSFX === 'function') playHitSFX();
         } catch (error) {
             console.log('Hit SFX failed:', error);
         }
-        
+
         // Monster attack animation
         if (monster) monster.style.transform = 'translateX(-30px)';
         setTimeout(() => {
             // Update player health locally
             playerHealthValue = Math.max(0, playerHealthValue - MONSTER_DAMAGE);
             updateHealthBars();
-            
+
             if (player) player.style.transform = 'translateX(-15px) rotate(-5deg)';
-            
+
             setTimeout(async () => {
                 if (monster) monster.style.transform = '';
                 if (player) player.style.transform = '';
-                
+
                 // Reset button styling
                 answerButtons.forEach(btn => {
                     btn.classList.remove('timeout');
                     btn.disabled = false;
                 });
-                
+
                 // Reset question text color
                 if (questionTextElement) {
                     questionTextElement.style.color = '';
                 }
-                
+
                 // Check lose condition locally
                 if (playerHealthValue <= 0) {
                     handleGameEnd(false);
@@ -257,14 +257,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // REPLACE your handleFillInBlankTimeout function:
     async function handleFillInBlankTimeout(result) {
         const blankInput = document.getElementById('blankInput');
-        
+
         if (blankInput) {
             blankInput.value = 'TIMEOUT';
             blankInput.classList.add('timeout');
             blankInput.style.backgroundColor = '#fff3cd';
             blankInput.style.borderColor = '#ffc107';
         }
-        
+
         // Show timeout message in question text
         const questionTextElement = document.getElementById('questionText');
         if (questionTextElement) {
@@ -272,31 +272,31 @@ document.addEventListener('DOMContentLoaded', function() {
             questionTextElement.textContent = `⏰ TIMEOUT: ${originalText}`;
             questionTextElement.style.color = '#ff6b35';
         }
-        
+
         try {
             if (typeof playHitSFX === 'function') playHitSFX();
         } catch (error) {
             console.log('Hit SFX failed:', error);
         }
-        
+
         // Monster attack animation
         if (monster) monster.style.transform = 'translateX(-30px)';
         setTimeout(() => {
             // Update player health locally
             playerHealthValue = Math.max(0, playerHealthValue - MONSTER_DAMAGE);
             updateHealthBars();
-            
+
             if (player) player.style.transform = 'translateX(-15px) rotate(-5deg)';
-            
+
             setTimeout(async () => {
                 if (monster) monster.style.transform = '';
                 if (player) player.style.transform = '';
-                
+
                 // Reset question text color
                 if (questionTextElement) {
                     questionTextElement.style.color = '';
                 }
-                
+
                 // Check game status
                 if (playerHealthValue <= 0) {
                     handleGameEnd(false);
@@ -309,40 +309,40 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1000);
         }, 200);
     }
-    
+
     async function handleMultipleChoiceTimeout(result) {
         // Show timeout message
         answerButtons.forEach(btn => {
             btn.classList.add('timeout');
             btn.textContent = btn.textContent + ' (TIMEOUT)';
         });
-        
+
         // Treat timeout as incorrect answer
         try {
             if (typeof playHitSFX === 'function') playHitSFX();
         } catch (error) {
             console.log('Hit SFX failed:', error);
         }
-        
+
         // Monster attack animation
         if (monster) monster.style.transform = 'translateX(-30px)';
         setTimeout(() => {
             // Update player health locally
             playerHealthValue = Math.max(0, playerHealthValue - MONSTER_DAMAGE);
             updateHealthBars();
-            
+
             if (player) player.style.transform = 'translateX(-15px) rotate(-5deg)';
-            
+
             setTimeout(async () => {
                 if (monster) monster.style.transform = '';
                 if (player) player.style.transform = '';
-                
+
                 // Reset button styling
                 answerButtons.forEach(btn => {
                     btn.classList.remove('timeout');
                     btn.disabled = false;
                 });
-                
+
                 // Check lose condition locally
                 if (playerHealthValue <= 0) {
                     handleGameEnd(false);
@@ -353,8 +353,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1000);
         }, 200);
     }
-    
-    
+
+
 
     // Update game info display
     function updateGameInfo(sessionData) {
@@ -362,12 +362,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const sessionIdElement = document.getElementById('sessionId');
         const playerLevelElement = document.getElementById('playerLevel');
         const monsterLevelElement = document.getElementById('monsterLevel');
-        
+
         if (gameDifficultyElement) gameDifficultyElement.textContent = sessionData.difficulty || '-';
         if (sessionIdElement) sessionIdElement.textContent = sessionData.session_id || '-';
         if (playerLevelElement) playerLevelElement.textContent = sessionData.player_level || sessionData.player_stats?.level || '1';
         if (monsterLevelElement) monsterLevelElement.textContent = sessionData.monster_level || sessionData.monster_stats?.level || '1';
-        
+
         console.log('Game info updated:', sessionData);
     }
 
@@ -376,21 +376,21 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('Creating game room...', { difficulty, classId });
             showLoadingScreen();
-            
-            // FIXED: Use exact same format as your successful Postman request
+
+            // Gọi API với đúng classId từ tham số
             const response = await fetch('http://127.0.0.1:5000/game/newroom', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getJWTToken()}`
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
                 },
                 body: JSON.stringify({
                     difficulty: difficulty,
-                    class_id: "class1"
+                    class_id: classId
                 })
             });
             console.log(`API Response status: ${response.status}`);
-            
+
             if (!response.ok) {
                 if (response.status === 401) {
                     console.log('Unauthorized, removing tokens and redirecting');
@@ -401,42 +401,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const data = await response.json();
             console.log("Game room created:", data);
 
-            // Handle the response exactly like in your example
-            const sessionId = data.session_id;
-            const monsterHP = data.monster_stats.hp;
-            const monsterATK = data.monster_stats.atk;
-            const playerHP = data.player_stats.hp;
-            const playerATK = data.player_stats.atk;
+            // ➤ Chuyển sang let để có thể gán lại
+            let sessionId = data.session_id;
+            let monsterHP = data.monster_stats.hp;
+            // nếu data.monster_stats.atk undefined thì mặc định 5
+            let monsterATK = data.monster_stats.atk ?? 5;
+            let playerHP = data.player_stats.hp;
+            let playerATK = data.player_stats.atk;
+            let reward = data.monster_stats.money_win ?? 0;
 
-            const reward = data.monster_stats.money_win || 0;
-            
-            console.log('Session data:', { sessionId, monsterHP, playerHP, playerATK });
-            
-            // Store the session data
+            console.log('Session data:', { sessionId, monsterHP, monsterATK, playerHP, playerATK, reward });
+
             gameSession = data;
-            
-            // Update game state with backend data
+
+            // Cập nhật state game
             playerHealthValue = playerHP;
             playerMaxHealth = playerHP;
-            
+
             monsterHealthValue = monsterHP;
             monsterMaxHealth = monsterHP;
-            monsterATK = monsterATK || 5; // Default monster ATK if not provided
-            
-            // Update UI with backend data
+            // Lưu ATK mới vào biến global/closure của bạn
+            monsterAttackValue = monsterATK;
+
+            // Cập nhật UI
             updateGameInfo(data);
             updateHealthBars();
-            
-            // Get first question
+
+            // Lấy câu hỏi đầu tiên
             await getQuestion();
-            
-            // Show game screen
+
+            // Hiện màn hình chơi
             showGameScreen();
-            
+
             return data;
         } catch (error) {
             console.error('Failed to create game room:', error);
@@ -445,16 +445,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+
     // Get question from backend with correct response handling
     async function getQuestion() {
         if (!gameSession) {
             console.error('No game session available');
             return;
         }
-        
+
         try {
             console.log('Getting question for session:', gameSession.session_id);
-            
+
             const response = await fetch('http://127.0.0.1:5000/game/get_question', {
                 method: 'POST',
                 headers: {
@@ -466,19 +467,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     class_id: gameSession.class_id || "class1"
                 })
             });
-            
+
             console.log(`API Response status: ${response.status}`);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const result = await response.json();
             console.log('Question received:', result);
-            
+
             // FIXED: Handle array response from backend
             let questionData = null;
-            
+
             if (Array.isArray(result)) {
                 console.log('Backend returned array with length:', result.length);
                 if (result.length > 0) {
@@ -508,12 +509,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 return;
             }
-            
+
             // Validate question data before loading
             if (questionData && questionData.question && questionData.choices) {
                 currentQuestion = questionData;
                 loadQuestion(questionData);
-                
+
                 // Start timer for new question
                 startQuestionTimer();
             } else {
@@ -522,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     questionText.textContent = 'Question data is incomplete.';
                 }
             }
-            
+
         } catch (error) {
             console.error('Failed to get question:', error);
             if (questionText) {
@@ -532,17 +533,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Submit answer to backend
-   // REPLACE your submitAnswer function with this DEBUG version:
+    // REPLACE your submitAnswer function with this DEBUG version:
 
     async function submitAnswer(answer) {
         if (!gameSession || !currentQuestion) {
             console.error('Cannot submit answer: missing session or question');
             return null;
         }
-    
+
         // Stop timer when answer is submitted
         stopQuestionTimer();
-        
+
         try {
             console.log('=== DEBUG SUBMIT ANSWER ===');
             console.log('User answer:', answer);
@@ -551,38 +552,39 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Question ID:', currentQuestion.id);
             console.log('Question type:', currentQuestion.type);
             console.log('Question choices:', currentQuestion.choices);
-            
+
             const payload = {
                 session_id: gameSession.session_id,
                 question_id: currentQuestion.id,
                 answer: answer
             };
             console.log('Sending payload:', JSON.stringify(payload, null, 2));
-            
+            console.log('debug', localStorage.getItem("token"));
+
             const response = await fetch('http://127.0.0.1:5000/game/check_answer', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getJWTToken()}`
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
                 },
                 body: JSON.stringify(payload)
             });
-            
+
             console.log(`API Response status: ${response.status}`);
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Response error:', errorText);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const result = await response.json();
             console.log('=== BACKEND RESPONSE ===');
             console.log('Full result:', JSON.stringify(result, null, 2));
             console.log('Status:', result.status);
             console.log('Expected answer might be:', result.correct_answer || result.expected_answer);
             console.log('========================');
-            
+
             return result;
         } catch (error) {
             console.error('Failed to submit answer:', error);
@@ -594,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateHealthBars() {
         const playerHealthPercent = playerMaxHealth > 0 ? (playerHealthValue / playerMaxHealth) * 100 : 0;
         const monsterHealthPercent = monsterMaxHealth > 0 ? (monsterHealthValue / monsterMaxHealth) * 100 : 0;
-        
+
         if (playerHealth) {
             playerHealth.style.width = Math.max(0, playerHealthPercent) + '%';
             playerHealth.style.transition = 'width 0.5s ease-in-out';
@@ -603,198 +605,198 @@ document.addEventListener('DOMContentLoaded', function() {
             monsterHealth.style.width = Math.max(0, monsterHealthPercent) + '%';
             monsterHealth.style.transition = 'width 0.5s ease-in-out';
         }
-        
+
         const playerHealthText = document.querySelector('.player-stats .health-text');
         const monsterHealthText = document.querySelector('.monster-stats .health-text');
-        
+
         if (playerHealthText) playerHealthText.textContent = Math.max(0, playerHealthValue);
         if (monsterHealthText) monsterHealthText.textContent = Math.max(0, monsterHealthValue);
-        
+
         console.log('Health updated:', { player: playerHealthValue, monster: monsterHealthValue });
     }
-    
+
     // Load a question from backend data
     // REPLACE your loadQuestion function with this UPDATED version:
 
     function loadQuestion(questionData) {
-    if (!questionData || !questionData.question) {
-        console.error('Invalid question data:', questionData);
-        if (questionText) {
-            questionText.textContent = 'No question available.';
+        if (!questionData || !questionData.question) {
+            console.error('Invalid question data:', questionData);
+            if (questionText) {
+                questionText.textContent = 'No question available.';
+            }
+            return;
         }
-        return;
-    }
-    
-    console.log('Loading question:', questionData);
-    
-    // FIXED: Handle different question type formats from backend
-    let questionType = questionData.type || 'single_choice';
-    
-    // Normalize question type names to match your frontend
-    const typeMapping = {
-        'fill_in_the_blank': 'fill_in_blank',  // Backend format -> Frontend format
-        'fill_in_blank': 'fill_in_blank',      // Already correct
-        'single_choice': 'single_choice',      // Already correct
-        'multiple_choice': 'multiple_choice',   // Already correct
-        'true_false': 'true_false'             // NEW: Add true/false support
-    };
-    
-    // Map backend type to frontend type
-    if (typeMapping[questionType]) {
-        questionType = typeMapping[questionType];
-    }
-    
-    console.log('Normalized question type:', questionType);
-    
-    // Update question type display if element exists
-    const questionTypeElement = document.getElementById('questionTypeDisplay');
-    if (questionTypeElement) {
-        questionTypeElement.textContent = questionType.replace('_', ' ').toUpperCase();
-    }
-    
-    // Hide all question types first
-    hideAllQuestionTypes();
-    
-    if (questionType === 'single_choice' || questionType === 'multiple_choice') {
-        loadMultipleChoiceQuestion(questionData);
-        setupAnswerButtonListeners();
-    } else if (questionType === 'fill_in_blank') {
-        loadFillInBlankQuestion(questionData);
-        setupFillInBlankListeners();
-    } else if (questionType === 'true_false') {  // NEW: Handle true/false questions
-        loadTrueFalseQuestion(questionData);
-        setupTrueFalseListeners();
-    } else {
-        console.error('Unknown question type after mapping:', questionType);
-        // Default to multiple choice as fallback
-        console.log('Falling back to multiple choice format');
-        loadMultipleChoiceQuestion(questionData);
-        setupAnswerButtonListeners();
-    }
-    }
 
-// ADD these NEW functions after your existing load functions:
+        console.log('Loading question:', questionData);
 
-// Load true/false question
-    function loadTrueFalseQuestion(questionData) {
-    console.log('Loading true/false question:', questionData);
-    
-    // Hide other question types
-    const multipleChoiceElement = document.getElementById('multipleChoiceQuestion');
-    const fillInBlankElement = document.getElementById('fillInBlankQuestion');
-    if (multipleChoiceElement) multipleChoiceElement.style.display = 'none';
-    if (fillInBlankElement) fillInBlankElement.style.display = 'none';
-    
-    // Show multiple choice container (reuse for True/False)
-    if (multipleChoiceElement) {
-        multipleChoiceElement.style.display = 'block';
-    }
-    
-    // Update question text
-    const questionTextElement = document.getElementById('questionText');
-    if (questionTextElement) {
-        questionTextElement.textContent = questionData.question || 'No question available';
-        console.log('Updated question text to:', questionData.question);
-    }
-    
-    // Get answer buttons and set them to True/False
-    const currentAnswerButtons = document.querySelectorAll('.answer-btn');
-    
-    // Set first two buttons to True/False
-    const trueFalseOptions = ['True', 'False'];
-    
-    currentAnswerButtons.forEach((button, index) => {
-        if (index < 2) {
-            button.textContent = trueFalseOptions[index];
-            button.style.display = 'block';
-            button.disabled = false;
+        // FIXED: Handle different question type formats from backend
+        let questionType = questionData.type || 'single_choice';
+
+        // Normalize question type names to match your frontend
+        const typeMapping = {
+            'fill_in_the_blank': 'fill_in_blank',  // Backend format -> Frontend format
+            'fill_in_blank': 'fill_in_blank',      // Already correct
+            'single_choice': 'single_choice',      // Already correct
+            'multiple_choice': 'multiple_choice',   // Already correct
+            'true_false': 'true_false'             // NEW: Add true/false support
+        };
+
+        // Map backend type to frontend type
+        if (typeMapping[questionType]) {
+            questionType = typeMapping[questionType];
+        }
+
+        console.log('Normalized question type:', questionType);
+
+        // Update question type display if element exists
+        const questionTypeElement = document.getElementById('questionTypeDisplay');
+        if (questionTypeElement) {
+            questionTypeElement.textContent = questionType.replace('_', ' ').toUpperCase();
+        }
+
+        // Hide all question types first
+        hideAllQuestionTypes();
+
+        if (questionType === 'single_choice' || questionType === 'multiple_choice') {
+            loadMultipleChoiceQuestion(questionData);
+            setupAnswerButtonListeners();
+        } else if (questionType === 'fill_in_blank') {
+            loadFillInBlankQuestion(questionData);
+            setupFillInBlankListeners();
+        } else if (questionType === 'true_false') {  // NEW: Handle true/false questions
+            loadTrueFalseQuestion(questionData);
+            setupTrueFalseListeners();
         } else {
-            // Hide extra buttons
-            button.style.display = 'none';
+            console.error('Unknown question type after mapping:', questionType);
+            // Default to multiple choice as fallback
+            console.log('Falling back to multiple choice format');
+            loadMultipleChoiceQuestion(questionData);
+            setupAnswerButtonListeners();
         }
-        
-        // Clear previous styling
-        button.classList.remove('correct', 'incorrect', 'timeout');
-        button.style.backgroundColor = '';
-        button.style.color = '';
-    });
-    
-    console.log('True/False question loaded successfully');
     }
 
-// Setup event listeners for true/false questions
-    function setupTrueFalseListeners() {
-    // Get fresh button references
-    const trueFalseButtons = document.querySelectorAll('.answer-btn');
-    
-    // Remove existing listeners by cloning
-    trueFalseButtons.forEach((button, index) => {
-        if (index < 2) { // Only first 2 buttons for True/False
-            button.replaceWith(button.cloneNode(true));
+    // ADD these NEW functions after your existing load functions:
+
+    // Load true/false question
+    function loadTrueFalseQuestion(questionData) {
+        console.log('Loading true/false question:', questionData);
+
+        // Hide other question types
+        const multipleChoiceElement = document.getElementById('multipleChoiceQuestion');
+        const fillInBlankElement = document.getElementById('fillInBlankQuestion');
+        if (multipleChoiceElement) multipleChoiceElement.style.display = 'none';
+        if (fillInBlankElement) fillInBlankElement.style.display = 'none';
+
+        // Show multiple choice container (reuse for True/False)
+        if (multipleChoiceElement) {
+            multipleChoiceElement.style.display = 'block';
         }
-    });
-    
-    // Get fresh references after cloning
-    const freshButtons = document.querySelectorAll('.answer-btn');
-    
-    freshButtons.forEach((button, index) => {
-        if (index < 2) { // Only handle True/False buttons
-            button.addEventListener('click', async () => {
-                if (!currentQuestion || button.disabled) return;
-                
-                console.log('True/False button clicked:', button.textContent);
-                
-                // Disable all buttons during processing
-                freshButtons.forEach(btn => btn.disabled = true);
-                
-                const selectedAnswer = button.textContent;
-                const result = await submitAnswer(selectedAnswer);
-                
-                if (!result) {
-                    // Re-enable buttons if request failed
-                    freshButtons.forEach(btn => btn.disabled = false);
-                    return;
-                }
-                
-                await handleAnswerResult(result, button, 'true_false');
-            });
+
+        // Update question text
+        const questionTextElement = document.getElementById('questionText');
+        if (questionTextElement) {
+            questionTextElement.textContent = questionData.question || 'No question available';
+            console.log('Updated question text to:', questionData.question);
         }
-    });
-    
-    console.log('True/False listeners setup complete');
+
+        // Get answer buttons and set them to True/False
+        const currentAnswerButtons = document.querySelectorAll('.answer-btn');
+
+        // Set first two buttons to True/False
+        const trueFalseOptions = ['True', 'False'];
+
+        currentAnswerButtons.forEach((button, index) => {
+            if (index < 2) {
+                button.textContent = trueFalseOptions[index];
+                button.style.display = 'block';
+                button.disabled = false;
+            } else {
+                // Hide extra buttons
+                button.style.display = 'none';
+            }
+
+            // Clear previous styling
+            button.classList.remove('correct', 'incorrect', 'timeout');
+            button.style.backgroundColor = '';
+            button.style.color = '';
+        });
+
+        console.log('True/False question loaded successfully');
     }
-    
+
+    // Setup event listeners for true/false questions
+    function setupTrueFalseListeners() {
+        // Get fresh button references
+        const trueFalseButtons = document.querySelectorAll('.answer-btn');
+
+        // Remove existing listeners by cloning
+        trueFalseButtons.forEach((button, index) => {
+            if (index < 2) { // Only first 2 buttons for True/False
+                button.replaceWith(button.cloneNode(true));
+            }
+        });
+
+        // Get fresh references after cloning
+        const freshButtons = document.querySelectorAll('.answer-btn');
+
+        freshButtons.forEach((button, index) => {
+            if (index < 2) { // Only handle True/False buttons
+                button.addEventListener('click', async () => {
+                    if (!currentQuestion || button.disabled) return;
+
+                    console.log('True/False button clicked:', button.textContent);
+
+                    // Disable all buttons during processing
+                    freshButtons.forEach(btn => btn.disabled = true);
+
+                    const selectedAnswer = button.textContent;
+                    const result = await submitAnswer(selectedAnswer);
+
+                    if (!result) {
+                        // Re-enable buttons if request failed
+                        freshButtons.forEach(btn => btn.disabled = false);
+                        return;
+                    }
+
+                    await handleAnswerResult(result, button, 'true_false');
+                });
+            }
+        });
+
+        console.log('True/False listeners setup complete');
+    }
+
     // Load multiple choice question with proper data mapping
     function loadMultipleChoiceQuestion(questionData) {
         console.log('Loading multiple choice question:', questionData);
-        
+
         const multipleChoiceElement = document.getElementById('multipleChoiceQuestion');
         if (multipleChoiceElement) {
             multipleChoiceElement.style.display = 'block';
         }
-        
+
         // CRITICAL FIX: Update the correct question text element
         const questionTextElement = document.getElementById('questionText');
         if (questionTextElement) {
             // Clear any previous content first
             questionTextElement.textContent = '';
-            
+
             // Set the new question text
             const newQuestionText = questionData.question || 'No question available';
             questionTextElement.textContent = newQuestionText;
-            
+
             console.log('Updated question text to:', newQuestionText);
         } else {
             console.error('questionText element not found!');
         }
-        
+
         // Update answer buttons - handle backend format
         const choices = questionData.choices || [];
         console.log('Question choices:', choices);
-        
+
         // Get fresh button references
         const currentAnswerButtons = document.querySelectorAll('.answer-btn');
-        
+
         currentAnswerButtons.forEach((button, index) => {
             if (choices[index]) {
                 button.textContent = choices[index];
@@ -803,57 +805,57 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 button.style.display = 'none';
             }
-            
+
             // IMPORTANT: Clear all previous styling
             button.classList.remove('correct', 'incorrect', 'timeout');
             button.style.backgroundColor = '';
             button.style.color = '';
         });
-        
+
         console.log('Multiple choice question loaded successfully');
     }
 
     // FIXED: Load fill in the blank question (COMPLETE VERSION)
     function loadFillInBlankQuestion(questionData) {
         console.log('Loading fill in blank question:', questionData);
-        
+
         // Hide multiple choice first
         const multipleChoiceElement = document.getElementById('multipleChoiceQuestion');
         if (multipleChoiceElement) {
             multipleChoiceElement.style.display = 'none';
         }
-        
+
         // Show fill in blank container
         const fillInBlankElement = document.getElementById('fillInBlankQuestion');
         if (!fillInBlankElement) {
             console.error('Fill in blank element not found');
             return;
         }
-        
+
         fillInBlankElement.style.display = 'block';
-        
+
         // Get the question text
         const questionTextContent = questionData.question || '';
         console.log('Question text:', questionTextContent);
-        
+
         // CRITICAL FIX: Update BOTH question text elements
         const questionTextElement = document.getElementById('questionText');
         const fillInBlankTextElement = document.getElementById('fillInBlankText');
-        
+
         if (questionTextElement) {
             questionTextElement.textContent = questionTextContent;
             console.log('Updated main question text to:', questionTextContent);
         }
-        
+
         if (fillInBlankTextElement) {
             fillInBlankTextElement.textContent = 'Complete the sentence:';
         }
-        
+
         // Find and setup sentence parts
         const sentenceBefore = document.getElementById('sentenceBefore');
         const sentenceAfter = document.getElementById('sentenceAfter');
         const blankInput = document.getElementById('blankInput');
-        
+
         // Parse question for blanks
         const parts = questionTextContent.split('____');
         if (parts.length >= 2) {
@@ -867,7 +869,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 /(.+)\s+\(\s*\)\s+(.+)/,  // "He ( ) a teacher"
                 /(.+)\s+\[\s*\]\s+(.+)/   // "He [ ] a teacher"
             ];
-            
+
             let patternMatched = false;
             for (const pattern of commonPatterns) {
                 const match = questionTextContent.match(pattern);
@@ -878,18 +880,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     break;
                 }
             }
-            
+
             if (!patternMatched) {
                 // Default: put whole question before blank
                 if (sentenceBefore) sentenceBefore.textContent = questionTextContent;
                 if (sentenceAfter) sentenceAfter.textContent = '';
             }
         }
-        
+
         // CRITICAL: Setup input field properly
         if (blankInput) {
             console.log('Setting up input field...');
-            
+
             // Clear all restrictions and reset
             blankInput.value = '';
             blankInput.disabled = false;
@@ -898,31 +900,31 @@ document.addEventListener('DOMContentLoaded', function() {
             blankInput.style.visibility = 'visible';
             blankInput.style.pointerEvents = 'auto';
             blankInput.tabIndex = 0;
-            
+
             // Remove any problematic attributes
             blankInput.removeAttribute('disabled');
             blankInput.removeAttribute('readonly');
-            
+
             // Clear CSS classes that might interfere
             blankInput.classList.remove('correct', 'incorrect', 'timeout', 'disabled');
-            
+
             // ENHANCED: Multiple focus attempts with better timing
             setTimeout(() => {
                 blankInput.focus();
                 console.log('First focus attempt');
             }, 100);
-            
+
             setTimeout(() => {
                 blankInput.focus();
                 blankInput.click();
                 console.log('Second focus with click');
             }, 300);
-            
+
             setTimeout(() => {
                 // Test if input is working
                 const testFocus = document.activeElement === blankInput;
                 console.log('Input focus test:', testFocus);
-                
+
                 if (!testFocus) {
                     blankInput.focus();
                     console.log('Final focus attempt');
@@ -931,14 +933,14 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             console.error('blankInput element not found!');
         }
-        
+
         // Setup submit button
         const submitBtn = document.getElementById('submitAnswerBtn');
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.style.display = 'inline-block';
         }
-        
+
         // Setup hint if available
         const hintText = document.getElementById('hintText');
         const showHintBtn = document.getElementById('showHintBtn');
@@ -951,15 +953,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             hintText.style.display = 'none';
         }
-        
+
         // Hide feedback area
         const feedbackArea = document.getElementById('feedbackArea');
         if (feedbackArea) feedbackArea.style.display = 'none';
-        
+
         // Hide next question button
         const nextQuestionBtn = document.getElementById('nextQuestionBtn');
         if (nextQuestionBtn) nextQuestionBtn.style.display = 'none';
-        
+
         console.log('Fill in blank question loaded successfully');
     }
 
@@ -969,28 +971,28 @@ document.addEventListener('DOMContentLoaded', function() {
             // Remove any existing listeners first
             button.replaceWith(button.cloneNode(true));
         });
-        
+
         // Get fresh button references after cloning
         const freshButtons = document.querySelectorAll('.answer-btn');
-        
+
         freshButtons.forEach((button, index) => {
             button.addEventListener('click', async () => {
                 if (!currentQuestion || button.disabled) return;
-                
+
                 console.log('Answer button clicked:', button.textContent);
-                
+
                 // Disable all buttons during processing
                 freshButtons.forEach(btn => btn.disabled = true);
-                
+
                 const selectedAnswer = button.textContent;
                 const result = await submitAnswer(selectedAnswer);
-                
+
                 if (!result) {
                     // Re-enable buttons if request failed
                     freshButtons.forEach(btn => btn.disabled = false);
                     return;
                 }
-                
+
                 await handleAnswerResult(result, button, 'multiple_choice');
             });
         });
@@ -1004,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Remove any existing listeners
             submitAnswerBtn.replaceWith(submitAnswerBtn.cloneNode(true));
             const newSubmitBtn = document.getElementById('submitAnswerBtn');
-            
+
             newSubmitBtn.addEventListener('click', async () => {
                 console.log('Submit button clicked');
                 const blankInput = document.getElementById('blankInput');
@@ -1012,22 +1014,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Blank input not found');
                     return;
                 }
-                
+
                 const userAnswer = blankInput.value.trim();
                 console.log('User answer:', userAnswer);
-                
+
                 if (!userAnswer) {
                     alert('Please enter an answer!');
                     blankInput.focus();
                     return;
                 }
-                
+
                 console.log('Fill in blank answer submitted:', userAnswer);
-                
+
                 // Disable submit button to prevent double submission
                 newSubmitBtn.disabled = true;
                 blankInput.disabled = true;
-                
+
                 const result = await submitAnswer(userAnswer);
                 await handleFillInBlankResult(result, userAnswer);
             });
@@ -1038,11 +1040,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (showHintBtn) {
             showHintBtn.replaceWith(showHintBtn.cloneNode(true));
             const newHintBtn = document.getElementById('showHintBtn');
-            
+
             newHintBtn.addEventListener('click', () => {
                 const hintText = document.getElementById('hintText');
                 if (!hintText) return;
-                
+
                 if (hintText.style.display === 'none' || !hintText.style.display) {
                     hintText.style.display = 'block';
                     newHintBtn.textContent = 'Hide Hint';
@@ -1058,7 +1060,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (clearBtn) {
             clearBtn.replaceWith(clearBtn.cloneNode(true));
             const newClearBtn = document.getElementById('clearBtn');
-            
+
             newClearBtn.addEventListener('click', () => {
                 const blankInput = document.getElementById('blankInput');
                 if (blankInput) {
@@ -1086,37 +1088,37 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleAnswerResult(result, buttonElement, questionType) {
         // Backend returns status: "correct" or other values
         const isCorrect = result.status === "correct";
-        
+
         console.log('Handling answer result:', { result, isCorrect });
-        
+
         if (isCorrect) {
             buttonElement.classList.add('correct');
-            
+
             try {
                 if (typeof playAttackSFX === 'function') playAttackSFX();
             } catch (error) {
                 console.log('Attack SFX failed:', error);
             }
-            
+
             // Player attack animation
             if (player) {
                 player.style.transform = 'translateX(30px)';
                 player.style.transition = 'transform 0.3s ease-in-out';
             }
-            
+
             setTimeout(() => {
                 if (attackEffect) {
                     attackEffect.style.opacity = '1';
                     attackEffect.style.transform = 'scale(1.2)';
                 }
-                
+
                 // Show damage number
                 if (damageNumber) {
                     damageNumber.textContent = PLAYER_DAMAGE;
                     damageNumber.style.opacity = '1';
                     damageNumber.style.transform = 'translate(-50%, -50%) scale(1.2)';
                 }
-                
+
                 // Update health from backend response or locally
                 if (result.monster_hp !== undefined) {
                     monsterHealthValue = result.monster_hp;
@@ -1124,12 +1126,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     monsterHealthValue = Math.max(0, monsterHealthValue - PLAYER_DAMAGE);
                 }
                 updateHealthBars();
-                
+
                 if (monster) {
                     monster.style.transform = 'translateX(15px) rotate(5deg)';
                     monster.style.filter = 'brightness(0.7) hue-rotate(0deg)';
                 }
-                
+
                 setTimeout(async () => {
                     if (player) player.style.transform = '';
                     if (attackEffect) {
@@ -1144,13 +1146,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         monster.style.transform = '';
                         monster.style.filter = '';
                     }
-                    
+
                     // Reset button styling
                     answerButtons.forEach(btn => {
                         btn.classList.remove('correct', 'incorrect');
                         btn.disabled = false;
                     });
-                    
+
                     // FIXED: Check win condition and auto-advance
                     if (monsterHealthValue <= 0) {
                         handleGameEnd(true, gameSession?.monster_stats?.money_win || 0);
@@ -1163,19 +1165,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300);
         } else {
             buttonElement.classList.add('incorrect');
-            
+
             try {
                 if (typeof playHitSFX === 'function') playHitSFX();
             } catch (error) {
                 console.log('Hit SFX failed:', error);
             }
-            
+
             // Monster attack
             if (monster) {
                 monster.style.transform = 'translateX(-30px)';
                 monster.style.transition = 'transform 0.3s ease-in-out';
             }
-            
+
             setTimeout(() => {
                 // Update player health from backend response or locally
                 if (result.player_hp !== undefined) {
@@ -1184,25 +1186,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     playerHealthValue = Math.max(0, playerHealthValue - MONSTER_DAMAGE);
                 }
                 updateHealthBars();
-                
+
                 if (player) {
                     player.style.transform = 'translateX(-15px) rotate(-5deg)';
                     player.style.filter = 'brightness(0.7) sepia(1) hue-rotate(0deg)';
                 }
-                
+
                 setTimeout(async () => {
                     if (monster) monster.style.transform = '';
                     if (player) {
                         player.style.transform = '';
                         player.style.filter = '';
                     }
-                    
+
                     // Reset button styling
                     answerButtons.forEach(btn => {
                         btn.classList.remove('correct', 'incorrect');
                         btn.disabled = false;
                     });
-                    
+
                     // FIXED: Check lose condition and auto-advance
                     if (playerHealthValue <= 0) {
                         handleGameEnd(false);
@@ -1215,23 +1217,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300);
         }
     }
-    
+
     async function handleFillInBlankResult(result, userAnswer) {
         const blankInput = document.getElementById('blankInput');
         const feedbackArea = document.getElementById('feedbackArea');
         const feedbackText = document.getElementById('feedbackText');
         const submitBtn = document.getElementById('submitAnswerBtn');
-        
+
         if (!blankInput || result === null || result === undefined) return;
-        
+
         blankInput.disabled = true;
         if (submitBtn) submitBtn.disabled = true;
-        
+
         // Backend returns status: "correct" or other values
         const isCorrect = result.status === "correct";
-        
+
         console.log('Handling fill in blank result:', { result, isCorrect });
-        
+
         if (isCorrect) {
             // Correct answer
             blankInput.classList.add('correct');
@@ -1243,23 +1245,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 feedbackText.className = 'feedback-text correct';
                 feedbackText.textContent = result.feedback || 'Correct! Well done!';
             }
-            
+
             try {
                 if (typeof playAttackSFX === 'function') playAttackSFX();
             } catch (error) {
                 console.log('Attack SFX failed:', error);
             }
-            
+
             // Player attack animation
             if (player) player.style.transform = 'translateX(30px)';
             setTimeout(() => {
                 if (attackEffect) attackEffect.style.opacity = '1';
-                
+
                 if (damageNumber) {
                     damageNumber.textContent = PLAYER_DAMAGE;
                     damageNumber.style.opacity = '1';
                 }
-                
+
                 // Update health from backend response or locally
                 if (result.monster_hp !== undefined) {
                     monsterHealthValue = result.monster_hp;
@@ -1267,15 +1269,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     monsterHealthValue = Math.max(0, monsterHealthValue - PLAYER_DAMAGE);
                 }
                 updateHealthBars();
-                
+
                 if (monster) monster.style.transform = 'translateX(15px) rotate(5deg)';
-                
+
                 setTimeout(async () => {
                     if (player) player.style.transform = '';
                     if (attackEffect) attackEffect.style.opacity = '0';
                     if (damageNumber) damageNumber.style.opacity = '0';
                     if (monster) monster.style.transform = '';
-                    
+
                     // FIXED: Check game status and auto-advance
                     if (monsterHealthValue <= 0) {
                         handleGameEnd(true, gameSession?.monster_stats?.money_win || 0);
@@ -1298,13 +1300,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 feedbackText.className = 'feedback-text incorrect';
                 feedbackText.textContent = result.feedback || 'Incorrect. Please try again!';
             }
-            
+
             try {
                 if (typeof playHitSFX === 'function') playHitSFX();
             } catch (error) {
                 console.log('Hit SFX failed:', error);
             }
-            
+
             // Monster attack
             if (monster) monster.style.transform = 'translateX(-30px)';
             setTimeout(() => {
@@ -1315,13 +1317,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     playerHealthValue = Math.max(0, playerHealthValue - MONSTER_DAMAGE);
                 }
                 updateHealthBars();
-                
+
                 if (player) player.style.transform = 'translateX(-15px) rotate(-5deg)';
-                
+
                 setTimeout(async () => {
                     if (monster) monster.style.transform = '';
                     if (player) player.style.transform = '';
-                    
+
                     // FIXED: Check game status and auto-advance
                     if (playerHealthValue <= 0) {
                         handleGameEnd(false);
@@ -1335,7 +1337,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 200);
         }
     }
-    
+
     // Reset fill in blank UI elements
     function resetFillInBlankUI() {
         const blankInput = document.getElementById('blankInput');
@@ -1344,7 +1346,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const submitBtn = document.getElementById('submitAnswerBtn');
         const hintText = document.getElementById('hintText');
         const showHintBtn = document.getElementById('showHintBtn');
-        
+
         if (blankInput) {
             blankInput.value = '';
             blankInput.disabled = false;
@@ -1357,14 +1359,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (hintText) hintText.style.display = 'none';
         if (showHintBtn) showHintBtn.textContent = 'Show Hint';
     }
-    
+
     // Handle game end - navigate instead of reset
     function handleGameEnd(isWin, reward = 0) {
         // Stop timer when game ends
         stopQuestionTimer();
-        
+
         console.log('Game ended:', { isWin, reward });
-        
+
         if (isWin) {
             // Show win dialog and navigate
             setTimeout(() => {
@@ -1388,26 +1390,26 @@ document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         return parseInt(urlParams.get('classId')) || 'class1';
     }
-    
+
     // Initialize the game with comprehensive error handling
     async function initializeGame() {
         try {
             console.log('Starting game initialization...');
-            
+
             const difficulty = getGameDifficulty();
             const classId = getClassId();
-            
+
             console.log('Game parameters:', { difficulty, classId });
-            
+
             await createGameRoom(difficulty, classId);
-            
+
             console.log('Game initialized successfully');
 
             // FIXED: Use correct element IDs from your HTML
             const battleScene = document.getElementById('battleScene');
             const questionArea = document.getElementById('questionArea');
             const loadingScreen = document.getElementById('loadingScreen');
-            
+
             if (battleScene && questionArea) {
                 // Show game screen using your HTML structure
                 showGameScreen();
@@ -1418,7 +1420,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('questionArea found:', !!questionArea);
                 showErrorScreen();
             }
-            
+
         } catch (error) {
             console.error('Failed to initialize game:', error);
             showErrorScreen();
@@ -1440,7 +1442,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize event listeners and start game
     setupGlobalEventHandlers();
-    
+
     // Start the game
     console.log('DOM loaded, initializing game...');
     initializeGame();

@@ -95,7 +95,7 @@ INSERT INTO questions (id, class_id, question, q_type, difficulty,
     '["1942","1945","1948","1950"]', 1, NULL);
 
 -- ADMIN PERMISSIONS SEED DATA
-INSERT OR IGNORE INTO permissions (role, path, service, method) VALUES
+INSERT OR IGNORE INTO permission (role, path, service, method) VALUES
 -- Admin permissions (full access)
 ('admin', 'health', 'admin', 'GET'),
 ('admin', 'services', 'admin', 'GET'),

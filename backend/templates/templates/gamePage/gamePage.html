@@ -1,24 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>English Battle Game</title>
     <link rel="stylesheet" href="gamePage.css">
 </head>
+
 <body>
+    <script>
+        const jwt = localStorage.getItem('token');
+        if (!jwt) {
+            alert('Bạn cần đăng nhập lại!');
+            window.location.href = '../index.html';
+        }
+        // Ví dụ lưu level từ query:
+        const params = new URLSearchParams(window.location.search);
+        const level = params.get('level') || localStorage.getItem('currentLevel');
+        console.log('Chơi level', level, 'với token', jwt);
+    </script>
     <div class="game-container">
         <!-- Timer display in top-right corner -->
         <div class="timer-display" id="timerDisplay" style="display: none;">
             Time: 30
         </div>
-        
+
         <!-- Loading Screen -->
         <div class="loading-screen" id="loadingScreen">
             <div class="loading-text">Loading game...</div>
             <div class="loading-spinner"></div>
         </div>
-        
+
         <!-- Error Screen -->
         <div class="error-message" id="errorMessage" style="display: none;">
             <h2>Failed to Load Game</h2>
@@ -45,7 +58,7 @@
                     <div class="monster-level">Level: <span id="monsterLevel">-</span></div>
                 </div>
             </div>
-            
+
             <!-- Battle characters -->
             <div class="battle-characters">
                 <div class="player">
@@ -58,7 +71,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Question area - positioned at bottom -->
         <div class="question-area" id="questionArea" style="display: none;">
             <!-- Multiple Choice Questions -->
@@ -112,7 +125,7 @@
         <source src="../../static/music/attack.wav" type="audio/wav">
         <source src="../../static/music/attack.mp3" type="audio/mpeg">
     </audio>
-    
+
     <audio id="sfx-hit" preload="auto">
         <source src="../../static/music/hit.wav" type="audio/wav">
         <source src="../../static/music/hit.mp3" type="audio/mpeg">
@@ -126,7 +139,7 @@
 
     <!-- Load JavaScript -->
     <script src="gamePage.js"></script>
-    
+
     <script>
         // Global audio functions
         function playAttackSFX() {
@@ -164,7 +177,7 @@
         // Background music handling
         window.addEventListener("DOMContentLoaded", () => {
             const music = document.getElementById("bg-music");
-            
+
             if (music) {
                 // Enable audio after user interaction
                 document.body.addEventListener("click", () => {
@@ -183,4 +196,5 @@
         window.playHitSFX = playHitSFX;
     </script>
 </body>
+
 </html>

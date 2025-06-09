@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginDiv = document.querySelector(".login-form");
     const registerDiv = document.querySelector(".register-form");
 
-    form.addEventListener("submit", handleRegister);
+    // form.addEventListener("submit", handleRegister);
 
     // Gắn sự kiện form
     if (loginForm) loginForm.addEventListener("submit", handleLogin);
@@ -144,6 +144,5 @@ async function handleRegister(event) {
         }
     } catch (err) {
         console.error("Register error:", err);
-        alert("Something went wrong.");
     }
 }

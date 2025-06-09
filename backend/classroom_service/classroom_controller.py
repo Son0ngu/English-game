@@ -121,8 +121,8 @@ class ClassroomController:
         if not class_id:
             return jsonify({"error": "class_id required"}), 400
 
-        # dashboard = self.service.get_class_dashboard(class_id)
-        dashboard = "abc" # Placeholder for actual dashboard data
+        dashboard = self.service.get_class_dashboard(class_id)
+        # dashboard = "abc" # Placeholder for actual dashboard data
         return jsonify({"dashboard": dashboard}), 200
 
 

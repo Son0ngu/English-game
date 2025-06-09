@@ -145,6 +145,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Hiển thị section tương ứng
     if (role === 'teacher') {
         document.getElementById('teacherSection').style.display = 'block';
+        document.getElementById('kickStudentForm').style.display = 'block';
+        const kickBtn = document.getElementById('kickStudentBtn');
+        if (kickBtn) {
+            kickBtn.addEventListener('click', kickStudent);
+        }
         loadTeacherClasses();
     } else {
         document.getElementById('studentSection').style.display = 'block';
@@ -260,7 +265,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             } catch (err) {
                 console.error("create class error:", err);
-                alert("Lỗi khi kết nối server.");
             }
         });
     }
@@ -303,23 +307,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             const li = document.createElement('li');
             li.className = 'list-group-item d-flex justify-content-between align-items-center';
             li.innerHTML = `
-        <span>${c.name} (${c.code})</span>
-        <button class="btn btn-sm btn-outline-secondary view-students" data-id="${c.id}">
-          Xem SV
-        </button>
-      `;
+                <span class="name">${c.name}</span>
+                <span class="code">${c.code}</span>
+            `;
+
+            // Thêm sự kiện click để chuyển hướng đến trang chi tiết lớp
+            li.addEventListener('click', () => {
+                showClassDetails(c.id, c.name);
+            });
             ul.appendChild(li);
         });
-        document.querySelectorAll('#joinedClassList .view-students').forEach(btn =>
-            btn.addEventListener('click', () => loadStudentsInClass(btn.dataset.id))
-        );
+        document.querySelectorAll('#joinedClassList .view-students')
+            .forEach(btn =>
+                btn.addEventListener('click', () => loadStudentsInClass(btn.dataset.id))
+            );
     }
 
-    // --- Hàm chung: load danh sách sinh viên trong 1 lớp ---
+    // userPage.js
     async function loadStudentsInClass(classId) {
+        // 1. Gọi API lấy dữ liệu
         const r = await fetch('http://localhost:5000/classroom/students', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem("token")}` },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem("token")}`
+            },
             body: JSON.stringify({ class_id: classId })
         });
         if (!r.ok) {
@@ -327,8 +339,98 @@ document.addEventListener('DOMContentLoaded', async () => {
             return alert(e.error || 'Không lấy được danh sách sinh viên');
         }
         const { students } = await r.json();
-        // Hiển thị popup hoặc modal, ở đây tạm dùng alert
-        const names = students.map(s => `${s.id} — ${s.email}`).join('\n');
-        alert(`Sinh viên lớp ${classId}:\n` + names);
+
+        // 2. Ẩn form profile, hiện phần chi tiết lớp
+        document.getElementById('userProfileForm').style.display = 'none';
+        const details = document.getElementById('classDetails');
+        details.style.display = 'block';
+        document.getElementById('classDetailsName').textContent = `Lớp: ${classId}`;
+
+        // 3. Build bảng
+        const dashboard = document.getElementById('dashboard');
+        dashboard.innerHTML = '';  // xóa nội dung cũ
+
+        if (students.length === 0) {
+            dashboard.textContent = 'Chưa có sinh viên nào.';
+            return;
+        }
+
+        // Lấy danh sách các trường từ object đầu tiên
+        const fields = Object.keys(students[0]);
+
+        const table = document.createElement('table');
+        table.className = 'table table-bordered table-striped';
+
+        // 3.1 Header
+        const thead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        fields.forEach(f => {
+            const th = document.createElement('th');
+            th.textContent = f;
+            headRow.appendChild(th);
+        });
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+
+        // 3.2 Body
+        const tbody = document.createElement('tbody');
+        students.forEach(s => {
+            const tr = document.createElement('tr');
+            fields.forEach(f => {
+                const td = document.createElement('td');
+                let val = s[f];
+                if (Array.isArray(val)) val = val.join(', ');
+                td.textContent = val;
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+
+        dashboard.appendChild(table);
     }
 });
+
+function backToProfile() {
+    document.getElementById('classDetails').style.display = 'none';
+    document.getElementById('userProfileForm').style.display = 'block';
+}
+
+// Hàm xử lý kick student
+async function kickStudent(e) {
+    e.preventDefault();
+    const classId = document.getElementById('kickClassId').value.trim();
+    const studentId = document.getElementById('kickStudentId').value.trim();
+    const resultDiv = document.getElementById('kickResult');
+
+    try {
+        const res = await fetch('http://localhost:5000/classroom/kick', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem("token")}`
+            },
+            body: JSON.stringify({ class_id: classId, student_id: studentId })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            resultDiv.textContent = `Đã kick "${studentId}" khỏi lớp "${classId}"!`;
+            resultDiv.style.color = 'green';
+            // Nếu đang xem dashboard lớp đó thì reload lại danh sách
+            if (document.getElementById('classDetails').style.display === 'block' &&
+                document.getElementById('classDetailsName').textContent.includes(classId)) {
+                loadStudentsInClass(classId);
+            }
+        } else {
+            resultDiv.textContent = `Lỗi: ${data.error || 'Không thành công'}`;
+            resultDiv.style.color = 'red';
+            alert(`Không thể kick học sinh: ${data.error || 'Không thành công'}`);
+        }
+    } catch (err) {
+        console.error(err);
+        resultDiv.textContent = 'Lỗi kết nối server.';
+        resultDiv.style.color = 'red';
+        alert('Không thể kết nối đến server. Vui lòng thử lại sau.');
+    }
+}

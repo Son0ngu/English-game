@@ -630,3 +630,93 @@ footer {
     background-color: #6c757d;
     color: #fff;
 }
+
+/* ---------------------------------------------
+   Tiêu đề lớp và Dashboard
+--------------------------------------------- */
+#classDetailsName {
+    margin-top: 1rem;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+#classDetails h4 {
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+/* ---------------------------------------------
+   Wrapper bảng để cuộn ngang khi cần
+--------------------------------------------- */
+#dashboard-wrapper {
+    overflow-x: auto;
+    margin-top: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+/* ---------------------------------------------
+   Bảng Dashboard
+--------------------------------------------- */
+#dashboard {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Header cố định khi cuộn */
+#dashboard thead {
+    position: sticky;
+    top: 0;
+    background-color: #344955;
+}
+
+#dashboard thead th {
+    color: #fff;
+    padding: 12px 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    border-bottom: 2px solid #2f3e4d;
+}
+
+/* Dòng xen kẽ và hover */
+#dashboard tbody tr:nth-child(odd) {
+    background-color: #f1ece7;
+}
+
+#dashboard tbody tr:nth-child(even) {
+    background-color: #fff;
+}
+
+#dashboard tbody tr:hover {
+    background-color: #e0d7ce;
+}
+
+/* Ô trong bảng */
+#dashboard td {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #ddd;
+    white-space: nowrap;
+}
+
+/* Wrap những trường dài (email, id) */
+#dashboard td {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Responsive nhỏ hơn 768px */
+@media (max-width: 768px) {
+    #classDetailsName {
+        font-size: 1.5rem;
+    }
+
+    #dashboard thead th,
+    #dashboard td {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+}
