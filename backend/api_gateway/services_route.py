@@ -411,6 +411,7 @@ class services_route:
 
                 try:
                     response = self.game_service.create_game_room(student_id, difficulty, class_id)
+                    print("Game service response:")
 
                     if response is None:
                         return jsonify({"error": "Game service returned nothing"}), 500
@@ -437,6 +438,8 @@ class services_route:
             elif destination == "get_question" and method == 'POST':
                 session_id = data.get('session_id')
                 class_id = data.get('class_id')
+
+                print('DEBUG get_question:', session_id, class_id)
                 if not session_id:
                     return jsonify({"error": "session_id required in JSON"}), 400
                 return self.game_service.get_question(session_id,class_id)

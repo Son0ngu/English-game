@@ -1,12 +1,84 @@
-function showClassDetails(classId, className) {
+async function showClassDetails(classId, className) {
     console.log("Showing class details for class ID:", classId);
 
     document.querySelector('.profile-form').style.display = 'none';
     document.getElementById('classDetails').style.display = 'block';
     document.getElementById('classDetailsName').textContent = className;
 
+    // Lấy user hiện tại
+    const resp = await fetch('http://localhost:5000/auth/HuyTranLayRoleTuID', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem("token")}` },
+        body: JSON.stringify({})
+    });
+    if (!resp.ok) return console.error('Không lấy được thông tin user');
+    const user = await resp.json();
+    const role = user.role; // "teacher" hoặc "student"
+
+    console.log("role:", role);
+
+    // Lấy section thêm câu hỏi
+    const addSec = document.getElementById('addQuestionSection');
+    const addForm = document.getElementById('addQuestionForm');
+    const resultDiv = document.getElementById('addQResult');
+
+    // Gán classId vào input ẩn
+    document.getElementById('addQClassId').value = classId;
+
+    // Nếu là teacher, show section và gắn listener
+    if (role === 'teacher') {
+        addSec.style.display = 'block';
+
+        addForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            resultDiv.textContent = '';
+            // Chuẩn bị payload
+            const payload = {
+                class_id: classId,
+                text: document.getElementById('addQText').value.trim(),
+                q_type: document.getElementById('addQType').value,
+                difficulty: document.getElementById('addQDifficulty').value,
+                choices: document.getElementById('addQChoices').value
+                    .split(';').map(s => s.trim()).filter(s => s),
+                correct_index: document.getElementById('addQCorrect').value.trim()
+            };
+
+            console.log("Submitting question:", payload);
+
+            try {
+                const res = await fetch('http://localhost:5000/classroom/add_question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    resultDiv.style.color = 'green';
+                    resultDiv.textContent = 'Thêm câu hỏi thành công!';
+                    addForm.reset();       // clear form
+                } else {
+                    resultDiv.style.color = 'red';
+                    resultDiv.textContent = 'Lỗi: ' + (data.error || 'Không thêm được');
+                }
+            } catch (err) {
+                console.error(err);
+                resultDiv.style.color = 'red';
+                resultDiv.textContent = 'Lỗi kết nối server';
+            }
+        });
+
+    } else {
+        // nếu không phải teacher thì ẩn
+        addSec.style.display = 'none';
+    }
+
     loadDashboard(classId);
     loadStudentList(classId);
+
 }
 
 function backToProfile() {

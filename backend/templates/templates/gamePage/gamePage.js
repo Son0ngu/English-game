@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     class_id: classId
                 })
             });
-            console.log(`API Response status: ${response.status}`);
+            console.log(`API Response status: ${response}`);
 
             if (!response.ok) {
                 if (response.status === 401) {
@@ -454,17 +454,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         try {
-            console.log('Getting question for session:', gameSession.session_id);
+            console.log("About to get question with payload:", {
+                session_id: gameSession.session_id,
+                class_id: gameSession.class_id
+            });
+
 
             const response = await fetch('http://127.0.0.1:5000/game/get_question', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getJWTToken()}`
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
                 },
                 body: JSON.stringify({
                     session_id: gameSession.session_id,
-                    class_id: gameSession.class_id || "class1"
+                    class_id: gameSession.class_id
                 })
             });
 
@@ -1361,23 +1365,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Handle game end - navigate instead of reset
-    function handleGameEnd(isWin, reward = 0) {
+    function handleGameEnd(isWin, reward) {
         // Stop timer when game ends
         stopQuestionTimer();
 
         console.log('Game ended:', { isWin, reward });
 
-        if (isWin) {
-            // Show win dialog and navigate
-            setTimeout(() => {
-                window.location.href = `/client/gameResult.html?result=win&reward=${reward}`;
-            }, 500);
-        } else {
-            // Show lose dialog and navigate  
-            setTimeout(() => {
-                window.location.href = '/client/gameResult.html?result=lose';
-            }, 500);
-        }
+        const url = isWin
+            ? `../../gameResult.html?result=win&reward=${reward}`
+            : `../../gameResult.html?result=lose`;
+
+        window.location.href = url;
     }
 
     // Get game parameters from URL
