@@ -4,12 +4,13 @@ import requests
 class gateway_service:
     def __init__(self, app):
         self.app = app
+        self.services = services_route()
         self.service_list=["admin", "auth", "classroom", "course", "game", "progress", "user","feedback"]
     def new_request(self,path):
         # Extract original request data
         method = request.method
         headers = dict(request.headers)
-        data = request.get_data()
+        data = request.get_json() or {}
         full_path = "/" + path
         service_requested = full_path.split("/")[0]
         try:
