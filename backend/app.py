@@ -3,11 +3,14 @@ from datetime import timedelta
 import dotenv
 from flask_jwt_extended import JWTManager
 from flask import Flask
+from flask_cors import CORS
 from api_gateway.gateway_service import gateway_service
-app = Flask(__name__)
 
 # Load environment variables from .env file
 dotenv.load_dotenv()
+app = Flask(__name__)
+CORS(app)
+
 
 # JWT Configurations
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=120)
@@ -25,7 +28,8 @@ gateway_service = gateway_service(app)
 @app.route('/<path:path>', methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 
 def request(path):
-    gateway_service.new_request(path)
+    return gateway_service.new_request(path)
+
 
 if __name__ == '__main__':
     app.run()
