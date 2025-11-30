@@ -30,11 +30,11 @@ class auth_service_database_interface:
             print("User not found (db.get_user)")
             return None
 
-    def add_user(self, user_id , username, password):
+    def add_user(self, user_id , username, password,role):
         if not self.check_if_user_exist(username):
             connection = sqlite3.connect('database.db')
             cursor = connection.cursor()
-            cursor.execute("INSERT INTO auth_service (user_id,username, password) VALUES (?, ?,?)", (user_id, username, password))
+            cursor.execute("INSERT INTO auth_service (user_id,username, password,role) VALUES (?, ?,?,?)", (user_id, username, password,role))
             cursor.close()
             connection.commit()
             connection.close()
@@ -42,11 +42,11 @@ class auth_service_database_interface:
         else :
             print("User already exists (db.add_user)")
             return False
-    def update_user(self, username, password):
+    def update_user(self, username, password,role):
         if self.login(username, password):
             connection = sqlite3.connect('database.db')
             cursor = connection.cursor()
-            cursor.execute("UPDATE auth_service SET password = ? WHERE username = ?", (password, username))
+            cursor.execute("UPDATE auth_service SET password = ? AND role = ? WHERE username = ?", (password,role, username))
             cursor.close()
             connection.commit()
             connection.close()
