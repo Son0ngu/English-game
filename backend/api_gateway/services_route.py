@@ -3,6 +3,7 @@ from flask import jsonify
 import game_service.gameroom.game_room_controller as game_room_controller
 class services_route:
     def __init__(self):
+        self.game_room_controller = game_room_controller.game_room_controller()
         pass
 
     def admin_service(self,destination, data, method):
@@ -17,7 +18,7 @@ class services_route:
         if destination == 'newroom' and method=='POST':
             student_id = data.get('student_id')
             if student_id:
-                game_room_controller.create_game_room(student_id)
+                self.game_room_controller.create_game_room(student_id)
                 return jsonify({"message": "Game room created successfully"}), 200
             else:
                 print("Student ID is required")
