@@ -30,11 +30,12 @@ class CourseService:
             return []
         return [topic.to_dict() for topic in lesson.topics]
 
-    def add_question(self, lesson_id: str, topic_id: str, text: str, choices: List[str], correct_index: int) -> Question:
+    def add_question(self, lesson_id: str, topic_id: str, text: str, choices: List[str], correct_index: int,
+                     q_type: str = "unknown") -> Question:
         topic = self._find_topic(lesson_id, topic_id)
         if not topic:
             raise ValueError("Topic not found")
-        question = Question(text=text, choices=choices, correct_index=correct_index)
+        question = Question(text=text, difficulty="medium", choices=choices, correct_index=correct_index, q_type=q_type)
         topic.questions.append(question)
         return question
 

@@ -253,24 +253,46 @@ class services_route:
     def course_service(self, destination, data, method):
         if destination == "" and method == "POST":
             return self.course_controller.create_course(data)
+
         elif destination == "" and method == "GET":
             return self.course_controller.get_courses()
+
         elif destination.endswith("/lesson") and method == "POST":
             course_id = destination.split("/")[0]
             return self.course_controller.create_lesson(course_id, data)
+
         elif destination.endswith("/lesson") and method == "GET":
             course_id = destination.split("/")[0]
             return self.course_controller.get_lessons(course_id)
+
         elif "/lesson/" in destination and destination.endswith("/topic") and method == "POST":
             parts = destination.split("/")
             course_id = parts[0]
             lesson_id = parts[2]
             return self.course_controller.create_topic(course_id, lesson_id, data)
+
         elif "/lesson/" in destination and destination.endswith("/topic") and method == "GET":
             parts = destination.split("/")
             course_id = parts[0]
             lesson_id = parts[2]
             return self.course_controller.get_topics(course_id, lesson_id)
+
+        elif "/lesson/" in destination and "/topic/" in destination and destination.endswith(
+                "/question") and method == "POST":
+            parts = destination.split("/")
+            lesson_id = parts[1]
+            topic_id = parts[3]
+            return self.course_controller.create_question(lesson_id, topic_id, data)
+
+        elif "/lesson/" in destination and "/topic/" in destination and destination.endswith(
+                "/question") and method == "GET":
+            parts = destination.split("/")
+            lesson_id = parts[1]
+            topic_id = parts[3]
+            return self.course_controller.get_questions(lesson_id, topic_id)
+
         elif destination == "health" and method == "GET":
             return self.course_controller.check_health()
+
         return jsonify({"error": "Course endpoint không tồn tại"}), 404
+

@@ -40,13 +40,22 @@ class CourseController:
         required_fields = ['text', 'choices', 'correct_index']
         if not data or not all(field in data for field in required_fields):
             return jsonify({"error": "Missing question fields"}), 400
+
         try:
+            text = data['text']
+            choices = data['choices']
+            correct_index = data['correct_index']
+            q_type = data.get('type', 'unknown')
+            difficulty = data.get('difficulty', 'medium')
+
             question = self.service.add_question(
                 lesson_id, topic_id,
-                text=data['text'],
-                choices=data['choices'],
-                correct_index=data['correct_index']
+                text=text,
+                choices=choices,
+                correct_index=correct_index,
+                q_type=q_type  # mới thêm
             )
+            question.difficulty = difficulty  # nếu bạn muốn lưu độ khó trong course
             return jsonify({"success": True, "question": question.to_dict()}), 201
         except ValueError as e:
             return jsonify({"error": str(e)}), 404
