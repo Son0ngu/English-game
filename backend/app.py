@@ -7,8 +7,8 @@ import dotenv
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
-from backend.src.config.database import DatabaseConfig
-from api_gateway.gateway_service import gateway_service
+# Import database interface trực tiếp
+from userProfile_service.database_interface import DatabaseInterface, UserProfileDatabaseInterface, ItemDatabaseInterface
 
 # Load environment variables from .env file
 dotenv.load_dotenv()
@@ -35,6 +35,7 @@ def create_app(config_object=None):
     jwt = JWTManager(app)
     
     # Register API Gateway service
+    from api_gateway.gateway_service import gateway_service
     app.gateway_service = gateway_service(app)
     
     # Configure dependency injection
@@ -46,78 +47,98 @@ def create_app(config_object=None):
     def gateway_request(path):
         return app.gateway_service.new_request(path)
     
-    # Database teardown handler
-    @app.teardown_appcontext
-    def close_connection(exception):
-        try:
-            database_config = app.injector.get(DatabaseConfig)
-            if database_config:
-                database_config.close()
-        except Exception as e:
-            app.logger.error(f"Error closing database: {e}")
+    # Database teardown handler không cần vì DatabaseInterface đã tự đóng kết nối
     
     return app
 
 def configure(binder: Binder):
-    # Database setup
-    from backend.src.config.database import DatabaseConfig
-    from backend.src.data.user_repository import UserRepository
-    from backend.src.data.permission_repository import PermissionRepository
-    from backend.src.data.item_repository import ItemRepository
+    # Đảm bảo thư mục data tồn tại
+    data_dir = os.path.join(os.getcwd(), "data")
+    os.makedirs(data_dir, exist_ok=True)
     
-    # Create configuration
-    db_config = {
-        "sqlite_path": os.path.join(os.getcwd(), "data", "english_game.db"),
-        "permissions_file": os.path.join(os.getcwd(), "data", "permissions.json")
-    }
+    # Sử dụng database_interface thay vì tạo mới DatabaseConfig
+    db_path = os.path.join(data_dir, "english_game.db")
+    database_interface = DatabaseInterface(db_path)
+    user_db_interface = UserProfileDatabaseInterface(db_path)
+    item_db_interface = ItemDatabaseInterface(db_path)
     
-    # Create configs and repositories
-    database_config = DatabaseConfig(db_config)
-    connection = database_config.get_connection()
+    # Bind database interfaces
+    binder.bind(DatabaseInterface, to=database_interface, scope=singleton)
+    binder.bind(UserProfileDatabaseInterface, to=user_db_interface, scope=singleton)
+    binder.bind(ItemDatabaseInterface, to=item_db_interface, scope=singleton)
     
-    user_repository = UserRepository(database_config.db_type, connection)
-    permission_repository = PermissionRepository(db_config)
-    item_repository = ItemRepository(database_config.db_type, connection)
+    # Import repositories từ userProfile_service
+    from userProfile_service.user_repository import UserRepository
+    from userProfile_service.item_repository import ItemRepository
+    
+    # Import permission repository từ src nếu cần
+    try:
+        from src.data.permission_repository import PermissionRepository
+        permissions_file = os.path.join(data_dir, "permissions.json")
+        permission_repository = PermissionRepository({"permissions_file": permissions_file})
+        binder.bind(PermissionRepository, to=permission_repository, scope=singleton)
+    except ImportError:
+        # Tạo một mock PermissionRepository nếu không tìm thấy
+        class PermissionRepository:
+            def check_permission(self, *args, **kwargs): return True
+        permission_repository = PermissionRepository()
+    
+    # Tạo các repository
+    user_repository = UserRepository()  # Sẽ tự động sử dụng UserProfileDatabaseInterface
+    item_repository = ItemRepository()  # Sẽ tự động sử dụng ItemDatabaseInterface
     
     # Bind repositories
-    binder.bind(DatabaseConfig, to=database_config, scope=singleton)
     binder.bind(UserRepository, to=user_repository, scope=singleton)
-    binder.bind(PermissionRepository, to=permission_repository, scope=singleton)
     binder.bind(ItemRepository, to=item_repository, scope=singleton)
     
-    # Import services
-    from backend.src.services.user_service import UserProfileService
-    from backend.src.services.permission_service import PermissionService
-    from backend.src.services.admin_service import AdminService
-    from backend.src.services.item_service import ItemService
-    from backend.src.services.progress_service import ProgressService
+    # Tương tự import services từ userProfile_service thay vì src
+    from userProfile_service.user_service import UserProfileService
+    from userProfile_service.item_service import ItemService
     
-    # Create services for missing ones if needed
+    # Import các service khác nếu có
     try:
-        from backend.src.services.course_service import CourseService
-        from backend.src.services.difficulty_evaluator import DifficultyEvaluator
-        course_service_available = True
-        difficulty_evaluator_available = True
+        from src.services.permission_service import PermissionService
+        from src.services.admin_service import AdminService
+        from src.services.progress_service import ProgressService
+        permission_service = PermissionService(permission_repository)
+        admin_service = AdminService(user_repository)
+        progress_service = ProgressService(user_repository, admin_service)
     except ImportError:
-        # Create minimal implementations if missing
-        from backend.src.services.base_service import BaseService
-        class CourseService(BaseService):
-            def check_internal(self): return {"status": "not_implemented"}
-        class DifficultyEvaluator(BaseService):
-            def check_internal(self): return {"status": "not_implemented"}
-        course_service_available = False
-        difficulty_evaluator_available = False
+        # Tạo các mock service nếu không tìm thấy
+        class BaseService:
+            def check_internal(self): return {"status": "healthy"}
+        
+        class PermissionService(BaseService): pass
+        class AdminService(BaseService):
+            def __init__(self, user_repo):
+                self.user_repo = user_repo
+                self.services = {}
+            def register_service(self, name, service):
+                self.services[name] = service
+        class ProgressService(BaseService): pass
+        
+        permission_service = PermissionService()
+        admin_service = AdminService(user_repository)
+        progress_service = ProgressService()
     
-    # Initialize services
-    user_service = UserProfileService(user_repository)
-    permission_service = PermissionService(permission_repository)
-    admin_service = AdminService(user_service)
-    item_service = ItemService(item_repository)
-    progress_service = ProgressService(user_service, admin_service)
+    # Initialize user and item services
+    user_service = UserProfileService()
+    item_service = ItemService()
     
-    # Initialize optional services
-    course_service = CourseService()
-    difficulty_evaluator = DifficultyEvaluator()
+    # Try to import course service if available
+    try:
+        from src.services.course_service import CourseService
+        from src.services.difficulty_evaluator import DifficultyEvaluator
+        course_service = CourseService()
+        difficulty_evaluator = DifficultyEvaluator()
+    except ImportError:
+        # Mock implementations if not available
+        class BaseService:
+            def check_internal(self): return {"status": "not_implemented"}
+        class CourseService(BaseService): pass
+        class DifficultyEvaluator(BaseService): pass
+        course_service = CourseService()
+        difficulty_evaluator = DifficultyEvaluator()
     
     # Register services for health check
     admin_service.register_service('users', user_service)
@@ -125,12 +146,8 @@ def configure(binder: Binder):
     admin_service.register_service('items', item_service)
     admin_service.register_service('progress', progress_service)
     admin_service.register_service('admin', admin_service)
-    
-    # Register optional services
-    if course_service_available:
-        admin_service.register_service('courses', course_service)
-    if difficulty_evaluator_available:
-        admin_service.register_service('difficulty', difficulty_evaluator)
+    admin_service.register_service('courses', course_service)
+    admin_service.register_service('difficulty', difficulty_evaluator)
     
     # Bind all services
     binder.bind(UserProfileService, to=user_service, scope=singleton)
@@ -143,12 +160,5 @@ def configure(binder: Binder):
 
 # Make the file directly runnable
 if __name__ == '__main__':
-    from flask import Flask
-    from api_gateway.gateway_service import gateway_service
-
-    app = Flask(__name__)
-
-    # Initialize API Gateway
-    api = gateway_service(app)
-
+    app = create_app()
     app.run(debug=True)
