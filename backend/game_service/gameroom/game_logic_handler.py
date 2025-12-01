@@ -11,11 +11,12 @@ class game_logic_handler:
         self.monster_hp= monster_hp
         self.monster_atk= monster_atk
         self.difficulty= difficulty
+        self.game_resource_interface = game_resource_interface()
         self.question = None
 
     def get_question(self,difficulty):
         question_type = random.randint(1, 4)
-        self.question = game_resource_interface.get_question(difficulty, question_type)
+        self.question = self.game_resource_interface.get_question(difficulty, question_type)
         choices = self.question.get_choices()
         return choices
 
@@ -25,12 +26,24 @@ class game_logic_handler:
             self.monster_hp -= self.atk
             if self.monster_hp <= 0:
                 print("You win!")
+                return jsonify({"status": "win"})
+            return jsonify({
+                "status": "correct",
+                "monster_hp": self.monster_hp,
+                "player_hp": self.hp
+            })
 
         else:
             print("Wrong!")
             self.hp -= self.monster_atk
             if self.hp <= 0:
                 print("You lose!")
+                return jsonify({"status": "lose"})
+            return jsonify({
+                "status": "incorrect",
+                "monster_hp": self.monster_hp,
+                "player_hp": self.hp
+            })
 
 
 
