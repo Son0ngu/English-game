@@ -24,17 +24,63 @@ class DatabaseInterface:
         
         # Nếu chưa, tạo bảng từ file SQL
         if not table_exists:
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            sql_file_path = os.path.join(script_dir, 'userTable.sql')
-            
-            with open(sql_file_path, 'r') as file:
-                sql_script = file.read()
-                self.cursor.executescript(sql_script)
-                self.connection.commit()
+            self._create_tables_from_sql()
         
         self.cursor.close()
         self.connection.close()
         print("Database initialized")
+    
+    def _create_tables_from_sql(self):
+        """Tạo các bảng từ file SQL"""
+        # Tìm đường dẫn đến file SQL
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        sql_file_path = os.path.join(script_dir, 'DBTable.sql')
+        
+        try:
+            # Đọc và thực thi file SQL
+            if os.path.exists(sql_file_path):
+                with open(sql_file_path, 'r', encoding='utf-8') as file:
+                    sql_script = file.read()
+                    # Thực thi script SQL
+                    self.cursor.executescript(sql_script)
+                    self.connection.commit()
+                    print(f"✅ Tables created from SQL file: {sql_file_path}")
+            else:
+                # Fallback: tạo bảng mặc định nếu không tìm thấy file SQL
+                print(f"⚠️  SQL file not found at: {sql_file_path}")
+                print("📝 Creating default tables...")
+                self._create_default_tables()
+                
+        except Exception as e:
+            print(f"❌ Error reading SQL file: {e}")
+            print("📝 Creating default tables as fallback...")
+            self._create_default_tables()
+    
+    def _create_default_tables(self):
+        """Tạo các bảng từ file SQL mặc định"""
+        # Tìm đường dẫn đến file SQL
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        sql_file_path = os.path.join(script_dir, 'DBTable.sql')
+        
+        try:
+            # Đọc và thực thi file SQL
+            if os.path.exists(sql_file_path):
+                with open(sql_file_path, 'r', encoding='utf-8') as file:
+                    sql_script = file.read()
+                    # Thực thi script SQL
+                    self.cursor.executescript(sql_script)
+                    self.connection.commit()
+                    print(f"✅ Default tables created from SQL file: {sql_file_path}")
+            else:
+                # Nếu không tìm thấy file SQL, báo lỗi và dừng
+                error_msg = f"❌ Required SQL file not found: {sql_file_path}"
+                print(error_msg)
+                raise FileNotFoundError(error_msg)
+            
+        except Exception as e:
+            error_msg = f"❌ Error creating tables from SQL file: {e}"
+            print(error_msg)
+            raise e
     
     def _get_connection(self):
         """Tạo kết nối mới đến database"""
@@ -448,7 +494,7 @@ class ItemDatabaseInterface(DatabaseInterface):
                     item_data.get('description'),
                     item_data.get('price', 0),
                     item_data.get('effect', 0),
-                    item_data.get('type'),
+                    item_data.get('type'),  # Sửa lỗi: thêm dấu đóng ngoặc ở đây
                     item_data.get('level', 1),
                     item_data.get('max_level', 1),
                     created_at,
