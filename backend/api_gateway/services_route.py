@@ -271,6 +271,18 @@ class services_route:
             course_id = parts[0]
             lesson_id = parts[2]
             return self.course_controller.get_topics(course_id, lesson_id)
+        elif "/lesson/" in destination and "/topic/" in destination and destination.endswith(
+                "/question") and method == "POST":
+            parts = destination.split("/")
+            lesson_id = parts[1]
+            topic_id = parts[3]
+            return self.course_controller.create_question(lesson_id, topic_id, data)
+        elif "/lesson/" in destination and "/topic/" in destination and destination.endswith(
+                "/question") and method == "GET":
+            parts = destination.split("/")
+            lesson_id = parts[1]
+            topic_id = parts[3]
+            return self.course_controller.get_questions(lesson_id, topic_id)
         elif destination == "health" and method == "GET":
             return self.course_controller.check_health()
         return jsonify({"error": "Course endpoint không tồn tại"}), 404
