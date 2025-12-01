@@ -8,7 +8,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
 from backend.src.config.database import DatabaseConfig
-from backend.api_gateway.gateway_service import gateway_service
+from api_gateway.gateway_service import gateway_service
 
 # Load environment variables from .env file
 dotenv.load_dotenv()
@@ -36,17 +36,6 @@ def create_app(config_object=None):
     
     # Register API Gateway service
     app.gateway_service = gateway_service(app)
-    
-    # Register blueprints for direct API access
-    from backend.src.controllers.user_controller import user_bp
-    from backend.src.controllers.admin_controller import admin_bp
-    from backend.src.controllers.permission_controller import permission_bp
-    from backend.src.controllers.item_controller import item_bp
-    
-    app.register_blueprint(user_bp)
-    app.register_blueprint(admin_bp)
-    app.register_blueprint(permission_bp)
-    app.register_blueprint(item_bp)
     
     # Configure dependency injection
     FlaskInjector(app=app, modules=[configure])
@@ -154,5 +143,12 @@ def configure(binder: Binder):
 
 # Make the file directly runnable
 if __name__ == '__main__':
-    app = create_app()
+    from flask import Flask
+    from api_gateway.gateway_service import gateway_service
+
+    app = Flask(__name__)
+
+    # Initialize API Gateway
+    api = gateway_service(app)
+
     app.run(debug=True)
