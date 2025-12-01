@@ -1,43 +1,29 @@
-from ..models.user import UserProfile, StudentProfile, TeacherProfile
-from ..data.user_repository import UserRepository
-import hashlib
+from .user import UserProfile, StudentProfile, TeacherProfile
+from .user_repository import UserRepository
 import time
-from typing import Dict, List, Optional, Any, Union
-from bson import ObjectId
+from typing import Dict, List, Optional, Any
 
 class UserProfileService:
-    def __init__(self, user_repository: UserRepository):
+    def __init__(self):
         self._startup_time = time.time()
         self._last_error = None
         self._stats = {"login_attempts": 0, "profile_updates": 0, "progress_updates": 0}
-        self.user_repository = user_repository
+        self.user_repository = UserRepository()
     
     def authenticate(self, username: str, password: str) -> dict:
         """Authenticate a user by username and password"""
+        # Chú ý: phương thức này cần được tích hợp với auth_service để hoạt động
+        # vì hiện tại user_profiles không lưu username và password
+        # Code mẫu này giả định rằng bạn sẽ xử lý ở nơi khác
         self._stats["login_attempts"] += 1
-        try:
-            user = self.user_repository.find_by_username(username)
-            if user and user.verify_password(password):
-                # Update last login time
-                user.last_login = int(time.time())
-                self.user_repository.save(user)
-                return {"success": True, "user_id": user.id, "role": user.role}
-            return {"success": False, "error": "Invalid credentials"}
-        except Exception as e:
-            self._last_error = e
-            return {"success": False, "error": str(e)}
+        return {"success": False, "error": "Authentication not implemented"}
     
     def create_user(self, user_data: dict, user_type: str = "student") -> dict:
         """Create a new user"""
         try:
-            # Check if username already exists
-            if self.user_repository.find_by_username(user_data.get('username')):
-                return {"success": False, "error": "Username already exists"}
-            
             # Create appropriate user type
             if user_type == "teacher":
                 user = TeacherProfile(
-                    username=user_data.get('username'),
                     email=user_data.get('email')
                 )
                 
@@ -47,28 +33,23 @@ class UserProfileService:
                     
             else:  # Default to student
                 user = StudentProfile(
-                    username=user_data.get('username'),
                     email=user_data.get('email')
                 )
                 
                 # Set student-specific fields
                 if 'language_level' in user_data:
                     user.language_level = user_data['language_level']
-                
-            # Set password
-            if 'password' in user_data:
-                user.set_password(user_data['password'])
             
             # Save user
             saved_user = self.user_repository.save(user)
             
-            return {"success": True, "user_id": str(saved_user.id)}
+            return {"success": True, "user_id": saved_user.id}
             
         except Exception as e:
             self._last_error = e
             return {"success": False, "error": str(e)}
     
-    def get_user(self, user_id: Union[str, int, ObjectId]) -> Optional[dict]:
+    def get_user(self, user_id: int) -> Optional[dict]:
         """Get user details by ID"""
         try:
             user = self.user_repository.find_by_id(user_id)
@@ -79,7 +60,7 @@ class UserProfileService:
             self._last_error = e
             return None
     
-    def update_profile(self, user_id: Union[str, int, ObjectId], updates: dict) -> dict:
+    def update_profile(self, user_id: int, updates: dict) -> dict:
         """Update user profile attributes"""
         self._stats["profile_updates"] += 1
         try:
@@ -112,7 +93,7 @@ class UserProfileService:
             self._last_error = e
             return {"success": False, "error": str(e)}
     
-    def update_progress(self, user_id: Union[str, int, ObjectId], lesson_id: str, points: int) -> dict:
+    def update_progress(self, user_id: int, lesson_id: str, points: int) -> dict:
         """Update user progress for a specific lesson"""
         self._stats["progress_updates"] += 1
         try:
@@ -131,7 +112,7 @@ class UserProfileService:
             self._last_error = e
             return {"success": False, "error": str(e)}
     
-    def get_student_progress(self, user_id: Union[str, int, ObjectId]) -> dict:
+    def get_student_progress(self, user_id: int) -> dict:
         """Get a student's learning progress"""
         try:
             user = self.user_repository.find_by_id(user_id)
@@ -146,7 +127,7 @@ class UserProfileService:
             self._last_error = e
             return {"success": False, "error": str(e)}
     
-    def buy_item_for_student(self, user_id: Union[str, int, ObjectId], item: dict, cost: int) -> dict:
+    def buy_item_for_student(self, user_id: int, item: dict, cost: int) -> dict:
         """Purchase an item for a student"""
         try:
             user = self.user_repository.find_by_id(user_id)
@@ -188,7 +169,7 @@ class UserProfileService:
             self._last_error = e
             return []
     
-    def delete_user(self, user_id: Union[str, int, ObjectId]) -> dict:
+    def delete_user(self, user_id: int) -> dict:
         """Delete a user"""
         try:
             success = self.user_repository.delete_user(user_id)
