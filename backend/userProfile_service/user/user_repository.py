@@ -32,7 +32,7 @@ class UserRepository:
             )
             user.language_level = user_dict.get('language_level', 1)
             user.points = user_dict.get('points', 0)
-            user.money = user_dict.get('money', 100)
+            # BỎ: user.money = user_dict.get('money', 100)
             user.hp = user_dict.get('hp', 100)
             user.atk = user_dict.get('atk', 10)
             user.set_items(user_dict.get('items', []))

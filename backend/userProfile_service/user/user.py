@@ -37,7 +37,7 @@ class StudentProfile(UserProfile):
         super().__init__(**kwargs)
         self.language_level = kwargs.get('language_level', 1)
         self.points = kwargs.get('points', 0)
-        self.money = kwargs.get('money', 100)
+        # BỎ: self.money = kwargs.get('money', 100)
         self.hp = kwargs.get('hp', 100)
         self.atk = kwargs.get('atk', 10)
         self._items = "[]"
@@ -61,13 +61,7 @@ class StudentProfile(UserProfile):
         items.append(item)
         self.set_items(items)
     
-    def buy_item(self, item: Dict[str, Any], cost: int) -> bool:
-        """Buy an item if student has enough money"""
-        if self.money >= cost:
-            self.money -= cost
-            self.add_item(item)
-            return True
-        return False
+    # BỎ: buy_item method hoàn toàn
     
     def view_progress(self) -> Dict[str, Any]:
         """Get student's learning progress"""
@@ -84,7 +78,7 @@ class StudentProfile(UserProfile):
         data.update({
             'language_level': self.language_level,
             'points': self.points,
-            'money': self.money, 
+            # BỎ: 'money': self.money,
             'hp': self.hp,
             'atk': self.atk,
             'items': self.get_items()
