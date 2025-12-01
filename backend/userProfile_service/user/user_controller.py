@@ -33,6 +33,24 @@ class UserController:
         except Exception as e:
             return jsonify({"error": f"Get user error: {str(e)}"}), 500
 
+    def get_user_stats_only(self, user_id):
+        """Lấy chỉ ATK và HP của user"""
+        try:
+            user_data = self.user_service.get_user(user_id)
+            
+            if user_data:
+                # Chỉ trả về ATK và HP
+                stats = {
+                    "user_id": user_id,
+                    "atk": user_data.get('atk', 0),
+                    "hp": user_data.get('hp', 0)
+                }
+                return jsonify(stats), 200
+            else:
+                return jsonify({"error": "User not found"}), 404
+        except Exception as e:
+            return jsonify({"error": f"Get user stats error: {str(e)}"}), 500
+
     def update_user(self, user_id, data):
         """Cập nhật thông tin người dùng"""
         try:
@@ -49,7 +67,7 @@ class UserController:
             return jsonify({"error": f"Update user error: {str(e)}"}), 500
 
     def update_progress(self, user_id, data):
-        """Cập nhật tiến độ học tập của học sinh"""
+        """Cập nhật tiến độ học tập với auto weapon upgrade"""
         try:
             lesson_id = data.get('lesson_id', 'unknown')
             points = data.get('points', 0)
@@ -57,7 +75,8 @@ class UserController:
             if points <= 0:
                 return jsonify({"error": "Points must be positive"}), 400
             
-            result = self.user_service.update_progress(user_id, lesson_id, points)
+            # Update progress với weapon upgrade
+            result = self.user_service.update_progress_with_weapon_upgrade(user_id, lesson_id, points)
             
             if result.get('success'):
                 return jsonify(result), 200
@@ -77,25 +96,6 @@ class UserController:
                 return jsonify({"error": result.get('error', 'Failed to get progress')}), 404
         except Exception as e:
             return jsonify({"error": f"Get progress error: {str(e)}"}), 500
-
-    def update_student_money(self, user_id, data):
-        """Cập nhật tiền của học sinh"""
-        try:
-            amount = data.get('amount', 0)
-            operation = data.get('operation', 'add')
-            
-            if amount < 0:
-                return jsonify({"error": "Amount must be non-negative"}), 400
-            
-            result = self.user_service.update_student_money(user_id, amount, operation)
-            
-            if result.get('success'):
-                return jsonify(result), 200
-            else:
-                status_code = 402 if "Insufficient funds" in result.get('error', '') else 400
-                return jsonify(result), status_code
-        except Exception as e:
-            return jsonify({"error": f"Money update error: {str(e)}"}), 500
 
     def update_student_stats(self, user_id, data):
         """Cập nhật stats game của học sinh (HP, ATK)"""

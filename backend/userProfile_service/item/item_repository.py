@@ -4,7 +4,7 @@ from ..database_interface import ItemDatabaseInterface  # Import từ thư mục
 import time
 
 class ItemRepository:
-    """Repository for item data storage - focused on upgrades only"""
+    """Repository for weapon data storage - level-based system"""
     
     def __init__(self):
         """Initialize repository with database interface"""
@@ -37,11 +37,13 @@ class ItemRepository:
             id=item_dict.get('id'),
             name=item_dict.get('name'),
             description=item_dict.get('description'),
-            price=item_dict.get('price', 0),
+            # BỎ: price=item_dict.get('price', 0),
             effect=item_dict.get('effect', 0),
             type=item_dict.get('type'),
             level=item_dict.get('level', 1),
             max_level=item_dict.get('max_level', 1),
+            tier=item_dict.get('tier', 'common'),
+            unlock_level=item_dict.get('unlock_level', 1),
             created_at=item_dict.get('created_at', int(time.time())),
             owner_id=item_dict.get('owner_id'),
             is_template=item_dict.get('is_template', False)
@@ -51,7 +53,7 @@ class ItemRepository:
     
     def save_item(self, item: Item) -> Item:
         """
-        Lưu item vào database (chủ yếu cho upgrade)
+        Lưu item vào database
         
         Args:
             item: Đối tượng Item cần lưu
@@ -97,40 +99,129 @@ class ItemRepository:
         items_dict = self.db.get_items_by_owner(owner_id)
         return [self._dict_to_item(i) for i in items_dict]
     
-    def find_upgradeable_items(self, owner_id: str) -> List[Item]:
+    def get_available_weapons_for_level(self, user_level: int) -> List[Item]:
         """
-        Tìm các item có thể nâng cấp của người dùng
+        Lấy danh sách vũ khí có thể chọn cho level hiện tại
         
         Args:
-            owner_id: ID của người dùng
+            user_level: Level hiện tại của user
             
         Returns:
-            Danh sách các item có thể nâng cấp (level < max_level)
+            Danh sách 3 vũ khí có thể chọn
         """
-        all_items = self.find_by_owner(owner_id)
-        return [item for item in all_items if item.level < item.max_level]
+        # Template weapons cho từng level
+        weapon_templates = self._get_weapon_templates_by_level(user_level)
+        return [self._dict_to_item(weapon) for weapon in weapon_templates]
     
-    def update_item_level(self, item_id: str, new_level: int, new_effect: int) -> bool:
-        """
-        Cập nhật level và effect của item
+    def _get_weapon_templates_by_level(self, level: int) -> List[Dict[str, Any]]:
+        """Get weapon templates based on user level"""
+        weapon_templates = []
         
-        Args:
-            item_id: ID của item
-            new_level: Level mới
-            new_effect: Effect mới
-            
-        Returns:
-            True nếu cập nhật thành công, False nếu thất bại
-        """
-        try:
-            item = self.find_by_id(item_id)
-            if not item:
-                return False
-                
-            item.level = new_level
-            item.effect = new_effect
-            self.save_item(item)
-            return True
-        except Exception as e:
-            print(f"Error updating item level: {e}")
-            return False
+        if level >= 1:
+            # Level 1-2: Common weapons
+            weapon_templates.extend([
+                {
+                    "id": f"sword_common_lvl{level}",
+                    "name": f"Iron Sword Lv.{level}",
+                    "description": "A sturdy iron sword for beginners",
+                    "effect": 5 + level * 2,
+                    "type": "weapon",
+                    "tier": "common",
+                    "unlock_level": level,
+                    "is_template": True
+                },
+                {
+                    "id": f"bow_common_lvl{level}",
+                    "name": f"Hunter Bow Lv.{level}",
+                    "description": "A reliable bow for ranged combat",
+                    "effect": 4 + level * 2,
+                    "type": "weapon",
+                    "tier": "common",
+                    "unlock_level": level,
+                    "is_template": True
+                },
+                {
+                    "id": f"staff_common_lvl{level}",
+                    "name": f"Wooden Staff Lv.{level}",
+                    "description": "A magical staff for spell casting",
+                    "effect": 6 + level * 2,
+                    "type": "weapon",
+                    "tier": "common",
+                    "unlock_level": level,
+                    "is_template": True
+                }
+            ])
+        
+        if level >= 5:
+            # Level 5+: Rare weapons
+            weapon_templates.extend([
+                {
+                    "id": f"sword_rare_lvl{level}",
+                    "name": f"Silver Blade Lv.{level}",
+                    "description": "A gleaming silver sword with enhanced power",
+                    "effect": 8 + level * 3,
+                    "type": "weapon",
+                    "tier": "rare",
+                    "unlock_level": level,
+                    "is_template": True
+                },
+                {
+                    "id": f"bow_rare_lvl{level}",
+                    "name": f"Elven Longbow Lv.{level}",
+                    "description": "An elegant elven bow with precision",
+                    "effect": 7 + level * 3,
+                    "type": "weapon",
+                    "tier": "rare",
+                    "unlock_level": level,
+                    "is_template": True
+                },
+                {
+                    "id": f"staff_rare_lvl{level}",
+                    "name": f"Crystal Staff Lv.{level}",
+                    "description": "A staff embedded with magical crystals",
+                    "effect": 9 + level * 3,
+                    "type": "weapon",
+                    "tier": "rare",
+                    "unlock_level": level,
+                    "is_template": True
+                }
+            ])
+        
+        if level >= 10:
+            # Level 10+: Legendary weapons
+            weapon_templates.extend([
+                {
+                    "id": f"sword_legendary_lvl{level}",
+                    "name": f"Dragon Slayer Lv.{level}",
+                    "description": "A legendary sword forged from dragon scales",
+                    "effect": 12 + level * 4,
+                    "type": "weapon",
+                    "tier": "legendary",
+                    "unlock_level": level,
+                    "is_template": True
+                },
+                {
+                    "id": f"bow_legendary_lvl{level}",
+                    "name": f"Phoenix Feather Bow Lv.{level}",
+                    "description": "A bow crafted from phoenix feathers",
+                    "effect": 11 + level * 4,
+                    "type": "weapon",
+                    "tier": "legendary",
+                    "unlock_level": level,
+                    "is_template": True
+                },
+                {
+                    "id": f"staff_legendary_lvl{level}",
+                    "name": f"Archmage Scepter Lv.{level}",
+                    "description": "The ultimate staff of arcane mastery",
+                    "effect": 13 + level * 4,
+                    "type": "weapon",
+                    "tier": "legendary",
+                    "unlock_level": level,
+                    "is_template": True
+                }
+            ])
+        
+        # Return top 3 weapons for current level
+        available_weapons = [w for w in weapon_templates if w["unlock_level"] == level]
+        return available_weapons[:3] if available_weapons else weapon_templates[-3:]
