@@ -25,6 +25,11 @@ class UserProfile:
             'created_at': self.created_at,
             'last_login': self.last_login
         }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        """Create UserProfile from dictionary"""
+        return cls(**data)
 
 class StudentProfile(UserProfile):
     """Student profile with game stats"""
@@ -50,13 +55,17 @@ class StudentProfile(UserProfile):
         """Save items list back to storage format"""
         self._items = json.dumps(items_list)
     
+    def add_item(self, item: Dict[str, Any]) -> None:
+        """Add item to student's inventory"""
+        items = self.get_items()
+        items.append(item)
+        self.set_items(items)
+    
     def buy_item(self, item: Dict[str, Any], cost: int) -> bool:
         """Buy an item if student has enough money"""
         if self.money >= cost:
             self.money -= cost
-            items = self.get_items()
-            items.append(item)
-            self.set_items(items)
+            self.add_item(item)
             return True
         return False
     
@@ -81,6 +90,11 @@ class StudentProfile(UserProfile):
             'items': self.get_items()
         })
         return data
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        """Create StudentProfile from dictionary"""
+        return cls(**data)
 
 class TeacherProfile(UserProfile):
     """Teacher profile with teaching info"""
@@ -108,3 +122,8 @@ class TeacherProfile(UserProfile):
             'subjects': self.get_subjects()
         })
         return data
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        """Create TeacherProfile from dictionary"""
+        return cls(**data)

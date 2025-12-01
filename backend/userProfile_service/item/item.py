@@ -38,3 +38,8 @@ class Item:
             'is_template': self.is_template,
             'can_upgrade': self.level < self.max_level
         }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        """Create Item from dictionary"""
+        return cls(**data)
