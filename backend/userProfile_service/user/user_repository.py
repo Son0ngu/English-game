@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict, Any
 from .user import UserProfile, StudentProfile, TeacherProfile
-from .database_interface import UserProfileDatabaseInterface
+from ..database_interface import UserProfileDatabaseInterface  # Import từ thư mục cha
 
 class UserRepository:
     def __init__(self):
@@ -141,3 +141,14 @@ class UserRepository:
             Dictionary chứa số lượng người dùng theo loại
         """
         return self.db.count_users()
+
+    def test_connection(self) -> bool:
+        """Test database connection"""
+        try:
+            # Thử tạo kết nối
+            connection = self.db._get_connection()
+            connection.close()
+            return True
+        except Exception as e:
+            print(f"Database connection failed: {e}")
+            return False
