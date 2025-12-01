@@ -65,13 +65,11 @@ class ClassroomService:
         return [q.to_dict() for q in filtered]
 
     def get_class_dashboard(self, class_id: str):
-        student_ids = self.student_class_links.get(class_id, [])
-        for sid in student_ids:
-            score_data = self.game.get_results(sid)
-            if score_data:
-                entry = DashboardEntry(sid, class_id, score_data.total_score, score_data.highest_score)
-                self.update_dashboard(entry)
-        return [e.to_dict() for e in self.get_dashboard_for_class(class_id)]
+        try:
+            entries = self.game.get_dashboard_for_class(class_id)
+            return [entry.to_dict() for entry in entries]
+        except Exception as e:
+            return []
 
     def update_dashboard(self, entry: DashboardEntry):
         for i, e in enumerate(self.dashboard_data):
