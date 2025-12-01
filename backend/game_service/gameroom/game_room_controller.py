@@ -1,15 +1,21 @@
+from flask import jsonify
 from game_service.gameroom.gameroom_service import game_service
 
 class game_room_controller:
     def __init__(self):
-        self.game_service = game_service
+        self.game_service = game_service()
         pass
 
     def create_game_room(self, student_id):
-        game_service.create_game_room(student_id)
+        if student_id:
+            self.game_service.create_game_room(student_id)
+            return jsonify({"message": "Game room created successfully"}), 200
+        else:
+            print("Student ID is required")
+            return jsonify({"error": "Error"}), 400
 
     def get_game_room_state(self, student_id):
-        return game_service.get_game_room_state(student_id)
+        return self.game_service.get_game_room_state(student_id)
 
     def get_question(self, student_id):
         return game_service.get_question(student_id)
