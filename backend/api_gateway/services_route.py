@@ -1,7 +1,8 @@
 from flask import jsonify
+from flask_jwt_extended import get_jwt_identity
 
 # Import các controller
-import game_service.gameroom.game_room_controller as game_room_controller
+from game_service.game_service_controller import game_service_controller
 from progressandfeedback.progress_controller import ProgressController
 from progressandfeedback.feedback_controller import FeedbackController
 from admin_service.admin_controller import AdminController
@@ -20,7 +21,7 @@ class services_route:
     def __init__(self):
         try:
             # Khởi tạo các service
-            self.game_room_controller = game_room_controller.game_room_controller()
+            self.game_service = game_service_controller()
             
             # Core services
             self.user_service_obj = UserProfileService()
@@ -101,7 +102,6 @@ class services_route:
             self.feedback_controller = None
             self.item_controller = None
             self.classroom_controller = None
-            self.game_room_controller = None
 
     def handle_user_service(self, destination, data, method):
         """Điều hướng user service"""
@@ -259,17 +259,33 @@ class services_route:
         """Điều hướng game service"""
         try:
             if destination == 'newroom' and method == 'POST':
-                if not self.game_room_controller:
+                if not self.game_service:
                     return jsonify({"error": "Game service not available"}), 503
                     
-                student_id = data.get('student_id')
+                student_id = get_jwt_identity()
                 if student_id:
-                    self.game_room_controller.create_game_room(student_id)
+                    self.game_service.create_game_room(student_id)
                     return jsonify({"message": "Game room created successfully"}), 200
                 else:
                     return jsonify({"error": "Student ID is required"}), 400
-            elif destination == 'health' and method == 'GET':
+
+            if destination == 'health' and method == 'GET':
                 return jsonify({"status": "healthy", "service": "game"}), 200
+
+            if destination == "check_answer" and method == "POST":
+                session_id = data.get('session_id')
+                answer = data.get('answer')
+                if session_id and answer:
+                    return self.game_service.check_answer(session_id, answer)
+                else:
+                    return jsonify({"error": "session_id and answer are required"}), 400
+
+            if destination == "get_question" and method == 'GET':
+                session_id = data.get('session_id')
+                if session_id:
+                    return self.game_service.get_question(session_id)
+                else:
+                    return jsonify({"error": "session_id is required"}), 400
             else:
                 return jsonify({"error": "Game endpoint not implemented"}), 501
         except Exception as e:
