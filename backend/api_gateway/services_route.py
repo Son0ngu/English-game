@@ -6,12 +6,11 @@ from progressandfeedback.progress_controller import ProgressController
 from progressandfeedback.feedback_controller import FeedbackController
 from admin_service.admin_controller import AdminController
 from userProfile_service.user_controller import UserController
-from userProfile_service.item_controller import ItemController  
+from userProfile_service.item_controller import ItemController  # Thêm dòng này
 from classroom_service.classroom_controller import ClassroomController
 from classroom_service.classroom_service import ClassroomService
-from userProfile_service.user_service import UserProfileService 
-from course_service.course_controller import CourseController
-from course_service.course_service import CourseService
+from userProfile_service.user_service import UserProfileService  # Đảm bảo có
+
 
 # Import các service
 from progressandfeedback.progress_service.progress_service import ProgressService
@@ -21,26 +20,26 @@ from progressandfeedback.progress_service.admin_service import AdminService
 
 class services_route:
     def __init__(self):
-        self.game_room_controller = game_room_controller()
-        self.auth_service_controller = auth_service_controller()
+        # Khởi tạo các service
+        self.game_room_controller = game_room_controller.game_room_controller()
         user_service = UserProfileService()
-        item_service = ItemService() 
+        item_service = ItemService()  # Thêm dòng này
         admin_service = AdminService(user_service)
         progress_service = ProgressService(user_service, admin_service)
         classroom_service = ClassroomService(user_service)
-        course_service = CourseService()
 
+        # Đăng ký các service trực tiếp với admin_service
         admin_service.register("user", user_service)
-        admin_service.register("item", item_service)  
+        admin_service.register("item", item_service)  # Thêm dòng này
         admin_service.register("progress", progress_service)
-
+        
+        # Khởi tạo các controller
         self.admin_controller = AdminController(admin_service)
         self.progress_controller = ProgressController(progress_service)
         self.feedback_controller = FeedbackController(progress_service)
         self.user_controller = UserController(user_service)
         self.item_controller = ItemController(item_service)  # Thêm dòng này
         self.classroom_controller = ClassroomController(classroom_service)
-        self.course_controller = CourseController(course_service)
 
     def admin_service(self, destination, data, method):
         """
@@ -71,53 +70,14 @@ class services_route:
         # Endpoint không tồn tại
         return jsonify({"error": "Admin endpoint không tồn tại"}), 404
         
+    def auth_service(self, destination, data, method):
+        pass
+        
     def classroom_service(self, destination, data, method):
         pass
-    def auth_service(self,destination, data, method):
-        if destination == 'login' and method == 'POST':
-            if data.get('username') and data.get('password'):
-                username = data.get('username')
-                password = data.get('password')
-                if self.auth_service_controller.login(username, password):
-                    id = self.auth_service_controller.get_id_from_username(username)
-                    role = self.auth_service_controller.get_role_from_id(id)
-                    additional_claims = {"role": role}
-                    access_token = create_access_token(identity=username,additional_claims=additional_claims)
-                    print("Crafted access token:", access_token," (service_route)")
-                    return {"access_token": access_token}, 200
-                else:
-                    print("Invalid credentials (service_route)")
-                    return {"error": "Invalid credentials"}, 401
-            return None
-
-        # Get role from JWT
-        # claims = get_jwt()
-        # claims.get("role")
-
-        if destination == "signup" and method == 'POST':
-            if data.get('username') and data.get('password'):
-                username = data.get('username')
-                password = data.get('password')
-                if self.auth_service_controller.sign_up(username, password):
-                    print("User created successfully (service_route)")
-                    return {"message": "User created successfully"}, 200
-                else:
-                    print("User already exists (service_route)")
-                    return {"error": "User already exists"}, 400
-            return None
-
-        if destination == "add_permission" and method == 'POST':
-            jwt_role = get_jwt().get("role")
-            user_id = get_jwt_identity()
-            role = data.get("role")
-            path = data.get("path")
-            service = data.get("service")
-            method = data.get("method")
-            if jwt_role =="admin":
-                self.auth_service_controller.add_permission(role, path, service, method)
-                print("Permission added successfully (service_route)")
-                return {"message": "Permission added successfully"}, 200
-
+        
+    def course_service(self, destination, data, method):
+        pass
         
     def game_service(self, destination, data, method):
         if destination == 'newroom' and method=='POST':
@@ -131,7 +91,9 @@ class services_route:
         return None
 
     def progress_service(self, destination, data, method):
-       
+        """
+        Route progress service requests to the progress controller
+        """
         # Handle different progress endpoints
         if destination == 'record' and method == 'POST':
             return self.progress_controller.record_activity(data)
@@ -284,53 +246,9 @@ class services_route:
         elif destination.startswith("student/") and destination.endswith("/classes") and method == "GET":
             student_id = destination.split("/")[1]
             return self.classroom_controller.get_student_classes(student_id)
+        elif destination.startswith("question/") and method == "GET":
+            class_id = destination.split("/")[1]
+            return self.classroom_controller.get_questions_by_criteria(class_id)
         elif destination == "health" and method == "GET":
             return self.classroom_controller.check_health()
         return jsonify({"error": "Classroom endpoint không tồn tại"}), 404
-
-    def course_service(self, destination, data, method):
-        if destination == "" and method == "POST":
-            return self.course_controller.create_course(data)
-
-        elif destination == "" and method == "GET":
-            return self.course_controller.get_courses()
-
-        elif destination.endswith("/lesson") and method == "POST":
-            course_id = destination.split("/")[0]
-            return self.course_controller.create_lesson(course_id, data)
-
-        elif destination.endswith("/lesson") and method == "GET":
-            course_id = destination.split("/")[0]
-            return self.course_controller.get_lessons(course_id)
-
-        elif "/lesson/" in destination and destination.endswith("/topic") and method == "POST":
-            parts = destination.split("/")
-            course_id = parts[0]
-            lesson_id = parts[2]
-            return self.course_controller.create_topic(course_id, lesson_id, data)
-
-        elif "/lesson/" in destination and destination.endswith("/topic") and method == "GET":
-            parts = destination.split("/")
-            course_id = parts[0]
-            lesson_id = parts[2]
-            return self.course_controller.get_topics(course_id, lesson_id)
-
-        elif "/lesson/" in destination and "/topic/" in destination and destination.endswith(
-                "/question") and method == "POST":
-            parts = destination.split("/")
-            lesson_id = parts[1]
-            topic_id = parts[3]
-            return self.course_controller.create_question(lesson_id, topic_id, data)
-
-        elif "/lesson/" in destination and "/topic/" in destination and destination.endswith(
-                "/question") and method == "GET":
-            parts = destination.split("/")
-            lesson_id = parts[1]
-            topic_id = parts[3]
-            return self.course_controller.get_questions(lesson_id, topic_id)
-
-        elif destination == "health" and method == "GET":
-            return self.course_controller.check_health()
-
-        return jsonify({"error": "Course endpoint không tồn tại"}), 404
-
