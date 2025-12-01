@@ -14,11 +14,11 @@ class game_room_controller:
             print("Student ID is required")
             return jsonify({"error": "Error"}), 400
 
-    def get_game_room_state(self, student_id):
-        return self.game_service.get_game_room_state(student_id)
+    def get_game_room_state(self, session_id):
+        return self.game_service.get_game_room_state(session_id)
 
-    def get_question(self, student_id):
-        return game_service.get_question(student_id)
+    def get_question(self, session_id):
+        return self.game_service.get_question(session_id)
 
-    def check_answer(self, student_id, answer):
-        return game_service.check_answer(student_id, answer)
+    def check_answer(self, session_id, answer):
+        return self.game_service.check_answer(session_id, answer)

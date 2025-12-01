@@ -11,4 +11,4 @@ class question_fill_in_the_blank(Question):
         return normalize(answer) == normalize(self.answer)
 
     def get_choices(self):
-        pass
+        return ""
