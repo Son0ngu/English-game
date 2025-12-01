@@ -1,11 +1,13 @@
+from game_service.gameroom.game_logic_handler import game_logic_handler
 from game_service.gameroom.gameroom import gameroom
 class game_service:
     def __init__(self):
-        self.game_room = None
+        self.gameroom = gameroom
         self.game_room_list = {}
+        self.game_logic_handler = game_logic_handler
 
     def create_game_room(self,student_id):
-        self.game_room_list[student_id] = gameroom(student_id)
+        self.game_room_list[student_id] = self.gameroom(student_id,self.game_logic_handler)
 
     def  get_game_room_state(self,student_id):
         room = self.game_room_list.get(student_id)
