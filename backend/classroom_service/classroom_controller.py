@@ -28,5 +28,9 @@ class ClassroomController:
         dashboard = self.service.get_class_dashboard(class_id)
         return jsonify({"dashboard": dashboard}), 200
 
+    def get_student_classes(self, student_id):
+        classes = self.service.get_student_classes(student_id)
+        return jsonify({"classes": classes, "student_id": student_id}), 200
+
     def check_health(self):
         return jsonify(self.service.check_internal()), 200
