@@ -7,6 +7,11 @@ from progressandfeedback.feedback_controller import FeedbackController
 from admin_service.admin_controller import AdminController
 from userProfile_service.user_controller import UserController
 from userProfile_service.item_controller import ItemController  # Thêm dòng này
+from classroom_service.classroom_controller import ClassroomController
+from classroom_service.classroom_service import ClassroomService
+from userProfile_service.user_service import UserProfileService  # Đảm bảo có
+from course_service.course_controller import CourseController
+from course_service.course_service import CourseService
 
 # Import các service
 from progressandfeedback.progress_service.progress_service import ProgressService
@@ -22,8 +27,10 @@ class services_route:
         item_service = ItemService()  # Thêm dòng này
         admin_service = AdminService(user_service)
         progress_service = ProgressService(user_service, admin_service)
-        
-        # Đăng ký các service trực tiếp với admin_service 
+        classroom_service = ClassroomService(user_service)
+        course_service = CourseService()
+
+        # Đăng ký các service trực tiếp với admin_service
         admin_service.register("user", user_service)
         admin_service.register("item", item_service)  # Thêm dòng này
         admin_service.register("progress", progress_service)
@@ -34,7 +41,9 @@ class services_route:
         self.feedback_controller = FeedbackController(progress_service)
         self.user_controller = UserController(user_service)
         self.item_controller = ItemController(item_service)  # Thêm dòng này
-        
+        self.classroom_controller = ClassroomController(classroom_service)
+        self.course_controller = CourseController(course_service)
+
     def admin_service(self, destination, data, method):
         """
         Điều hướng yêu cầu admin service đến admin controller
@@ -225,3 +234,43 @@ class services_route:
             
         # Endpoint không tồn tại
         return jsonify({"error": "Item endpoint không tồn tại"}), 404
+
+    def classroom_service(self, destination, data, method):
+        if destination == "" and method == "POST":
+            return self.classroom_controller.create_class(data)
+        elif destination == "join" and method == "POST":
+            return self.classroom_controller.join_class(data)
+        elif destination.endswith("/students") and method == "GET":
+            class_id = destination.split("/")[0]
+            return self.classroom_controller.get_students(class_id)
+        elif destination.endswith("/dashboard") and method == "GET":
+            class_id = destination.split("/")[0]
+            return self.classroom_controller.get_dashboard(class_id)
+        elif destination == "health" and method == "GET":
+            return self.classroom_controller.check_health()
+        return jsonify({"error": "Classroom endpoint không tồn tại"}), 404
+
+    def course_service(self, destination, data, method):
+        if destination == "" and method == "POST":
+            return self.course_controller.create_course(data)
+        elif destination == "" and method == "GET":
+            return self.course_controller.get_courses()
+        elif destination.endswith("/lesson") and method == "POST":
+            course_id = destination.split("/")[0]
+            return self.course_controller.create_lesson(course_id, data)
+        elif destination.endswith("/lesson") and method == "GET":
+            course_id = destination.split("/")[0]
+            return self.course_controller.get_lessons(course_id)
+        elif "/lesson/" in destination and destination.endswith("/topic") and method == "POST":
+            parts = destination.split("/")
+            course_id = parts[0]
+            lesson_id = parts[2]
+            return self.course_controller.create_topic(course_id, lesson_id, data)
+        elif "/lesson/" in destination and destination.endswith("/topic") and method == "GET":
+            parts = destination.split("/")
+            course_id = parts[0]
+            lesson_id = parts[2]
+            return self.course_controller.get_topics(course_id, lesson_id)
+        elif destination == "health" and method == "GET":
+            return self.course_controller.check_health()
+        return jsonify({"error": "Course endpoint không tồn tại"}), 404
