@@ -12,3 +12,6 @@ class Question(ABC):
 
     def get_choices(self):
         pass
+
+    def get_question(self):
+        pass
