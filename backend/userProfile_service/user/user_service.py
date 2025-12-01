@@ -1,7 +1,8 @@
-from .user import UserProfile, StudentProfile, TeacherProfile
-from .user_repository import UserRepository
+from userProfile_service.user.user import StudentProfile, TeacherProfile
+from userProfile_service.user.user_repository import UserRepository
 import time
-from typing import Dict, List, Optional, Any
+from typing import Optional
+
 
 class UserProfileService:
     def __init__(self):
