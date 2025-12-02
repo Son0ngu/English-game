@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS student_profiles (
     hp INTEGER DEFAULT 100,               -- Máu (Health Points)
     atk INTEGER DEFAULT 10,               -- Sức tấn công (Attack)
     items TEXT DEFAULT '[]',              -- Danh sách vật phẩm (JSON format)
+    current_map INTEGER DEFAULT 1,         -- Bản đồ hiện tại
+    maps_completed TEXT DEFAULT '[]',      -- JSON array các bản đồ đã hoàn thành
+    max_map_unlocked INTEGER DEFAULT 1,     -- Bản đồ cao nhất đã mở khóa
     FOREIGN KEY (id) REFERENCES user_profiles(id) ON DELETE CASCADE
 );
 
@@ -52,6 +55,8 @@ CREATE INDEX IF NOT EXISTS idx_student_level ON student_profiles(language_level)
 CREATE INDEX IF NOT EXISTS idx_item_owner ON items(owner_id);
 CREATE INDEX IF NOT EXISTS idx_item_template ON items(is_template);
 CREATE INDEX IF NOT EXISTS idx_item_type ON items(type);
+CREATE INDEX IF NOT EXISTS idx_student_current_map ON student_profiles(current_map);
+CREATE INDEX IF NOT EXISTS idx_student_max_map ON student_profiles(max_map_unlocked);
 
 -- Insert một số dữ liệu mẫu (optional - có thể comment lại nếu không cần)
 -- INSERT OR IGNORE INTO user_profiles (email, role, created_at, last_login) 
@@ -60,9 +65,5 @@ CREATE INDEX IF NOT EXISTS idx_item_type ON items(type);
 -- Tạo một số item template mẫu
 INSERT OR IGNORE INTO items (id, name, description, price, effect, type, level, max_level, created_at, owner_id, is_template)
 VALUES 
-    ('sword_basic', 'Basic Sword', 'A simple sword for beginners', 100, 5, 'weapon', 1, 3, strftime('%s', 'now'), NULL, 1),
-    ('shield_wood', 'Wooden Shield', 'Basic wooden protection', 80, 3, 'defense', 1, 3, strftime('%s', 'now'), NULL, 1),
-    ('potion_health', 'Health Potion', 'Restores 20 HP', 50, 20, 'consumable', 1, 1, strftime('%s', 'now'), NULL, 1),
-    ('bow_basic', 'Basic Bow', 'Simple bow for ranged attacks', 120, 4, 'weapon', 1, 5, strftime('%s', 'now'), NULL, 1),
-    ('armor_leather', 'Leather Armor', 'Light protection gear', 150, 8, 'armor', 1, 4, strftime('%s', 'now'), NULL, 1);
+    ('default_sword_template', 'Basic Sword', 'A basic sword for all students', 0, 5, 'weapon', 1, 10, strftime('%s', 'now'), NULL, 1);
 

@@ -3,120 +3,141 @@ import psutil
 import time
 
 class AdminController:
+    
     def __init__(self, admin_service):
-        """
-        Khởi tạo AdminController với AdminService
-        
-        Parameters:
-            admin_service: Dịch vụ quản lý admin
-        """
         self.admin_service = admin_service
 
+    def _standard_response(self, success=True, data=None, message=None, error=None, status_code=200):
+        """Chuẩn hóa response format"""
+        response = {
+            "success": success,
+            "timestamp": int(time.time())
+        }
+        
+        if data is not None:
+            response["data"] = data
+        if message:
+            response["message"] = message
+        if error:
+            response["error"] = error
+            
+        return jsonify(response), status_code
+
     def check_health(self, service_name=None):
-        """Kiểm tra sức khỏe hệ thống hoặc service cụ thể"""
+        """Health check với response chuẩn"""
         try:
             if service_name:
-                # Kiểm tra service cụ thể
                 services = self.admin_service.services
                 if service_name in services:
                     service = services[service_name]
-                    if hasattr(service, 'check_internal'):
-                        health = service.check_internal()
-                    else:
-                        health = {"status": "unknown", "details": "No health check available"}
-                    return jsonify({"service": service_name, "health": health}), 200
+                    health = service.check_internal() if hasattr(service, 'check_internal') else {"status": "unknown"}
+                    return self._standard_response(data={"service": service_name, "health": health})
                 else:
-                    return jsonify({"error": f"Service '{service_name}' not found"}), 404
+                    return self._standard_response(False, error=f"Service '{service_name}' not found", status_code=404)
             else:
-                # Kiểm tra toàn bộ hệ thống
                 health = self.admin_service.get_system_health()
                 status_code = 200 if health['overall_status'] == 'healthy' else 503
-                return jsonify(health), status_code
+                return self._standard_response(data=health, status_code=status_code)
                 
         except Exception as e:
-            return jsonify({"error": f"Health check failed: {str(e)}"}), 500
+            return self._standard_response(False, error=f"Health check failed: {str(e)}", status_code=500)
 
     def list_services(self):
-        """Lấy danh sách các service"""
+        """Lấy danh sách các service - Chuẩn hóa response"""
         try:
             services = self.admin_service.get_service_list()
-            return jsonify({"services": services, "count": len(services)}), 200
+            return self._standard_response(data={
+                "services": services,
+                "count": len(services)
+            })
         except Exception as e:
-            return jsonify({"error": f"Failed to list services: {str(e)}"}), 500
+            return self._standard_response(False, error=f"Failed to list services: {str(e)}", status_code=500)
 
     def get_system_stats(self):
-        """Lấy thống kê hệ thống"""
+        """System stats - Tránh loop bằng cách không gọi health check"""
         try:
+            # CHỈ lấy user statistics, KHÔNG gọi health
             user_stats = self.admin_service.get_user_statistics()
-            health_stats = self.admin_service.get_system_health()
             
-            return jsonify({
+            # Lấy service count trực tiếp
+            service_info = {
+                "registered_services": len(self.admin_service.services),
+                "service_names": list(self.admin_service.services.keys())
+            }
+            
+            return self._standard_response(data={
                 "user_statistics": user_stats,
-                "service_health": health_stats,
+                "service_info": service_info,
                 "timestamp": int(time.time())
-            }), 200
+            })
+            
         except Exception as e:
-            return jsonify({"error": f"Failed to get system stats: {str(e)}"}), 500
+            return self._standard_response(False, error=f"Failed to get system stats: {str(e)}", status_code=500)
 
     def list_users(self, role=None):
-        """Lấy danh sách người dùng theo role"""
+        """Lấy danh sách người dùng theo role - Chuẩn hóa response"""
         try:
             if role == 'student':
                 users = self.admin_service.user_service.get_all_students()
             elif role == 'teacher':
                 users = self.admin_service.user_service.get_all_teachers()
             else:
-                # Lấy tất cả người dùng
                 students = self.admin_service.user_service.get_all_students()
                 teachers = self.admin_service.user_service.get_all_teachers()
                 users = students + teachers
-                
-            return jsonify({"users": users, "count": len(users), "role": role}), 200
+            
+            #  Sử dụng standard response format
+            return self._standard_response(data={
+                "users": users,
+                "count": len(users),
+                "filter": role
+            })
+            
         except Exception as e:
-            return jsonify({"error": f"Failed to list users: {str(e)}"}), 500
+            return self._standard_response(False, error=f"Failed to list users: {str(e)}", status_code=500)
 
     def add_specialized_user(self, data):
-        """Thêm user mới với role cụ thể (teacher hoặc admin)"""
+        """Thêm user mới với validation enhanced"""
         try:
-            # Lấy data từ JSON
-            username = data.get('username')
-            password = data.get('password')
-            role = data.get('role')
+            #  Enhanced validation
+            required_fields = ['username', 'password', 'role']
+            missing_fields = [field for field in required_fields if not data.get(field)]
             
-            # Validate input
-            if not username or not password or not role:
-                return jsonify({
-                    "success": False,
-                    "error": "username, password, and role are required"
-                }), 400
+            if missing_fields:
+                return self._standard_response(
+                    False, 
+                    error=f"Missing required fields: {', '.join(missing_fields)}", 
+                    status_code=400
+                )
+            
+            username = data.get('username').strip()
+            password = data.get('password')
+            role = data.get('role').lower()
+            
+            # Validate username format
+            if len(username) < 3:
+                return self._standard_response(False, error="Username must be at least 3 characters", status_code=400)
+            
+            # Validate password strength
+            if len(password) < 6:
+                return self._standard_response(False, error="Password must be at least 6 characters", status_code=400)
             
             # Validate role
             if role not in ['teacher', 'admin']:
-                return jsonify({
-                    "success": False,
-                    "error": "role must be 'teacher' or 'admin'"
-                }), 400
+                return self._standard_response(False, error="Role must be 'teacher' or 'admin'", status_code=400)
             
-            # Add user through admin service
             result = self.admin_service.add_specialized_user(username, password, role)
             
             if result.get('success'):
-                return jsonify({
-                    "success": True,
+                return self._standard_response(data={
                     "message": f"User '{username}' with role '{role}' added successfully",
                     "user": result.get('user', {})
-                }), 201
+                }, status_code=201)
             else:
-                return jsonify({
-                    "success": False,
-                    "error": result.get('error', 'Failed to add user')
-                }), 400
-                
+                return self._standard_response(False, error=result.get('error', 'Failed to add user'), status_code=400)
+            
         except Exception as e:
-            return jsonify({
-                "success": False,
-                "error": f"Failed to add user: {str(e)}"
-            }), 500
+            return self._standard_response(False, error=f"Failed to add user: {str(e)}", status_code=500)
 
     def change_user_role(self, data):
         """Thay đổi role của user hiện tại"""

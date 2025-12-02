@@ -47,15 +47,29 @@ class AdminService:
 
         for service_name, service in self.services.items():
             try:
-                if hasattr(service, 'check_internal'):
-                    service_health = service.check_internal()
+                #  CHỈ kiểm tra connection, KHÔNG gọi full health check
+                if hasattr(service, 'user_repository'):
+                    # User service - test connection only
+                    conn_status = service.user_repository.test_connection()
+                    health_status[service_name] = {
+                        "status": "healthy" if conn_status else "degraded",
+                        "connection": "ok" if conn_status else "failed"
+                    }
+                elif hasattr(service, 'item_repository'):
+                    # Item service - test connection only  
+                    conn_status = service.item_repository.test_connection()
+                    health_status[service_name] = {
+                        "status": "healthy" if conn_status else "degraded",
+                        "connection": "ok" if conn_status else "failed"
+                    }
                 else:
-                    service_health = {"status": "unknown", "details": "No health check method"}
+                    # Other services - basic check
+                    health_status[service_name] = {
+                        "status": "healthy",
+                        "connection": "unknown"
+                    }
 
-                health_status[service_name] = service_health
-
-                # Nếu có service nào không khỏe mạnh, đánh dấu overall status
-                if service_health.get('status') != 'healthy':
+                if health_status[service_name].get('status') != 'healthy':
                     overall_status = "degraded"
 
             except Exception as e:
@@ -68,7 +82,7 @@ class AdminService:
         return {
             "overall_status": overall_status,
             "services": health_status,
-            "total_services": len(self.services)
+            "timestamp": int(time.time())
         }
 
     def get_service_list(self) -> List[str]:
@@ -81,28 +95,39 @@ class AdminService:
         return list(self.services.keys())
 
     def get_user_statistics(self) -> Dict[str, Any]:
-        """
-        Lấy thống kê người dùng từ user service
-
-        Returns:
-            Dictionary chứa thống kê người dùng
-        """
+        """Lấy thống kê người dùng với error handling"""
         try:
-            # Sử dụng user_service mà không cần import
-            students = self.user_service.get_all_students()
-            teachers = self.user_service.get_all_teachers()
+            #  Enhanced error handling
+            students = []
+            teachers = []
+            
+            try:
+                students = self.user_service.get_all_students(limit=1000)
+            except Exception as e:
+                print(f"Error getting students: {e}")
+                students = []
+            
+            try:
+                teachers = self.user_service.get_all_teachers(limit=1000)
+            except Exception as e:
+                print(f"Error getting teachers: {e}")
+                teachers = []
 
             return {
                 "total_students": len(students),
                 "total_teachers": len(teachers),
-                "total_users": len(students) + len(teachers)
+                "total_users": len(students) + len(teachers),
+                "last_updated": int(time.time()),
+                "status": "healthy" if (students or teachers) else "degraded"
             }
         except Exception as e:
+            print(f"Error in get_user_statistics: {e}")
             return {
                 "total_students": 0,
                 "total_teachers": 0,
                 "total_users": 0,
-                "error": str(e)
+                "error": str(e),
+                "status": "error"
             }
 
     def check_internal(self) -> Dict[str, Any]:
@@ -128,11 +153,66 @@ class AdminService:
                 "error": str(e)
             }
 
-    def add_specialized_user(self, username, password, role):
-        return self.signup.add_specialized_user(username, password, role)
+    
+    def add_permission(self, role, path, service, method):
+        """Thêm permission - chuẩn hóa params"""
+        return self.permission_service.add_permission(role, path, service, method)
 
-    def add_permission(self, roles, path, service, method):
-        self.permission_service.add_permission(roles, path, service, method)
+    def delete_permission(self, role, path, service, method):
+        """Xóa permission"""
+        return self.permission_service.delete_permission(role, path, service, method)
 
-    def change_permission(self, roles, path, service, method):
-        self.permission_service.change_permission_to_existing_path(roles, path, service, method)
+    def list_permissions(self, role=None, service=None):
+        """List permissions với filters"""
+        return self.permission_service.list_permissions(role, service)
+
+    def check_permission(self, role, path, service, method):
+        """Check permission"""
+        return self.permission_service.check_permission(role, path, service, method)
+
+    def get_role_permissions(self, role):
+        """Get all permissions cho một role"""
+        return self.permission_service.get_role_permissions(role)
+
+    # User management
+    def add_specialized_user(self, username: str, password: str, role: str) -> Dict[str, Any]:
+        """Thêm user với role đặc biệt (teacher hoặc admin)"""
+        try:
+            # ✅ Validate role
+            if role not in ['teacher', 'admin']:
+                return {
+                    "success": False,
+                    "error": f"Invalid role '{role}'. Must be teacher or admin"
+                }
+
+            print(f"AdminService: Adding user {username} with role {role}")
+            
+            # ✅ Gọi signup service để tạo user với role đúng
+            result = self.signup.add_specialized_user(username, password, role)
+            
+            if result:  # result là True/False
+                print(f"AdminService: Successfully added {role} {username}")
+                return {
+                    "success": True,
+                    "message": f"User '{username}' with role '{role}' added successfully",
+                    "user": {
+                        "username": username,
+                        "role": role,
+                        "created_at": int(time.time())
+                    }
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Failed to add user - user may already exist"
+                }
+        except Exception as e:
+            print(f"Error in AdminService.add_specialized_user: {e}")
+            return {
+                "success": False,
+                "error": f"Failed to add user: {str(e)}"
+            }
+
+    def change_user_role(self, user_id, new_role):
+        """Thay đổi role của user"""
+        return self.user_service.change_user_role(user_id, new_role)

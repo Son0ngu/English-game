@@ -114,3 +114,25 @@ INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, corr
              '["Oxygen","Nitrogen","Carbon dioxide","Hydrogen"]', 2),
   ('sc05', 'class1', 'In which year did World War II end?', 'single', 'hard',
              '["1942","1945","1948","1950"]', 1);
+
+-- ADMIN PERMISSIONS SEED DATA
+INSERT OR IGNORE INTO permissions (role, path, service, method) VALUES
+-- Admin permissions (full access)
+('admin', 'health', 'admin', 'GET'),
+('admin', 'services', 'admin', 'GET'),
+('admin', 'system-stats', 'admin', 'GET'),
+('admin', 'users', 'admin', 'GET'),
+('admin', 'users/add', 'admin', 'POST'),
+('admin', 'users/change-role', 'admin', 'POST'),
+('admin', 'permissions/add', 'admin', 'POST'),
+('admin', 'permissions/list', 'admin', 'POST'),
+('admin', 'permissions/delete', 'admin', 'POST'),
+('admin', 'permissions/check', 'admin', 'POST'),
+('admin', 'permissions/role', 'admin', 'POST'),
+
+-- Teacher permissions (limited admin access)
+('teacher', 'users', 'admin', 'GET'),
+('teacher', 'system-stats', 'admin', 'GET'),
+
+-- Student permissions (very limited)
+('student', 'health', 'admin', 'GET');

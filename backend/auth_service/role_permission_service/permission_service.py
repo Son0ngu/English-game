@@ -93,7 +93,6 @@ class permission_service:
         return True
 
     def change_permission_to_existing_path(self, roles, path, service, method):
-
         if not isinstance(roles, list):
             roles = [roles]
 
@@ -125,3 +124,169 @@ class permission_service:
         connection.close()
         print(f"Permission added for roles {roles} to existing path {service}/{path} (method: {method})")
         return True
+
+    def list_permissions(self, role=None, service=None):
+        """List permissions với filters"""
+        connection = sqlite3.connect('database.db')
+        cursor = connection.cursor()
+        try:
+            if role and service:
+                # Filter by both role and service
+                if role == 'student':
+                    cursor.execute("SELECT service, path, method FROM permission WHERE service = ? AND student = 1", (service,))
+                elif role == 'teacher':
+                    cursor.execute("SELECT service, path, method FROM permission WHERE service = ? AND teacher = 1", (service,))
+                elif role == 'admin':
+                    cursor.execute("SELECT service, path, method FROM permission WHERE service = ? AND admin = 1", (service,))
+                else:
+                    return {"success": False, "error": "Invalid role"}
+            elif role:
+                # Filter by role only
+                if role == 'student':
+                    cursor.execute("SELECT service, path, method FROM permission WHERE student = 1")
+                elif role == 'teacher':
+                    cursor.execute("SELECT service, path, method FROM permission WHERE teacher = 1")
+                elif role == 'admin':
+                    cursor.execute("SELECT service, path, method FROM permission WHERE admin = 1")
+                else:
+                    return {"success": False, "error": "Invalid role"}
+            elif service:
+                # Filter by service only
+                cursor.execute("SELECT service, path, method, student, teacher, admin FROM permission WHERE service = ?", (service,))
+            else:
+                # Get all permissions
+                cursor.execute("SELECT service, path, method, student, teacher, admin FROM permission")
+            
+            rows = cursor.fetchall()
+            permissions = []
+            
+            if role and not service:
+                # Format for role-specific queries
+                for row in rows:
+                    permissions.append({
+                        "service": row[0],
+                        "path": row[1],
+                        "method": row[2]
+                    })
+            elif service and not role:
+                # Format for service-specific queries with role info
+                for row in rows:
+                    roles = []
+                    if row[3]: roles.append("student")
+                    if row[4]: roles.append("teacher") 
+                    if row[5]: roles.append("admin")
+                    permissions.append({
+                        "service": row[0],
+                        "path": row[1],
+                        "method": row[2],
+                        "roles": roles
+                    })
+            else:
+                # Format for all permissions or role+service
+                for row in rows:
+                    if len(row) == 3:  # role+service query
+                        permissions.append({
+                            "service": row[0],
+                            "path": row[1],
+                            "method": row[2]
+                        })
+                    else:  # all permissions query
+                        roles = []
+                        if row[3]: roles.append("student")
+                        if row[4]: roles.append("teacher")
+                        if row[5]: roles.append("admin")
+                        permissions.append({
+                            "service": row[0],
+                            "path": row[1],
+                            "method": row[2],
+                            "roles": roles
+                        })
+            
+            return {"success": True, "permissions": permissions}
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+        finally:
+            cursor.close()
+            connection.close()
+
+    def delete_permission(self, role, path, service, method):
+        """Xóa permission cho một role cụ thể"""
+        connection = sqlite3.connect('database.db')
+        cursor = connection.cursor()
+        try:
+            # Lấy permission hiện tại
+            cursor.execute("SELECT student, teacher, admin FROM permission WHERE service = ? AND path = ? AND method = ?",
+                          (service, path, method))
+            existing = cursor.fetchone()
+            
+            if not existing:
+                return {"success": False, "error": "Permission not found"}
+            
+            current_student, current_teacher, current_admin = existing
+            
+            # Cập nhật permission - chỉ remove role được chỉ định
+            if role == 'student':
+                new_student = 0
+                new_teacher = current_teacher
+                new_admin = current_admin
+            elif role == 'teacher':
+                new_student = current_student
+                new_teacher = 0
+                new_admin = current_admin
+            elif role == 'admin':
+                new_student = current_student
+                new_teacher = current_teacher
+                new_admin = 0
+            else:
+                return {"success": False, "error": "Invalid role"}
+            
+            # Nếu không còn role nào, xóa record
+            if not any([new_student, new_teacher, new_admin]):
+                cursor.execute("DELETE FROM permission WHERE service = ? AND path = ? AND method = ?",
+                              (service, path, method))
+            else:
+                cursor.execute(
+                    "UPDATE permission SET student = ?, teacher = ?, admin = ? WHERE service = ? AND path = ? AND method = ?",
+                    (new_student, new_teacher, new_admin, service, path, method))
+            
+            connection.commit()
+            return {"success": True, "message": f"Permission removed for {role}"}
+            
+        except Exception as e:
+            connection.rollback()
+            return {"success": False, "error": str(e)}
+        finally:
+            cursor.close()
+            connection.close()
+
+    def get_role_permissions(self, role):
+        """Get all permissions cho một role"""
+        connection = sqlite3.connect('database.db')
+        cursor = connection.cursor()
+        try:
+            if role == 'student':
+                cursor.execute("SELECT service, path, method FROM permission WHERE student = 1")
+            elif role == 'teacher':
+                cursor.execute("SELECT service, path, method FROM permission WHERE teacher = 1")
+            elif role == 'admin':
+                cursor.execute("SELECT service, path, method FROM permission WHERE admin = 1")
+            else:
+                return {"success": False, "error": "Invalid role"}
+            
+            rows = cursor.fetchall()
+            permissions = []
+            for row in rows:
+                permissions.append({
+                    "service": row[0],
+                    "path": row[1],
+                    "method": row[2]
+                })
+            
+            return {"success": True, "permissions": permissions}
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+        finally:
+            cursor.close()
+            connection.close()
