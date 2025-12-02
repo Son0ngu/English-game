@@ -198,10 +198,12 @@ class services_route:
                     return jsonify({"error": "user_id required in JSON"}), 400
                 return self.user_controller.get_user(user_id)
           
-            elif destination == 'students' and method == 'GET':
+            elif destination == 'students' and method == 'POST':
+                print('post')
                 from flask import request
                 limit = request.args.get('limit', 100, type=int)
                 offset = request.args.get('offset', 0, type=int)
+                print(data)
                 return self.user_controller.get_all_students(limit, offset)
                 
             elif destination == 'teachers' and method == 'GET':
@@ -457,7 +459,7 @@ class services_route:
                 return self.classroom_controller.get_teachers_classes()
             elif destination == "join" and method == "POST":
                 return self.classroom_controller.join_class(data)
-            elif destination == "students" and method == "GET":
+            elif destination == "students" and method == "POST":
                 class_id = data.get("class_id") if data else None
                 print("Student", class_id)
                 return self.classroom_controller.get_students(class_id)
