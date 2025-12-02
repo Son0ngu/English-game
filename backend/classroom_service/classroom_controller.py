@@ -13,10 +13,10 @@ DIFFICULTY_MAP = {
 }
 
 QUESTION_TYPE_MAP = {
-    1: "multiple",
+    1: "multiple_choice",
     2: "true_false",
-    3: "fill_blank",
-    4: "single"
+    3: "fill_in_the_blank",
+    4: "single_choice"
 }
 
 class ClassroomController:
@@ -89,20 +89,19 @@ class ClassroomController:
 
     @jwt_required()
     def get_questions_by_criteria(self):
-        class_id = request.args.get("class_id")
+        data = request.get_json() or {}
+        class_id = data.get("class_id")
         if not class_id:
-            return jsonify({"error": "class_id required"}), 400
-
-        diff_code = request.args.get("difficulty")
-        type_code = request.args.get("type")
-        limit    = request.args.get("limit")
+            return jsonify({"error": "class_id required in JSON body"}), 400
+        diff_code = data.get("difficulty")
+        type_code = data.get("type")
+        limit = data.get("limit")
         try:
-            difficulty = DIFFICULTY_MAP.get(int(diff_code)) if diff_code else None
-            q_type     = QUESTION_TYPE_MAP.get(int(type_code)) if type_code else None
-            num        = int(limit) if limit else None
-        except:
+            difficulty = DIFFICULTY_MAP.get(int(diff_code)) if diff_code is not None else None
+            q_type = QUESTION_TYPE_MAP.get(int(type_code)) if type_code is not None else None
+            num = int(limit) if limit is not None else None
+        except (ValueError, TypeError):
             return jsonify({"error": "Invalid difficulty/type/limit"}), 400
-
         questions = self.service.get_questions_by_criteria(class_id, difficulty, q_type, num)
         return jsonify({"questions": questions}), 200
 

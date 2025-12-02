@@ -474,14 +474,11 @@ class services_route:
                 student_id = self._get_user_id_from_jwt()
                 if not student_id:
                     return jsonify({"error": "Authentication required"}), 401
-                return self.classroom_controller.get_student_classes(student_id)
+                return self.classroom_controller.get_student_classes()
             elif destination == "kick" and method == "POST":
                 return self.classroom_controller.kick_student(data)
             elif destination == "questions" and method == "POST":
-                class_id = data.get("class_id")
-                if not class_id:
-                    return jsonify({"error": "class_id required in JSON"}), 400
-                return self.classroom_controller.get_questions_by_criteria(class_id)
+                return self.classroom_controller.get_questions_by_criteria()
             else:
                 return jsonify({"error": f"Classroom endpoint '{destination}' not found"}), 404
         except Exception as e:
