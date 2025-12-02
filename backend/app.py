@@ -6,7 +6,7 @@ from datetime import timedelta
 import dotenv
 
 # Import database interface trực tiếp
-from userProfile_service.database_interface import DatabaseInterface, UserProfileDatabaseInterface, ItemDatabaseInterface
+from user_profile_service.database_interface import DatabaseInterface, UserProfileDatabaseInterface, ItemDatabaseInterface
 
 # Load environment variables from .env file
 dotenv.load_dotenv()

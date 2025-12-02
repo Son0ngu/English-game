@@ -14,9 +14,9 @@ class game_logic_handler:
         self.game_resource_interface = game_resource_interface()
         self.question = None
 
-    def get_question(self,difficulty):
+    def get_question(self):
         question_type = random.randint(1, 4)
-        self.question = self.game_resource_interface.get_question(difficulty, question_type)
+        self.question = self.game_resource_interface.get_question(self.difficulty, question_type)
         choices = self.question.get_choices()
         return choices
 
