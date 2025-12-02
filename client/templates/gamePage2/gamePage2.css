@@ -196,10 +196,10 @@ body {
 
 .attack-effect {
     position: absolute;
-    top: 392px;
-    left: 900px;
+    top: 172px;  /* điều chỉnh thủ công dựa trên vị trí thanh kiếm */
+    left: 550px;
     width: 100px;
-    height: 90px;
+    height: 90px; 
     background: url('../../static/images/attack-effect.png') no-repeat center center;
     background-size: contain;
     opacity: 0;
