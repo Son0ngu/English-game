@@ -6,10 +6,10 @@ class game_room_controller:
         self.game_service = game_service()
         pass
 
-    def create_game_room(self, student_id):
+    def create_game_room(self, student_id,difficulty):
         if student_id:
-            self.game_service.create_game_room(student_id)
-            return jsonify({"message": "Game room created successfully"}), 200
+            response = self.game_service.create_game_room(student_id,difficulty)
+            return jsonify(response), 200
         else:
             print("Student ID is required")
             return jsonify({"error": "Error"}), 400

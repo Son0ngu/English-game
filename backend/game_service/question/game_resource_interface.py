@@ -10,8 +10,8 @@ class game_resource_interface:
         self.classroom_service = classroom_service()
         pass
 
-    def get_question(self,user_id, difficulty,qtype):
-        question = self.classroom_service.get_questions_by_criteria(self.classroom_service.get_student_classes(user_id),difficulty,qtype)
+    def get_question(self, difficulty,qtype):
+        question = self.classroom_service.get_questions_by_criteria(class_id,difficulty,qtype)
         return question
 
     # Question type:

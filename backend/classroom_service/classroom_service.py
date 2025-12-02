@@ -1,88 +1,184 @@
 import uuid
-import random
-from typing import List, Optional
-from classroom_service.classroom_model import Classroom, Topic, Question, DashboardEntry
-from user_profile_service.user.user_service import UserProfileService as UserProfileService
+import json
+from typing import List, Dict, Any, Optional
+
+from classroom_service.classroom_model import Classroom, Classroom as ClassroomObj, Question
+from classroom_service.classroom_db import get_db_connection
+from user_profile_service.user.user_service import UserProfileService as UserService
 
 class ClassroomService:
     def __init__(self):
-        self.classrooms = {}
-        self.student_class_links = {}
-        self.dashboard_data: List[DashboardEntry] = []
-        self.user_service = UserProfileService
-        from game_service.gameroom.gameroom_service import game_service
-        self.game = game_service()
+        self.user_service = UserService()
 
-    def create_class(self, name: str, teacher_id: str) -> Classroom:
+    def create_class(self, name: str, teacher_id: str) -> ClassroomObj:
         class_id = str(uuid.uuid4())[:8]
-        code = str(uuid.uuid4())[:6].upper()
-        classroom = Classroom(id=class_id, name=name, code=code, teacher_id=teacher_id)
-        self.classrooms[class_id] = classroom
-        return classroom
+        code     = str(uuid.uuid4())[:6].upper()
 
-    def get_class_by_code(self, code: str):
-        return next((c for c in self.classrooms.values() if c.code == code), None)
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO classes (id, name, code, teacher_id) VALUES (?, ?, ?, ?);",
+            (class_id, name, code, teacher_id)
+        )
+        conn.commit()
+        conn.close()
+        return ClassroomObj(id=class_id, name=name, code=code, teacher_id=teacher_id)
+
+    def get_class_by_code(self, code: str) -> Optional[ClassroomObj]:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM classes WHERE code = ?;", (code,))
+        row = cursor.fetchone()
+        conn.close()
+        if not row:
+            return None
+        return Classroom.from_row(row)
 
     def join_class_by_code(self, student_id: str, class_code: str) -> bool:
-        classroom = self.get_class_by_code(class_code)
-        if not classroom:
+        cls = self.get_class_by_code(class_code)
+        if not cls:
             return False
-        self.student_class_links.setdefault(classroom.id, []).append(student_id)
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                INSERT OR IGNORE INTO student_class (class_id, student_id)
+                VALUES (?, ?);
+            """, (cls.id, student_id))
+            conn.commit()
+        except:
+            conn.close()
+            return False
+        conn.close()
         return True
 
-    def get_class_students(self, class_id: str):
-        student_ids = self.student_class_links.get(class_id, [])
-        return [self.user_service.get_user(sid) for sid in student_ids if self.user_service.get_user(sid)]
+    def get_class_students(self, class_id: str) -> List[Dict[str, Any]]:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT student_id FROM student_class WHERE class_id = ?;", (class_id,))
+        rows = cursor.fetchall()
+        conn.close()
 
-    def add_topic(self, class_id: str, title: str, content: str = '') -> Topic:
-        classroom = self.classrooms.get(class_id)
-        if not classroom:
-            raise ValueError("Class not found")
-        topic = Topic(title=title, content=content)
-        classroom.topics.append(topic)
-        return topic
+        result = []
+        for r in rows:
+            sid = r["student_id"]
+            user = self.user_service.get_user(sid)
+            if user:
+                result.append(user)
+        return result
 
-    def add_question(self, class_id: str, topic_id: str, text: str, choices: List[str], correct_index: int, q_type: str, difficulty: str) -> Question:
-        classroom = self.classrooms.get(class_id)
-        if not classroom:
-            raise ValueError("Class not found")
-        for topic in classroom.topics:
-            if topic.id == topic_id:
-                question = Question(text, difficulty, choices, correct_index, q_type)
-                topic.questions.append(question)
-                return question
-        raise ValueError("Topic not found")
+    def get_classes_by_teacher(self, teacher_id: str) -> List[Dict[str, Any]]:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM classes WHERE teacher_id = ?;", (teacher_id,))
+        rows = cursor.fetchall()
+        conn.close()
 
-    def get_questions_by_criteria(self, class_id: str, difficulty: Optional[str], q_type: Optional[str]) -> List[dict]:
-        classroom = self.classrooms.get(class_id)
-        if not classroom:
-            return []
-        filtered = [
-            q for topic in classroom.topics for q in topic.questions
-            if (difficulty is None or q.difficulty == difficulty) and
-               (q_type is None or q.type == q_type)
-        ]
-        return [q.to_dict() for q in filtered]
+        return [Classroom.from_row(r).to_dict() for r in rows]
 
-    def get_class_dashboard(self, class_id: str):
+    def create_question(
+        self,
+        class_id: str,
+        text: str,
+        q_type: str,
+        difficulty: str,
+        choices: List[str],
+        correct_index: int
+    ) -> Question:
+        question_id = str(uuid.uuid4())[:8]
+        choices_json = json.dumps(choices, ensure_ascii=False)
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO questions
+            (id, class_id, question, q_type, difficulty, choices, correct_index)
+            VALUES (?, ?, ?, ?, ?, ?, ?);
+        """, (question_id, class_id, text, q_type, difficulty, choices_json, correct_index))
+        conn.commit()
+        conn.close()
+
+        return Question(
+            id=question_id,
+            text=text,
+            difficulty=difficulty,
+            choices=choices,
+            correct_index=correct_index,
+            q_type=q_type,
+            class_id=class_id
+        )
+
+    def get_questions_by_criteria(
+        self,
+        class_id: str,
+        difficulty: Optional[str],
+        q_type: Optional[str],
+        limit: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        base_sql = "SELECT * FROM questions WHERE class_id = ?"
+        params = [class_id]
+
+        if difficulty:
+            base_sql += " AND difficulty = ?"
+            params.append(difficulty)
+        if q_type:
+            base_sql += " AND q_type = ?"
+            params.append(q_type)
+
+        if limit:
+            base_sql += f" ORDER BY RANDOM() LIMIT {limit}"
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(base_sql + ";", tuple(params))
+        rows = cursor.fetchall()
+        conn.close()
+
+        return [Question.from_row(r).to_dict() for r in rows]
+
+    def get_student_classes(self, student_id: str) -> List[Dict[str, Any]]:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT class_id FROM student_class WHERE student_id = ?;", (student_id,))
+        rows = cursor.fetchall()
+
+        result = []
+        for r in rows:
+            cid = r["class_id"]
+            cursor2 = conn.cursor()
+            cursor2.execute("SELECT * FROM classes WHERE id = ?;", (cid,))
+            row_cls = cursor2.fetchone()
+            if row_cls:
+                result.append(Classroom.from_row(row_cls).to_dict())
+            cursor2.close()
+
+        conn.close()
+        return result
+
+    def get_class_dashboard(self, class_id: str) -> List[Dict[str, Any]]:
         try:
-            entries = self.game.get_dashboard_for_class(class_id)
-            return [entry.to_dict() for entry in entries]
-        except Exception as e:
+            from game_service.gameroom.gameroom_service import game_service
+            game = game_service()
+            entries = game.get_dashboard_for_class(class_id)
+            return [e.to_dict() for e in entries]
+        except Exception:
             return []
 
-    def update_dashboard(self, entry: DashboardEntry):
-        for i, e in enumerate(self.dashboard_data):
-            if e.student_id == entry.student_id and e.class_id == entry.class_id:
-                self.dashboard_data[i] = entry
-                return
-        self.dashboard_data.append(entry)
+    def remove_student_from_class(self, class_id: str, student_id: str) -> bool:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "DELETE FROM student_class WHERE class_id = ? AND student_id = ?;",
+                (class_id, student_id)
+            )
+            conn.commit()
+            return True
+        except Exception:
+            return False
+        finally:
+            conn.close()
 
-    def get_dashboard_for_class(self, class_id: str):
-        return sorted([e for e in self.dashboard_data if e.class_id == class_id], key=lambda x: x.total_score, reverse=True)
-
-    def get_student_classes(self, student_id: str):
-        return [c.to_dict() for cid, c in self.classrooms.items() if student_id in self.student_class_links.get(cid, [])]
-
-    def check_internal(self):
+    def check_internal(self) -> Dict[str, Any]:
         return {"status": "healthy", "details": "Classroom service running"}

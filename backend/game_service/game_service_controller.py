@@ -3,8 +3,8 @@ class game_service_controller:
     def __init__(self):
         self.game_room_controller = game_room_controller()
 
-    def create_game_room(self, student_id):
-        return self.game_room_controller.create_game_room(student_id)
+    def create_game_room(self, student_id,difficulty):
+        return self.game_room_controller.create_game_room(student_id,difficulty)
 
     def get_game_room_state(self, session_id):
         return self.game_room_controller.get_game_room_state(session_id)
