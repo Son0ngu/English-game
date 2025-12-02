@@ -25,6 +25,10 @@ class game_logic_handler:
         print("debug2")
         difficulty,question,answer_true = self.classroom_service.get_question_by_id_minimal(question_id)
         print("debug")
+        print("dap an dung la:" ,answer_true)
+        print("Monster HP:", self.monster_hp)
+        print("Attack Dmg:", self.monster_atk)
+        print("Player HP:", self.hp)
         if answer_true == answer:
             print("Correct!")
             self.monster_hp -= self.atk

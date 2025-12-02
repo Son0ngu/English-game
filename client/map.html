@@ -47,7 +47,7 @@
     function goToLevel(levelNumber) {
       localStorage.setItem('currentLevel', levelNumber);
       if (levelNumber >= 1 && levelNumber <= 3) {
-        window.location.href = `templates/gamePage/gamePage1.html?level=${levelNumber}`;
+        window.location.href = `templates/gamePage/gamePage.html?level=${levelNumber}`;
       } else if (levelNumber >= 4 && levelNumber <= 6) {
         window.location.href = `templates/gamePage/gamePage2.html?level=${levelNumber}`;
       } else if (levelNumber >= 7 && levelNumber <= 10) {
