@@ -45,9 +45,13 @@
   <script>
    // Khai báo hàm goToLevel trong global scope
     function goToLevel(levelNumber) {
-      if (levelNumber >= 1 && levelNumber <= 10) {
-        localStorage.setItem('currentLevel', levelNumber);
-        window.location.href = `templates/gamePage/gamePage.html?level=${levelNumber}`;
+      localStorage.setItem('currentLevel', levelNumber);
+      if (levelNumber >= 1 && levelNumber <= 3) {
+        window.location.href = `templates/gamePage/gamePage1.html?level=${levelNumber}`;
+      } else if (levelNumber >= 4 && levelNumber <= 6) {
+        window.location.href = `templates/gamePage/gamePage2.html?level=${levelNumber}`;
+      } else if (levelNumber >= 7 && levelNumber <= 10) {
+        window.location.href = `templates/gamePage/gamePage3.html?level=${levelNumber}`;
       }
     }
 
@@ -68,26 +72,37 @@
     }
 
     function updateProgressBar() {
-        const completed = getCompletedLevels();
-        const total = 3;
-        const percent = Math.min(100, Math.round((completed.length / total) * 100));
-        const bar = document.getElementById('progress-bar');
-        bar.style.width = percent + '%';
-        bar.textContent = percent + '%';
-    }
+    const completed = getCompletedLevels();
+    const total = 10;
+    // Mỗi màn hoàn thành tăng 10%
+    const percent = Math.min(100, completed.length * 10);
+    const bar = document.getElementById('progress-bar');
+    bar.style.width = percent + '%';
+    bar.textContent = percent + '%';
+}
 
     function updateLevelButtons() {
-        const completed = getCompletedLevels();
+    const completed = getCompletedLevels();
 
-        document.getElementById('btn-level-1').disabled = false;
+    // Màn 1 luôn hiện và mở
+    const btn1 = document.getElementById('btn-level-1');
+    btn1.disabled = false;
+    btn1.style.display = 'inline-block';
 
-        for (let i = 2; i <= 10; i++) {
-          const btn = document.getElementById(`btn-level-${i}`);
-          if (btn) {
-              btn.disabled = !completed.includes(i - 1);
-          }
+    // Các màn còn lại
+    for (let i = 2; i <= 10; i++) {
+        const btn = document.getElementById(`btn-level-${i}`);
+        if (btn) {
+            if (completed.includes(i - 1)) {
+                btn.disabled = false;
+                btn.style.display = 'inline-block';
+            } else {
+                btn.disabled = true;
+                btn.style.display = 'none';
+            }
         }
-      }
+    }
+}
 
      window.addEventListener('DOMContentLoaded', () => {
         updateProgressBar();
