@@ -51,7 +51,7 @@ class gateway_service:
                 elif service_requested == "course":
                     return self.services_route.course_service(destination, data, method)
                 elif service_requested == "game":
-                    return self.services_route.game_service(destination, data, method)
+                    return self.services_route.handle_game_service(destination, data, method)
                 elif service_requested == "progress":
                     return self.services_route.handle_progress_service(destination, data, method)
                 elif service_requested == "user":

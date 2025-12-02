@@ -118,7 +118,8 @@ class ClassroomService:
     ) -> List[Dict[str, Any]]:
         base_sql = "SELECT * FROM questions WHERE class_id = ?"
         params = [class_id]
-
+        print(class_id)
+        print(q_type)
         if difficulty:
             base_sql += " AND difficulty = ?"
             params.append(difficulty)
@@ -182,3 +183,22 @@ class ClassroomService:
 
     def check_internal(self) -> Dict[str, Any]:
         return {"status": "healthy", "details": "Classroom service running"}
+
+    def get_question_by_id_minimal(self,question_id: str) -> Optional[List[str]]:
+        sql = "SELECT difficulty, question, correct_index, choices FROM questions WHERE id = ?"
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(sql, (question_id,))
+        row = cursor.fetchone()
+        conn.close()
+
+        if row:
+            # Lấy danh sách đáp án từ chuỗi JSON lưu trong `choices`
+            choices = eval(row["choices"]) if row["choices"] else []
+            correct_index = row["correct_index"]
+            correct_answer = choices[correct_index] if 0 <= correct_index < len(choices) else None
+
+            return [row["difficulty"], row["question"], correct_answer]
+        else:
+            return None

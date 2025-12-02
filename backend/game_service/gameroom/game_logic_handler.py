@@ -1,6 +1,7 @@
 import random
-
+from classroom_service.classroom_service import ClassroomService
 from flask import jsonify
+from game_service.question.question import QuestionAbstract
 
 from game_service.question.game_resource_interface import game_resource_interface
 
@@ -12,15 +13,17 @@ class game_logic_handler:
         self.monster_atk= monster_atk
         self.difficulty= difficulty
         self.game_resource_interface = game_resource_interface()
-        self.question = None
+        self.question = None # Placeholder for the question object
+        self.classroom_service = ClassroomService()
 
     def get_question(self,class_id):
         question_type = random.randint(1, 4)
         question = self.game_resource_interface.get_question(class_id,self.difficulty, question_type)
         return question
 
-    def check_answer(self, answer):
-        if self.question.check_answer(answer):
+    def check_answer(self, answer,question_id):
+        difficulty,question,answer_true = self.classroom_service.get_question_by_id_minimal(question_id)
+        if answer_true == answer:
             print("Correct!")
             self.monster_hp -= self.atk
             if self.monster_hp <= 0:

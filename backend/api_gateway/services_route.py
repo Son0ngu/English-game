@@ -386,39 +386,54 @@ class services_route:
                 return jsonify({"error": f"Item endpoint '{destination}' not found"}), 404
         except Exception as e:
             return jsonify({"error": f"Item service error: {str(e)}"}), 500
-
-    def game_service(self, destination, data, method):
-        """Điều hướng game service - TẤT CẢ từ JSON"""
+    @jwt_required()
+    def handle_game_service(self, destination, data, method):
         try:
             if destination == 'health' and method == 'GET':
                 return jsonify({"status": "healthy", "service": "game"}), 200
-                
+
             elif destination == 'newroom' and method == 'POST':
+                print("Reached game/newroom handler")
                 if not self.game_service:
                     return jsonify({"error": "Game service not available"}), 503
-                    
+
                 student_id = get_jwt_identity()
                 difficulty = data.get('difficulty')
-                if student_id:
-                    response = self.game_service.create_game_room(student_id,difficulty)
-                    return response, 200
-                else:
-                    return jsonify({"error": "Student ID is required"}), 400
+                class_id = data.get('class_id')
+
+                if not student_id or not difficulty or not class_id:
+                    return jsonify({"error": "Missing parameters"}), 400
+
+                try:
+                    response = self.game_service.create_game_room(student_id, difficulty, class_id)
+
+                    if response is None:
+                        return jsonify({"error": "Game service returned nothing"}), 500
+
+                    if isinstance(response, tuple):
+                        return response
+                    elif isinstance(response, dict):
+                        return jsonify(response), 200
+                    return response
+                except Exception as e:
+                    return jsonify({"error": f"Game service crash: {str(e)}"}), 500
 
             # 🔄 CHUYỂN: Check answer từ JSON
             elif destination == "check_answer" and method == "POST":
                 session_id = data.get('session_id')
                 answer = data.get('answer')
+                question_id = data.get('question_id')
                 if not session_id or not answer:
                     return jsonify({"error": "session_id and answer required in JSON"}), 400
-                return self.game_service.check_answer(session_id, answer)
+                return self.game_service.check_answer(session_id, answer,question_id)
 
             # 🔄 CHUYỂN: Get question từ JSON
             elif destination == "get_question" and method == 'POST':
                 session_id = data.get('session_id')
+                class_id = data.get('class_id')
                 if not session_id:
                     return jsonify({"error": "session_id required in JSON"}), 400
-                return self.game_service.get_question(session_id)
+                return self.game_service.get_question(session_id,class_id)
             
             else:
                 return jsonify({"error": "Game endpoint not implemented"}), 501

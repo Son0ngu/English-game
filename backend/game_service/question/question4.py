@@ -1,7 +1,7 @@
-from game_service.question.question import Question
+from game_service.question.question import QuestionAbstract
 from flask import jsonify
 
-class question4(Question):
+class question4(QuestionAbstract):
     def __init__(self, difficulty, question, ans1, ans2, ans3, ans4, answer):
         super().__init__(difficulty, question, answer)
         self.ans1=ans1
