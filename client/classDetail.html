@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Class Detail</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h2 id="className">Class Name</h2>
+
+    <h3>Dashboard</h3>
+    <div id="dashboard"></div>
+
+    <h3>Danh sách học sinh</h3>
+    <ul id="studentList"></ul>
+
+    <script>
+        $(document).ready(function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const classId = urlParams.get('class_id');
+            loadClassDetails(classId);
+        });
+
+        function loadClassDetails(classId) {
+            fetch('/classroom/dashboard', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer your_jwt_token_here'
+                },
+                body: JSON.stringify({class_id: classId})
+            })
+            .then(res => res.json())
+            .then(data => {
+                $('#dashboard').text(JSON.stringify(data.dashboard));
+            });
+
+            fetch('/classroom/students', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer your_jwt_token_here'
+                },
+                body: JSON.stringify({class_id: classId})
+            })
+            .then(res => res.json())
+            .then(data => {
+                $('#studentList').empty();
+                data.students.forEach(student => {
+                    $('#studentList').append(`
+                        <li>
+                            ${student.username} 
+                            <button onclick="kickStudent('${classId}', '${student.id}')">Kick</button>
+                        </li>
+                    `);
+                });
+            });
+        }
+
+        function kickStudent(classId, studentId) {
+            fetch('/classroom/kick', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer your_jwt_token_here'
+                },
+                body: JSON.stringify({class_id: classId, student_id: studentId})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success){
+                    alert('Kicked student successfully');
+                    loadClassDetails(classId);
+                } else {
+                    alert('Failed to kick student');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
