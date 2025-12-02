@@ -1,6 +1,7 @@
 from flask import jsonify
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, get_jwt, create_access_token
 
+from auth_service.auth_service_controller import auth_service_controller
 # Import các controller
 from game_service.game_service_controller import game_service_controller
 from progress_feedback.progress_service.progress_controller import ProgressController
@@ -17,12 +18,17 @@ from user_profile_service.user.user_service import UserProfileService
 from user_profile_service.item.item_service import ItemService
 from admin_service.admin_service import AdminService
 
+
 class services_route:
     def __init__(self):
         try:
             # Khởi tạo các service
             self.game_service = game_service_controller()
-            
+            try:
+                self.auth = auth_service_controller()
+            except Exception as e:
+                print("❌ ERROR while initializing self.auth:", str(e))
+                self.auth = None
             # Core services
             self.user_service_obj = UserProfileService()
             self.item_service_obj = ItemService()
@@ -332,10 +338,56 @@ class services_route:
             return jsonify({"error": f"Classroom service error: {str(e)}"}), 500
 
     # Placeholder methods for services chưa implement
-    def auth_service(self, destination, data, method):
-        if destination == 'health' and method == 'GET':
-            return jsonify({"status": "healthy", "service": "auth"}), 200
-        return jsonify({"error": "Auth service not implemented"}), 501
+    def authenticating_service(self,destination, data, method):
+        print(1)
+        if destination == 'login' and method == 'POST':
+            if data.get('username') and data.get('password'):
+                username = data.get('username')
+                password = data.get('password')
+                if self.auth.login(username, password):
+                    id = self.auth.get_id_from_username(username)
+                    role = self.auth.get_role_from_id(id)
+                    additional_claims = {"role": role}
+                    access_token = create_access_token(identity=username,additional_claims=additional_claims)
+                    print("Crafted access token:", access_token," (service_route)")
+                    return {"access_token": access_token}, 200
+                else:
+                    print("Invalid credentials (service_route)")
+                    return {"error": "Invalid credentials"}, 401
+            return None
+
+        # Get role from JWT
+        # claims = get_jwt()
+        # claims.get("role")
+
+        if destination == "signup" and method == 'POST':
+            if data.get('username') and data.get('password'):
+                username = data.get('username')
+                password = data.get('password')
+                if self.auth.sign_up(username, password):
+                    print("User created successfully (service_route)")
+                    id = self.auth.get_id_from_username(username)
+                    role = self.auth.get_role_from_id(id)
+                    additional_claims = {"role": role}
+                    access_token = create_access_token(identity=username, additional_claims=additional_claims)
+                    print("Crafted access token:", access_token, " (service_route)")
+                    return {"message": "User created successfully","access_token":access_token}, 200
+                else:
+                    print("User already exists (service_route)")
+                    return {"error": "User already exists"}, 400
+            return None
+
+        if destination == "add_permission" and method == 'POST':
+            jwt_role = get_jwt().get("role")
+            role = data.get("role")
+            path = data.get("path")
+            service = data.get("service")
+            method = data.get("method")
+            if jwt_role =="admin":
+                self.auth.add_permission(role, path, service, method)
+                print("Permission added successfully (service_route)")
+                return {"message": "Permission added successfully"}, 200
+        return None
     
     def course_service(self, destination, data, method):
         if destination == 'health' and method == 'GET':

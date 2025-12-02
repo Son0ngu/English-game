@@ -1,6 +1,6 @@
-CREATE TABLE auth_service (
-    user_id SERIAL PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
+CREATE TABLE IF NOT EXISTS auth_service (
+    user_id TEXT PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
     role TEXT DEFAULT 'student' CHECK(role IN ('admin', 'student', 'teacher'))
 );
