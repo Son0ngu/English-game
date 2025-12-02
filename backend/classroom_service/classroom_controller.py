@@ -1,3 +1,5 @@
+import traceback
+
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from classroom_service.classroom_db import get_db_connection
@@ -11,10 +13,10 @@ DIFFICULTY_MAP = {
 }
 
 QUESTION_TYPE_MAP = {
-    1: "multiple",
+    1: "multiple_choice",
     2: "true_false",
-    3: "fill_blank",
-    4: "single"
+    3: "fill_in_the_blank",
+    4: "single_choice"
 }
 
 class ClassroomController:
@@ -31,8 +33,7 @@ class ClassroomController:
         return jsonify({"success": True, "classroom": new_cls_obj.to_dict()}), 201
 
     @jwt_required()
-    def join_class(self):
-        data = request.get_json()
+    def join_class(self, data):
         if not data or 'class_code' not in data:
             return jsonify({"error": "Missing class_code"}), 400
 
@@ -44,31 +45,19 @@ class ClassroomController:
 
     @jwt_required()
     def get_students(self, class_id):
-        data = request.get_json()
-        class_id = data.get("class_id") if data else None
-        print("Student", class_id)
+        print("class_id: ", class_id)
         if not class_id:
             return jsonify({"error": "class_id required"}), 400
 
-        students = self.service.get_class_students(class_id)
-        return jsonify({"students": students}), 200
-
-    @jwt_required()
-    def get_dashboard(self, class_id):
-        data = request.get_json()
-        class_id = data.get("class_id") if data else None
-        print("Dashboard", class_id)
-        if not class_id:
-            return jsonify({"error": "class_id required"}), 400
-
-        dashboard = self.service.get_class_dashboard(class_id)
-        return jsonify({"dashboard": dashboard}), 200
-
-    @jwt_required()
-    def get_student_classes(self):
-        student_id = get_jwt_identity()
-        classes = self.service.get_student_classes(student_id)
-        return jsonify({"classes": classes}), 200
+        try:
+            print("class_id for db: ", class_id)
+            student_list = self.service.get_class_students(class_id)
+            print("DEBUG get_class_students returned:", student_list)
+            return jsonify({"students": student_list}), 200
+        except Exception as e:
+            print("ERROR in get_students:", e)
+            traceback.print_exc()
+            return jsonify({"error": f"Internal error: {str(e)}"}), 500
 
     @jwt_required()
     def get_teachers_classes(self):
@@ -100,22 +89,36 @@ class ClassroomController:
 
     @jwt_required()
     def get_questions_by_criteria(self):
-        class_id = request.args.get("class_id")
+        data = request.get_json() or {}
+        class_id = data.get("class_id")
+        if not class_id:
+            return jsonify({"error": "class_id required in JSON body"}), 400
+        diff_code = data.get("difficulty")
+        type_code = data.get("type")
+        limit = data.get("limit")
+        try:
+            difficulty = DIFFICULTY_MAP.get(int(diff_code)) if diff_code is not None else None
+            q_type = QUESTION_TYPE_MAP.get(int(type_code)) if type_code is not None else None
+            num = int(limit) if limit is not None else None
+        except (ValueError, TypeError):
+            return jsonify({"error": "Invalid difficulty/type/limit"}), 400
+        questions = self.service.get_questions_by_criteria(class_id, difficulty, q_type, num)
+        return jsonify({"questions": questions}), 200
+
+    @jwt_required()
+    def get_student_classes(self):
+        student_id = get_jwt_identity()
+        classes = self.service.get_student_classes(student_id)
+        return jsonify({"classes": classes}), 200
+
+    @jwt_required()
+    def get_dashboard(self, class_id):
+        print("Dashboard", class_id)
         if not class_id:
             return jsonify({"error": "class_id required"}), 400
 
-        diff_code = request.args.get("difficulty")
-        type_code = request.args.get("type")
-        limit    = request.args.get("limit")
-        try:
-            difficulty = DIFFICULTY_MAP.get(int(diff_code)) if diff_code else None
-            q_type     = QUESTION_TYPE_MAP.get(int(type_code)) if type_code else None
-            num        = int(limit) if limit else None
-        except:
-            return jsonify({"error": "Invalid difficulty/type/limit"}), 400
-
-        questions = self.service.get_questions_by_criteria(class_id, difficulty, q_type, num)
-        return jsonify({"questions": questions}), 200
+        dashboard = self.service.get_class_dashboard(class_id)
+        return jsonify({"dashboard": dashboard}), 200
 
     @jwt_required()
     def kick_student(self, data):
@@ -126,8 +129,7 @@ class ClassroomController:
         student_id = data["student_id"]
         teacher_id = get_jwt_identity()
 
-        cls = self.service.get_class_by_code(
-            class_id)
+        cls = self.service.get_class_by_code(class_id)
         from classroom_service.classroom_model import Classroom
         conn = self.service.get_class_by_code(class_id)
         conn = get_db_connection()

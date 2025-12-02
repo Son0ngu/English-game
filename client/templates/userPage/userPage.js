@@ -175,6 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Reload lại danh sách lớp
                     loadClasses(); // hoặc tuỳ vào hàm loadClasses() bạn đang dùng
                     console.log("dang goi ham loadclasses")
+                    alert("Lớp đã được tạo thành công.");
                 } else {
                     // Nếu backend trả về lỗi, hiển thị message
                     alert(data.error || "Không thể tạo lớp.");
@@ -239,4 +240,3 @@ async function loadClasses() {
         alert("Lỗi khi kết nối server.");
     }
 }
-
