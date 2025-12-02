@@ -1,7 +1,9 @@
 import time
-from typing import Dict, List, Any, Optional
-from auth_service.login_and_register_service.signup_service import signup_service as signup
-from auth_service.role_permission_service.permission_service import permission_service as permission_service
+from typing import Dict, Any, List
+from auth_service.signup import signup
+from auth_service.permission_service import permission_service
+from userProfile_service.user.user import StudentProfile, TeacherProfile
+
 class AdminService:
     """
     Dịch vụ quản trị hệ thống.
@@ -10,7 +12,8 @@ class AdminService:
     
     Tích hợp chức năng ServiceRegistry để đăng ký và quản lý các dịch vụ.
     """
-    def __init__(self, user_service):  # Loại bỏ type hint để tránh import
+    
+    def __init__(self, user_service):
         """
         Khởi tạo AdminService
         
@@ -21,7 +24,7 @@ class AdminService:
         self.services = {}
         self.signup = signup()
         self.permission_service = permission_service()
-        
+
     def register_service(self, name: str, service):
         """
         Đăng ký service để theo dõi
@@ -127,8 +130,178 @@ class AdminService:
     def add_specialized_user(self,username,password,role):
         return self.signup.add_specialized_user(username,password,role)
 
-    def add_permission(self,roles, path, service, method):
-        self.permission_service.add_permission_role(roles, path, service, method)
+    def add_permission(self, role: str, path: str, service: str, method: str) -> Dict[str, Any]:
+        """
+        Thêm permission mới sử dụng permission_service có sẵn
+        
+        Args:
+            role: Role của user
+            path: Đường dẫn route
+            service: Tên service
+            method: HTTP method
+            
+        Returns:
+            Dictionary chứa kết quả
+        """
+        try:
+            # Check if permission already exists
+            existing = self.permission_service.check_permission(role, path, service, method)
+            if existing:
+                return {
+                    "success": False,
+                    "error": f"Permission already exists for role '{role}' on {method} {service}/{path}"
+                }
+            
+            # Add permission using existing permission service
+            success = self.permission_service.add_permission(role, path, service, method)
+            
+            if success:
+                return {
+                    "success": True,
+                    "message": "Permission added successfully",
+                    "permission": {
+                        "role": role,
+                        "path": path,
+                        "service": service,
+                        "method": method
+                    }
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Failed to add permission to database"
+                }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to add permission: {str(e)}"
+            }
 
-    def change_permission(self,roles, path, service, method):
-        self.permission_service.change_permission_to_existing_path(roles, path, service, method)
+    def list_permissions(self, role: str = None, service: str = None) -> Dict[str, Any]:
+        """
+        Lấy danh sách permissions với filter
+        
+        Args:
+            role: Filter theo role (optional)
+            service: Filter theo service (optional)
+            
+        Returns:
+            Dictionary chứa kết quả
+        """
+        try:
+            # Sử dụng permission_service có sẵn để lấy permissions
+            permissions = self.permission_service.get_all_permissions()
+            
+            # Apply filters
+            if role:
+                permissions = [p for p in permissions if p.get('role') == role]
+            if service:
+                permissions = [p for p in permissions if p.get('service') == service]
+            
+            return {
+                "success": True,
+                "permissions": permissions,
+                "total_count": len(permissions)
+            }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to list permissions: {str(e)}"
+            }
+
+    def delete_permission(self, role: str, path: str, service: str, method: str) -> Dict[str, Any]:
+        """
+        Xóa permission
+        
+        Args:
+            role: Role của user
+            path: Đường dẫn route
+            service: Tên service
+            method: HTTP method
+            
+        Returns:
+            Dictionary chứa kết quả
+        """
+        try:
+            # Check if permission exists
+            existing = self.permission_service.check_permission(role, path, service, method)
+            if not existing:
+                return {
+                    "success": False,
+                    "error": f"Permission not found for role '{role}' on {method} {service}/{path}"
+                }
+            
+            # Delete permission using existing permission service
+            success = self.permission_service.remove_permission(role, path, service, method)
+            
+            if success:
+                return {
+                    "success": True,
+                    "message": f"Permission deleted successfully"
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Failed to delete permission from database"
+                }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to delete permission: {str(e)}"
+            }
+
+    def check_permission(self, role: str, path: str, service: str, method: str) -> Dict[str, Any]:
+        """
+        Kiểm tra permission
+        
+        Args:
+            role: Role của user
+            path: Đường dẫn route
+            service: Tên service
+            method: HTTP method
+            
+        Returns:
+            Dictionary chứa kết quả
+        """
+        try:
+            has_permission = self.permission_service.check_permission(role, path, service, method)
+            
+            return {
+                "success": True,
+                "has_permission": has_permission
+            }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to check permission: {str(e)}"
+            }
+
+    def get_role_permissions(self, role: str) -> Dict[str, Any]:
+        """
+        Lấy tất cả permissions của một role
+        
+        Args:
+            role: Role cần lấy permissions
+            
+        Returns:
+            Dictionary chứa kết quả
+        """
+        try:
+            permissions = self.permission_service.get_role_permissions(role)
+            
+            return {
+                "success": True,
+                "permissions": permissions,
+                "role": role,
+                "count": len(permissions)
+            }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to get role permissions: {str(e)}"
+            }
