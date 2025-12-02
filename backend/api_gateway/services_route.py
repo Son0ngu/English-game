@@ -1,5 +1,6 @@
 from flask import jsonify
 from flask_jwt_extended import get_jwt_identity, get_jwt, create_access_token
+from flask import request
 
 # Import các controller
 from game_service.game_service_controller import game_service_controller
@@ -268,6 +269,7 @@ class services_route:
         try:
             if destination == 'health' and method == 'GET':
                 return self.progress_controller.check_health()
+
             elif destination == 'record' and method == 'POST':
                 return self.progress_controller.record_activity(data)
             
