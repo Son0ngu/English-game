@@ -69,19 +69,23 @@ class ClassroomController:
     @jwt_required()
     def create_question(self):
         data = request.get_json()
-        required_fields = ["class_id", "text", "q_type", "difficulty", "choices", "correct_index"]
+        required_fields = ["class_id","text","q_type","difficulty","choices"]
 
         if not all(field in data for field in required_fields):
             return jsonify({"error": "Missing required fields"}), 400
 
         try:
+            q_type = data["q_type"]
+            ci = int(data["correct_index"]) if "correct_index" in data else None
+            ca = data.get("correct_answers")
             question = self.service.create_question(
-                class_id=data["class_id"],
-                text=data["text"],
-                q_type=data["q_type"],
-                difficulty=data["difficulty"],
-                choices=data["choices"],
-                correct_index=int(data["correct_index"])
+                class_id = data["class_id"],
+                text = data["text"],
+                q_type = q_type,
+                difficulty = data["difficulty"],
+                choices = data["choices"],
+                correct_index = ci,
+                correct_answers = ca
             )
             return jsonify({"success": True, "question": question.to_dict()}), 201
         except Exception as e:
@@ -152,3 +156,17 @@ class ClassroomController:
     @jwt_required()
     def check_health(self):
         return jsonify(self.service.check_internal()), 200
+
+    @jwt_required()
+    def increment_win(self):
+        data = request.get_json()
+        if not data or "class_id" not in data or "student_id" not in data:
+            return jsonify({"error": "Missing class_id or student_id"}), 400
+
+        success = self.service.increment_student_win(
+            data["class_id"], data["student_id"]
+        )
+        if success:
+            return jsonify({"success": True}), 200
+        else:
+            return jsonify({"error": "Update failed"}), 500

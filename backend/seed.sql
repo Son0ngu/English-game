@@ -21,7 +21,6 @@ INSERT INTO auth_service (user_id, username, password, role) VALUES
 -- CLASSES
 INSERT INTO classes (id, name, code, teacher_id) VALUES
   ('class1', 'English A1',          'ENG-A1',  'teacher1'),
-  ('0c8b623a', '123',          'ENG-A1',  'teacher1'),
   ('class2', 'Grammar Basic',       'GRM-BSC', 'teacher1'),
   ('class3', 'Vocabulary Advanced', 'VOC-ADV', 'teacher2');
 
@@ -34,86 +33,66 @@ INSERT INTO student_class (class_id, student_id) VALUES
   ('class2', 'student4'),
   ('class3', 'student3');
 
-INSERT INTO student_class (class_id, student_id) VALUES
-  ('6f3303f2', 'student1'),
-  ('6f3303f2', 'student2'),
-  ('6f3303f2', 'student3'),
-  ('6f3303f2', 'student2'),
-  ('6f3303f2', 'student4'),
-  ('6f3303f2', 'student3');
+-- MULTIPLE CHOICE (nhiều đáp án đúng)
+INSERT INTO questions (id, class_id, question, q_type, difficulty,
+                       choices, correct_index, correct_answers) VALUES
+  ('mcq01', 'class1', 'Which animals are mammals?', 'multiple_choice', 'easy',
+    '["Whale","Shark","Dolphin","Eagle"]', NULL,
+    '["Whale","Dolphin"]'),
+  ('mcq02', 'class1', 'Which of the following are prime numbers?', 'multiple_choice', 'easy',
+    '["2","3","4","5","6","7"]', NULL,
+    '["2","3","5","7"]'),
+  ('mcq03', 'class1', 'Which elements are noble gases?', 'multiple_choice', 'medium',
+    '["Helium","Neon","Oxygen","Nitrogen"]', NULL,
+    '["Helium","Neon"]'),
+  ('mcq04', 'class1', 'Which of these are programming languages?', 'multiple_choice', 'medium',
+    '["Python","HTML","Java","Excel"]', NULL,
+    '["Python","Java"]'),
+  ('mcq05', 'class1', 'Select the fruits from the list below:', 'multiple_choice', 'hard',
+    '["Apple","Tomato","Cucumber","Potato"]', NULL,
+    '["Apple","Tomato"]');
 
-INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
-  -- Multiple Choice (có thể có nhiều lựa chọn, correct_index là vị trí đầu tiên của đáp án đúng)
-  ('q1',  'class1', 'What is the capital of France?',      'multiple_choice', 'easy',   '["Paris","London","Berlin","Rome"]',                0),
-  ('q2',  'class1', 'Which words are verbs?',                'multiple_choice', 'medium', '["run","book","jump","table"]',                    0),
-  ('q3',  'class1', 'Which are prepositions?',              'multiple_choice', 'hard',   '["on","with","quickly","car"]',                     0),
-
-  -- True/False (choices cố định luôn là ["True","False"])
-  ('q4',  'class1', 'The sun rises in the east.',            'true_false',      'easy',   '["True","False"]',                                   0),
-  ('q5',  'class1', 'Bananas are vegetables.',               'true_false',      'medium', '["True","False"]',                                   1),
-  ('q6',  'class1', 'Light travels slower than sound.',      'true_false',      'hard',   '["True","False"]',                                   1),
-
-  -- Fill in the Blank (không có choices; ở đây ta ghi choices = '[]' và correct_index = 0,
-  --   phần kiểm tra đáp án fill-in phải được xử lý riêng trong ứng dụng)
-  ('q7',  'class1', 'He ___ a teacher.',                     'fill_in_the_blank','easy', '[]',                                                0),
-  ('q8',  'class1', 'They ___ to school every day.',         'fill_in_the_blank','medium','[]',                                                0),
-  ('q9',  'class1', 'The book ___ on the table.',            'fill_in_the_blank','hard',  '[]',                                                0),
-
-  -- Single Choice (chỉ có một đáp án đúng, correct_index là vị trí của đáp án đúng)
-  ('q10', 'class1', 'Choose the correct spelling.',          'single_choice',   'easy',   '["becase","becuase","because","becuasee"]',         2),
-  ('q11', 'class1', 'What is the synonym of "happy"?',       'single_choice',   'medium', '["sad","glad","angry","tired"]',                     1),
-  ('q12', 'class1', 'Which is an adverb?',                   'single_choice',   'hard',   '["quick","quickly","quicker","quickest"]',           1);
-
--- Thêm 5 câu MULTIPLE CHOICE (q_type = 'multiple')
-INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
-  ('mcq01', 'class1', 'Which planet is known as the Red Planet?', 'multiple', 'easy',
-             '["Mercury","Mars","Jupiter","Venus"]', 1),
-  ('mcq02', 'class1', 'What is the boiling point of water at SEA LEVEL?', 'multiple', 'easy',
-             '["90°C","100°C","110°C","120°C"]', 1),
-  ('mcq03', 'class1', 'Which element has the chemical symbol "O"?', 'multiple', 'easy',
-             '["Osmium","Oxygen","Gold","Silver"]', 1),
-  ('mcq04', 'class1', 'What is the largest ocean on Earth?', 'multiple', 'medium',
-             '["Atlantic","Indian","Arctic","Pacific"]', 3),
-  ('mcq05', 'class1', 'Who wrote "To Kill a Mockingbird"?', 'multiple', 'medium',
-             '["Harper Lee","Mark Twain","Jane Austen","Charles Dickens"]', 0);
-
--- Thêm 5 câu TRUE/FALSE (q_type = 'true_false')
---    (choices cố định: ["True","False"], chỉ cần đúng vị trí 0= True, 1= False)
-INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
+-- TRUE/FALSE
+INSERT INTO questions (id, class_id, question, q_type, difficulty,
+                       choices, correct_index, correct_answers) VALUES
   ('tf01', 'class1', 'The programming language Python was named after a snake.', 'true_false', 'easy',
-            '["True","False"]', 1),
+    '["True","False"]', 1, NULL),
   ('tf02', 'class1', 'Light travels faster than sound.', 'true_false', 'easy',
-            '["True","False"]', 0),
+    '["True","False"]', 0, NULL),
   ('tf03', 'class1', 'The human heart has four chambers.', 'true_false', 'medium',
-            '["True","False"]', 0),
+    '["True","False"]', 0, NULL),
   ('tf04', 'class1', 'Venus is the closest planet to the Sun.', 'true_false', 'medium',
-            '["True","False"]', 1),
+    '["True","False"]', 1, NULL),
   ('tf05', 'class1', 'Water is composed of two hydrogen atoms and one oxygen atom.', 'true_false', 'easy',
-            '["True","False"]', 0);
+    '["True","False"]', 0, NULL);
 
--- Thêm 5 câu FILL-IN-THE-BLANK (q_type = 'fill_blank')
---    Ở đây ta đặt choices = '[]' (chuỗi JSON rỗng) và correct_index = 0 (mặc định)
---    Khi kiểm tra đáp án, ứng dụng phía client/server phải so sánh thủ công.
-INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
-  ('fb01', 'class1', 'The capital of Japan is ___.', 'fill_blank', 'easy', '[]', 0),
-  ('fb02', 'class1', '___ is known as the powerhouse of the cell.', 'fill_blank', 'medium', '[]', 0),
-  ('fb03', 'class1', 'Water freezes at ___ degrees Celsius.', 'fill_blank', 'easy', '[]', 0),
-  ('fb04', 'class1', 'The largest mammal on Earth is the ___.', 'fill_blank', 'medium', '[]', 0),
-  ('fb05', 'class1', 'The chemical formula for table salt is ___.', 'fill_blank', 'hard', '[]', 0);
+-- FILL-IN-THE-BLANK
+INSERT INTO questions (id, class_id, question, q_type, difficulty,
+                       choices, correct_index, correct_answers) VALUES
+  ('fb01', 'class1', 'The capital of Japan is ___.', 'fill_in_the_blank', 'easy',
+    '[]', NULL, '["Tokyo"]'),
+  ('fb02', 'class1', '___ is known as the powerhouse of the cell.', 'fill_in_the_blank', 'medium',
+    '[]', NULL, '["Mitochondria"]'),
+  ('fb03', 'class1', 'Water freezes at ___ degrees Celsius.', 'fill_in_the_blank', 'easy',
+    '[]', NULL, '["0"]'),
+  ('fb04', 'class1', 'The largest mammal on Earth is the ___.', 'fill_in_the_blank', 'medium',
+    '[]', NULL, '["Blue whale"]'),
+  ('fb05', 'class1', 'The chemical formula for table salt is ___.', 'fill_in_the_blank', 'hard',
+    '[]', NULL, '["NaCl"]');
 
--- Thêm 5 câu SINGLE CHOICE (q_type = 'single')
---    (tương tự MCQ, nhưng chỉ có đúng 1 đáp án)
-INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
-  ('sc01', 'class1', 'Which country hosted the 2016 Summer Olympics?', 'single', 'easy',
-             '["China","Brazil","UK","Russia"]', 1),
-  ('sc02', 'class1', 'What is the square root of 64?', 'single', 'easy',
-             '["6","7","8","9"]', 2),
-  ('sc03', 'class1', 'Who painted the Mona Lisa?', 'single', 'medium',
-             '["Van Gogh","Da Vinci","Picasso","Rembrandt"]', 1),
-  ('sc04', 'class1', 'Which gas do plants absorb from the atmosphere?', 'single', 'medium',
-             '["Oxygen","Nitrogen","Carbon dioxide","Hydrogen"]', 2),
-  ('sc05', 'class1', 'In which year did World War II end?', 'single', 'hard',
-             '["1942","1945","1948","1950"]', 1);
+-- SINGLE CHOICE
+INSERT INTO questions (id, class_id, question, q_type, difficulty,
+                       choices, correct_index, correct_answers) VALUES
+  ('sc01', 'class1', 'Which country hosted the 2016 Summer Olympics?', 'single_choice', 'easy',
+    '["China","Brazil","UK","Russia"]', 1, NULL),
+  ('sc02', 'class1', 'What is the square root of 64?', 'single_choice', 'easy',
+    '["6","7","8","9"]', 2, NULL),
+  ('sc03', 'class1', 'Who painted the Mona Lisa?', 'single_choice', 'medium',
+    '["Van Gogh","Da Vinci","Picasso","Rembrandt"]', 1, NULL),
+  ('sc04', 'class1', 'Which gas do plants absorb from the atmosphere?', 'single_choice', 'medium',
+    '["Oxygen","Nitrogen","Carbon dioxide","Hydrogen"]', 2, NULL),
+  ('sc05', 'class1', 'In which year did World War II end?', 'single_choice', 'hard',
+    '["1942","1945","1948","1950"]', 1, NULL);
 
 -- ADMIN PERMISSIONS SEED DATA
 INSERT OR IGNORE INTO permissions (role, path, service, method) VALUES
