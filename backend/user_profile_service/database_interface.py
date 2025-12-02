@@ -226,6 +226,7 @@ class UserProfileDatabaseInterface(DatabaseInterface):
         
         try:
             # Lấy thông tin cơ bản
+            # cursor.execute("SELECT * FROM user_profiles WHERE id = ?", (user_id,))
             cursor.execute("SELECT * FROM user_profiles WHERE id = ?", (user_id,))
             user_data = cursor.fetchone()
             

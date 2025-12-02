@@ -465,6 +465,7 @@ class services_route:
             elif destination == "increment_win" and method == "POST":
                 return self.classroom_controller.increment_win()
             elif destination == "dashboard" and method == "POST":
+                print("Dashboard request received")
                 class_id = data.get("class_id")
                 if not class_id:
                     return jsonify({"error": "class_id required in JSON"}), 400
@@ -503,6 +504,19 @@ class services_route:
                     print("Invalid credentials (service_route)")
                     return {"error": "Invalid credentials"}, 401
             return None
+
+        if destination == "HuyTranLayRoleTuID" and method == 'POST':
+            # Lấy user_id từ JWT
+            user_id = self._get_user_id_from_jwt()
+            if not user_id:
+                return jsonify({"error": "Authentication required"}), 401
+
+            # Lấy role từ user_id
+            role = self.auth.get_role_from_id(user_id)
+            if not role:
+                return jsonify({"error": "Role not found"}), 404
+
+            return {"role": role}, 200
 
         # Get role from JWT
         # claims = get_jwt()

@@ -1,4 +1,6 @@
 function showClassDetails(classId, className) {
+    console.log("Showing class details for class ID:", classId);
+
     document.querySelector('.profile-form').style.display = 'none';
     document.getElementById('classDetails').style.display = 'block';
     document.getElementById('classDetailsName').textContent = className;
@@ -13,6 +15,7 @@ function backToProfile() {
 }
 
 async function loadDashboard(classId) {
+    console.log("Loading dashboard for class ID:", classId);
     const token = localStorage.getItem("token");
     const resp = await fetch("http://localhost:5000/classroom/dashboard", {
         method: "POST",

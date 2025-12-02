@@ -15,6 +15,7 @@ class UserProfileService:
         try:
             print(f"Looking for user: {user_id}")
             user = self.user_repository.find_by_id(user_id)
+            print(f"Found user: {user}")
             
             if not user:
                 print(f"User {user_id} not found")

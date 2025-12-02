@@ -190,6 +190,7 @@ class ClassroomService:
             if user_data:
                 user_data["wins"] = wins
                 result.append(user_data)
+        print("Dashboard result:", result)
         return result
 
     def remove_student_from_class(self, class_id: str, student_id: str) -> bool:
