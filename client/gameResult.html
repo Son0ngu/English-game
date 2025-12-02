@@ -88,42 +88,19 @@
                 resultTitle.textContent = "🎉 Victory!";
                 resultTitle.classList.add("result-win");
                 resultDetail.textContent = `You defeated the monster and earned ${reward} coins!`;
+                resultStats.textContent = `+${reward} coins added to your account!`;
             } else if (status === "lose") {
                 resultTitle.textContent = "💀 Defeat!";
                 resultTitle.classList.add("result-lose");
                 resultDetail.textContent = "You were defeated by the monster. Try again!";
+                resultStats.textContent = "";
             } else {
                 resultTitle.textContent = "Unknown result";
                 resultDetail.textContent = "";
+                resultStats.textContent = "";
             }
 
-            // If you want to fetch more info from API, e.g. total score/time:
-            /*
-            const sessionId = getQueryParam("session_id");
-            if (sessionId) {
-                try {
-                    const resp = await fetch("http://127.0.0.1:5000/game/check_answer", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${localStorage.getItem('jwtToken')}`
-                        },
-                        body: JSON.stringify({
-                            session_id: sessionId,
-                            question_id: "last", // or pass the last question id
-                            answer: "summary"
-                        })
-                    });
-                    const data = await resp.json();
-                    // Show more stats if backend returns them
-                    if (data.score) {
-                        resultStats.textContent = `Total score: ${data.score} | Time: ${data.time || '-'}s`;
-                    }
-                } catch (err) {
-                    // Could not fetch details
-                }
-            }
-            */
+
         });
 
         document.addEventListener("DOMContentLoaded", function() {
