@@ -4,7 +4,7 @@
 
 -- Tạo bảng cho UserProfile (thông tin cơ bản của người dùng)
 CREATE TABLE IF NOT EXISTS user_profiles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,           -- Email duy nhất cho mỗi user
     role TEXT DEFAULT 'student',          -- Vai trò: 'student' hoặc 'teacher'
     created_at INTEGER NOT NULL,          -- Thời gian tạo (Unix timestamp)
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 
 -- Tạo bảng cho StudentProfile (thông tin học sinh)
 CREATE TABLE IF NOT EXISTS student_profiles (
-    id INTEGER PRIMARY KEY,               -- Khóa ngoại liên kết với user_profiles.id
+    id TEXT PRIMARY KEY,               -- Khóa ngoại liên kết với user_profiles.id
     language_level INTEGER DEFAULT 1,     -- Cấp độ ngôn ngữ hiện tại
     points INTEGER DEFAULT 0,             -- Điểm số tích lũy
     money INTEGER DEFAULT 100,            -- Tiền trong game
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS student_profiles (
 
 -- Tạo bảng cho TeacherProfile (thông tin giáo viên)
 CREATE TABLE IF NOT EXISTS teacher_profiles (
-    id INTEGER PRIMARY KEY,               -- Khóa ngoại liên kết với user_profiles.id
+    id TEXT PRIMARY KEY,               -- Khóa ngoại liên kết với user_profiles.id
     subjects TEXT DEFAULT '[]',           -- Danh sách môn học giảng dạy (JSON format)
     FOREIGN KEY (id) REFERENCES user_profiles(id) ON DELETE CASCADE
 );
