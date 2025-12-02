@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Battle Game</title>
+    <link rel="stylesheet" href="gamePage2.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="battle-scene">
+            <!-- Health bars -->
+            <div class="health-bars">
+                <div class="player-stats">
+                    <div class="health-bar">
+                        <div class="health-bar-fill player-health" style="width: 76%"></div>
+                        <span class="health-text">76</span>
+                    </div>
+                    <div class="player-level"></div>
+                </div>
+                <div class="monster-stats">
+                    <div class="health-bar">
+                        <div class="health-bar-fill monster-health" style="width: 45%"></div>
+                        <span class="health-text">45</span>
+                    </div>
+                    <div class="monster-level"></div>
+                </div>
+            </div>
+            
+            <!-- Battle characters -->
+            <div class="battle-characters">
+                <div class="player">
+                    <img src="../../static/images/player.png" alt="Player character">
+                </div>
+                <div class="damage-number" id="damageNumber">32</div>
+                <div class="attack-effect" id="attackEffect"></div>
+                <div class="monster">
+                    <img src="../../static/images/skeleton.png" alt="Monster">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Question area -->
+    <div class="question-area">
+        <div class="question">
+            <div class="question-text">Which word is a synonym for "happy"?</div>
+        </div>
+        <div class="answers">
+            <button class="answer-btn" data-correct="false">sad</button>
+            <button class="answer-btn" data-correct="true">joyful</button>
+            <button class="answer-btn" data-correct="false">angry</button>
+            <button class="answer-btn" data-correct="false">tired</button>
+        </div>
+    </div>
+    </div>
+
+    <audio id="sfx-attack">
+    <source src="../../static/music/attack.wav" type="audio/wav">
+    </audio>
+    <audio id="sfx-hit">
+    <source src="../../static/music/hit.wav" type="audio/wav">
+    </audio>
+
+    <script src="gamePage.js"></script>
+    <script>
+        window.addEventListener("DOMContentLoaded", () => {
+        const music = document.getElementById("bg-music");
+    
+        // Phát sau khi người dùng tương tác
+        document.body.addEventListener("click", () => {
+          if (music.paused) {
+            music.volume = 0.3; // Âm lượng 
+            music.play();
+          }
+        }, { once: true });
+      });
+
+      // Phát SFX tấn công
+      function playAttackSFX() {
+        const sfx = document.getElementById('sfx-attack');
+        sfx.currentTime = 0;
+        sfx.play();
+      }
+      // Phát SFX nhận sát thương
+      function playHitSFX() {
+        const sfx = document.getElementById('sfx-hit');
+        sfx.currentTime = 0;
+        sfx.play();
+      }
+
+      // Ví dụ: Gọi khi người chơi tấn công
+      document.querySelectorAll('.answer-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          if (btn.dataset.correct === "true") {
+            playAttackSFX(); // đúng thì tấn công quái
+          } else {
+            playHitSFX(); // sai thì bị quái đánh lại
+          }
+        });
+      });
+
+    </script>
+    <audio id="bg-music" autoplay loop>
+    <source src="/English-game/client/static/music/combat.wav" type="audio/wav">
+    Trình duyệt của bạn không hỗ trợ âm thanh.
+    </audio>
+</body>
+</html>

@@ -1,0 +1,134 @@
+@import url("https://fonts.googleapis.com/css2?family=Exo:ital,wght@1,700&display=swap");
+
+*,
+::before,
+::after {
+    box-sizing: border-box;
+    margin: 0;
+}
+
+:root {
+    --spacing1: 4px;
+    --spacing2: 8px;
+    --spacing3: 16px;
+    --hue: 214;
+    --background1: hsl(214, 14%, 20%);
+    --background2: hsl(214, 14%, 13%);
+    --brand1: hsl(var(--hue) 80% 60%);
+    --brand2: hsl(var(--hue) 80% 50%);
+    --text1: hsl(0, 0%, 100%);
+    --text2: hsl(var(--hue), 4%, 80%);
+    --error: hsl(359, 83%, 59%);
+    font-size: 1.25rem;
+}
+
+html {
+    font-family: "Exo", sans-serif;
+    background: var(--background1);
+    color: var(--text1);
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing3);
+}
+
+.container {
+    background: var(--background2);
+    padding: var(--spacing3);
+    border-radius: var(--spacing2);
+    min-width: 320px;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing3);
+}
+
+.profile-form h2 {
+    text-align: center;
+}
+
+.avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing1);
+}
+
+.avatar-section img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--brand1);
+}
+
+.avatar-label {
+    cursor: pointer;
+    color: var(--brand2);
+    font-size: 0.9em;
+}
+
+.avatar-section input[type="file"] {
+    display: none;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+}
+
+.field label {
+    font-size: 0.9em;
+    color: var(--text2);
+    margin-bottom: var(--spacing1);
+}
+
+.field input {
+    padding: var(--spacing2);
+    border: 2px solid transparent;
+    border-radius: var(--spacing1);
+}
+
+.field .error {
+    color: var(--error);
+    font-size: 0.8em;
+    min-height: 1em;
+    margin-top: var(--spacing1);
+}
+
+.change-password summary {
+    cursor: pointer;
+    color: var(--brand2);
+    font-size: 0.9em;
+    margin-bottom: var(--spacing2);
+}
+
+button {
+    padding: var(--spacing2);
+    background: var(--brand1);
+    color: var(--text1);
+    border: none;
+    border-radius: var(--spacing1);
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+button:hover {
+    background: var(--brand2);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
