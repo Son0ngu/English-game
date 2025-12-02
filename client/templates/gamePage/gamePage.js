@@ -1,3 +1,7 @@
+document.getElementById('fillInBlankQuestion')
+document.getElementById('sentenceBefore') 
+document.getElementById('sentenceAfter')
+document.getElementById('blankInput')
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const playerHealth = document.querySelector('.player-health');
@@ -337,8 +341,7 @@ function updateTimerDisplay() {
             return;
         }
         
-        const questionType = questionData.question.type || questionData.type || 'multiple_choice';
-        
+        const questionType = questionData.type || 'multiple_choice';
         // Update question type display if element exists
         const questionTypeElement = document.getElementById('questionType');
         if (questionTypeElement) {
@@ -373,7 +376,7 @@ function updateTimerDisplay() {
         
         // Update question text
         if (questionText) {
-            questionText.textContent = questionData.question.text || questionData.question;
+            questionText.textContent = questionData.question || 'No question available';
         }
         
         // Update answer buttons
