@@ -19,6 +19,8 @@ class game_logic_handler:
     def get_question(self,class_id):
         question_type = random.randint(1, 4)
         question = self.game_resource_interface.get_question(class_id,self.difficulty, question_type)
+        print(question)
+        print("stopstopstop")
         return question
 
     def check_answer(self, answer,question_id):

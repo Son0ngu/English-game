@@ -32,7 +32,7 @@ INSERT INTO student_class (class_id, student_id) VALUES
   ('class2', 'student2'),
   ('class2', 'student4'),
   ('class3', 'student3');
-
+INSERT INTO student_class (class_id, student_id) VALUES ('class1','489c48b9-6a28-4798-8700-936ba8af7d1c');
 INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
   -- Multiple Choice (có thể có nhiều lựa chọn, correct_index là vị trí đầu tiên của đáp án đúng)
   ('dawdwad',  'class1', 'What is the capital of France?',      'multiple_choice', 'easy',   '["Paris","London","Berlin","Rome"]',                0),
@@ -55,6 +55,52 @@ INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, corr
   ('q11', 'class1', 'What is the synonym of "happy"?',       'single_choice',   'medium', '["sad","glad","angry","tired"]',                     1),
   ('q12', 'class1', 'Which is an adverb?',                   'single_choice',   'hard',   '["quick","quickly","quicker","quickest"]',           1);
 
+INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
+  ('vh_mc1', 'class1',
+    'Which property distinguishes a Turing-complete system?',
+    'multiple_choice','very hard',
+    '["Decidability","Recursion","Universality","Confluence"]', 2),
+  ('vh_mc2', 'class1',
+    'Which theorem formalizes the undecidability of program behavior?',
+    'multiple_choice','very hard',
+    '["Cantor’s theorem","Gödel’s incompleteness theorem","Rice’s theorem","Noether’s theorem"]', 2),
+  ('vh_mc3', 'class1',
+    'In λ-calculus, the Y combinator is used to achieve:',
+    'multiple_choice','very hard',
+    '["Memoization","Recursion","Evaluation","Abstraction"]', 1);
+
+-- Very Hard – True/False
+INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
+  ('vh_tf1', 'class1',
+    'Every context-free language is recursively enumerable.',
+    'true_false','very hard',
+    '["True","False"]', 0),
+  ('vh_tf2', 'class1',
+    'The set of decidable problems is closed under complement.',
+    'true_false','very hard',
+    '["True","False"]', 0);
+
+-- Very Hard – Fill in the Blank
+INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
+  ('vh_fib1', 'class1',
+    'A function f is _______ if it halts on all inputs.',
+    'fill_in_the_blank','very hard',
+    '["total"]', 0),
+  ('vh_fib2', 'class1',
+    'A decision problem is ______-complete if it is among the hardest in NP.',
+    'fill_in_the_blank','very hard',
+    '["NP"]', 0);
+
+-- Very Hard – Single Choice
+INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
+  ('vh_sc1', 'class1',
+    'What is the space complexity class of QBF (Quantified Boolean Formula)?',
+    'single_choice','very hard',
+    '["P","NP","co-NP","PSPACE"]', 3),
+  ('vh_sc2', 'class1',
+    'Which complexity class allows nondeterministic polynomial-time verification?',
+    'single_choice','very hard',
+    '["P","NP","co-NP","PSPACE"]', 1);
 -- Thêm 5 câu MULTIPLE CHOICE (q_type = 'multiple')
 INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_index) VALUES
   ('mcq01', 'class1', 'Which planet is known as the Red Planet?', 'multiple', 'easy',

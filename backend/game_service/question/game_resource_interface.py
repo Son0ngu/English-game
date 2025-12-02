@@ -21,6 +21,8 @@ class game_resource_interface:
         }
         qtype_str = QUESTION_TYPES.get(qtype)
         question = self.classroom_service.get_questions_by_criteria(class_id,difficulty,qtype_str)
+        print(question)
+        print("stopstopstopstop")
         return jsonify(question)
 
     # Question type:
