@@ -56,18 +56,21 @@ class ClassroomService:
         return True
 
     def get_class_students(self, class_id: str) -> List[Dict[str, Any]]:
+        print("class_id for db2: ", class_id)
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT student_id FROM student_class WHERE class_id = ?;", (class_id,))
         rows = cursor.fetchall()
         conn.close()
-
+        print('rows: ', rows)
         result = []
         for r in rows:
+            print(r["student_id"])
             sid = r["student_id"]
-            user = self.user_service.get_user(sid)
-            if user:
-                result.append(user)
+            user_data = self.user_service.get_user(sid)
+            print("user_data:", user_data)
+            if user_data:
+                result.append(user_data)
         return result
 
     def get_classes_by_teacher(self, teacher_id: str) -> List[Dict[str, Any]]:

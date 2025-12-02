@@ -44,14 +44,13 @@ class ClassroomController:
         return jsonify({"success": True}), 200
 
     @jwt_required()
-    def get_students(self, data):
-        class_id = data.get("class_id") if data else None
-        print("Student", class_id)
-
+    def get_students(self, class_id):
+        print("class_id: ", class_id)
         if not class_id:
             return jsonify({"error": "class_id required"}), 400
 
         try:
+            print("class_id for db: ", class_id)
             student_list = self.service.get_class_students(class_id)
             print("DEBUG get_class_students returned:", student_list)
             return jsonify({"students": student_list}), 200
@@ -115,8 +114,6 @@ class ClassroomController:
 
     @jwt_required()
     def get_dashboard(self, class_id):
-        data = request.get_json()
-        class_id = data.get("class_id") if data else None
         print("Dashboard", class_id)
         if not class_id:
             return jsonify({"error": "class_id required"}), 400

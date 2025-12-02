@@ -32,13 +32,18 @@
     </audio>
 
   <script>
+   // Khai báo hàm goToLevel trong global scope
     function goToLevel(levelNumber) {
-    // Mapping level to gamePage file
-    let page = "templates/gamePage/gamePage.html";
-    if (levelNumber > 1) {
-        page = `templates/gamePage${levelNumber}/gamePage${levelNumber}.html`;
-    }
-    window.location.href = page;
+      // Giả sử bạn dùng logic chuyển trang như đã nói trước đó:
+      let page;
+      if (levelNumber >= 1 && levelNumber <= 3) {
+        page = "templates/gamePage/gamePage.html";
+      } else if (levelNumber >= 4 && levelNumber <= 6) {
+        page = "templates/gamePage2/gamePage2.html";
+      } else {
+        page = "templates/gamePage3/gamePage3.html";
+      }
+      window.location.href = page;
     }
 
     window.addEventListener("DOMContentLoaded", () => {

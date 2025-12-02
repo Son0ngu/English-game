@@ -23,6 +23,5 @@ CREATE TABLE IF NOT EXISTS student_class (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     class_id TEXT NOT NULL,
     student_id TEXT NOT NULL,
-    UNIQUE(class_id, student_id),
     FOREIGN KEY(class_id) REFERENCES classes(id) ON DELETE CASCADE
 );

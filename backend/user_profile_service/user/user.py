@@ -61,7 +61,7 @@ class StudentProfile(UserProfile):
         items.append(item)
         self.set_items(items)
     
-    # BỎ: buy_item method hoàn toàn
+    
     
     def view_progress(self) -> Dict[str, Any]:
         """Get student's learning progress"""
