@@ -425,6 +425,7 @@ class services_route:
 
             # 🔄 CHUYỂN: Check answer từ JSON
             elif destination == "check_answer" and method == "POST":
+                print('DEBUG check_answer:', data)
                 session_id = data.get('session_id')
                 answer = data.get('answer')
                 question_id = data.get('question_id')

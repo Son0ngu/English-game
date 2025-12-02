@@ -181,8 +181,8 @@
 
             <!-- Components Tab -->
             <div class="tab-pane fade" id="components">
-                <h3>Components Content</h3>
-                <p>This is the components section. Here you can add different components.</p>
+                <h3>Lonely Star Project</h3>
+                <p>Thuần copilot, chatgpt, bạn đã thử claude chưa.</p>
             </div>
 
             <!-- Calendar Tab -->
@@ -256,14 +256,33 @@
                         <div id="teacherSection" style="display: none;">
                             <div id="newClassForm">
                                 <input type="text" id="newClassName" placeholder="Nhập tên lớp" />
-                                <button type="button" id="createClassBtn">
-                                    Tạo lớp
-                                </button>
+                                <button type="button" id="createClassBtn">Tạo lớp</button>
                             </div>
 
                             <ul id="classList">
                                 <!-- Danh sách lớp sẽ được JS đổ vào đây -->
                             </ul>
+
+                            <!-- ← Thêm form Kick student ngay dưới đây -->
+                            <div id="kickStudentForm" style="display: none; margin-top: 1.5rem;">
+                                <h4>Kick học sinh khỏi lớp</h4>
+                                <div id="kickFormContainer">
+                                    <div class="form-group">
+                                        <label for="kickClassId">Class ID</label>
+                                        <input type="text" id="kickClassId" class="form-control"
+                                            placeholder="Nhập class ID" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="kickStudentId">Student ID</label>
+                                        <input type="text" id="kickStudentId" class="form-control"
+                                            placeholder="Nhập student ID" required>
+                                    </div>
+                                    <!-- nút này không submit form mẹ nữa -->
+                                    <button type="button" id="kickStudentBtn" class="btn btn-danger">Kick</button>
+                                </div>
+                                <div id="kickResult" class="mt-2"></div>
+                            </div>
+                            <!-- → end form Kick student -->
                         </div>
 
                         <div id="studentSection" style="display: none;">
@@ -290,10 +309,11 @@
                     <h3 id="classDetailsName">Tên lớp</h3>
 
                     <h4>Danh sách học sinh</h4>
-                    <ul id="studentList"></ul>
+                    <!-- <ul id="studentList"></ul> -->
 
-                    <h4>Dashboard</h4>
-                    <div id="dashboard"></div>
+                    <div id="dashboard-wrapper">
+                        <table id="dashboard"></table>
+                    </div>
                 </div>
             </div>
 

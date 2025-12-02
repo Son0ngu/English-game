@@ -15,7 +15,6 @@ function backToProfile() {
 }
 
 async function loadDashboard(classId) {
-    console.log("Loading dashboard for class ID:", classId);
     const token = localStorage.getItem("token");
     const resp = await fetch("http://localhost:5000/classroom/dashboard", {
         method: "POST",
@@ -25,9 +24,63 @@ async function loadDashboard(classId) {
         },
         body: JSON.stringify({ class_id: classId })
     });
-    console.log(classId)
-    const data = await resp.json();
-    document.getElementById('dashboard').textContent = JSON.stringify(data.dashboard);
+    const { dashboard } = await resp.json();  // giả sử API trả về { dashboard: [...] } hoặc { dashboard: {...} }
+
+    const tbl = document.getElementById('dashboard');
+    tbl.innerHTML = '';  // clear cũ
+    // Nếu dashboard là mảng các record
+    if (Array.isArray(dashboard) && dashboard.length) {
+        const fields = Object.keys(dashboard[0]);
+        // Tạo THEAD
+        const thead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        for (let f of fields) {
+            const th = document.createElement('th');
+            th.textContent = f;
+            headRow.appendChild(th);
+        }
+        thead.appendChild(headRow);
+        tbl.appendChild(thead);
+
+        // Tạo TBODY
+        const tbody = document.createElement('tbody');
+        for (let item of dashboard) {
+            const tr = document.createElement('tr');
+            for (let f of fields) {
+                const td = document.createElement('td');
+                let v = item[f];
+                if (Array.isArray(v)) v = v.join(', ');
+                td.textContent = v;
+                tr.appendChild(td);
+            }
+            tbody.appendChild(tr);
+        }
+        tbl.appendChild(tbody);
+
+    } else if (dashboard && typeof dashboard === 'object') {
+        // Nếu dashboard là object key->value, hiển thị 2 cột
+        const thead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        headRow.innerHTML = `<th>Metric</th><th>Value</th>`;
+        thead.appendChild(headRow);
+        tbl.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        for (let [k, v] of Object.entries(dashboard)) {
+            const tr = document.createElement('tr');
+            const tdKey = document.createElement('td');
+            tdKey.textContent = k;
+            const tdVal = document.createElement('td');
+            tdVal.textContent = Array.isArray(v) ? v.join(', ') : v;
+            tr.append(tdKey, tdVal);
+            tbody.appendChild(tr);
+        }
+        tbl.appendChild(tbody);
+
+    } else {
+        // fallback nếu không có dữ liệu
+        tbl.textContent = 'Không có dữ liệu dashboard.';
+    }
 }
 
 async function loadStudentList(classId) {
