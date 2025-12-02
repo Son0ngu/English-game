@@ -444,7 +444,6 @@ class services_route:
     def classroom_service(self, destination, data, method):
         if not self.classroom_controller:
             return jsonify({"error": "Classroom service not available"}), 503
-
         try:
             if destination == "health" and method == "GET":
                 return self.classroom_controller.check_health()
@@ -455,12 +454,8 @@ class services_route:
             elif destination == "join" and method == "POST":
                 return self.classroom_controller.join_class(data)
             elif destination == "students" and method == "POST":
-                print('DEBUG calling students')
-                class_id = data.get("class_id")
-                if not class_id:
-                    return jsonify({"error": "class_id required in JSON"}), 400
-                print(class_id)
-                return self.classroom_controller.get_students(class_id)
+                print('DEBUG calling get_students(data)')
+                return self.classroom_controller.get_students(data)
             elif destination == "dashboard" and method == "POST":
                 class_id = data.get("class_id")
                 if not class_id:
@@ -536,8 +531,3 @@ class services_route:
                 print("Permission added successfully (service_route)")
                 return {"message": "Permission added successfully"}, 200
         return None
-    
-    def course_service(self, destination, data, method):
-        if destination == 'health' and method == 'GET':
-            return jsonify({"status": "healthy", "service": "course"}), 200
-        return jsonify({"error": "Course service not implemented"}), 501
