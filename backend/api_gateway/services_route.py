@@ -1,5 +1,6 @@
 from flask import jsonify
 from flask_jwt_extended import get_jwt_identity, get_jwt, create_access_token
+from flask import request
 
 from auth_service.auth_service_controller import auth_service_controller
 # Import các controller
@@ -128,15 +129,15 @@ class services_route:
             
             # Get user stats (ATK & HP only)
             elif destination.endswith('/stats-only') and method == 'GET':
-                user_id = int(destination.split('/')[0])
+                user_id = get_jwt_identity()
                 return self.user_controller.get_user_stats_only(user_id)
             
             # Progress management với auto weapon upgrade
             elif destination.endswith('/progress') and method == 'POST':
-                user_id = int(destination.split('/')[0])
+                user_id = get_jwt_identity()
                 return self.user_controller.update_progress(user_id, data)
             elif destination.endswith('/progress') and method == 'GET':
-                user_id = int(destination.split('/')[0])
+                user_id = get_jwt_identity()
                 return self.user_controller.get_student_progress(user_id)
             
             # BỎ: Money management endpoints
@@ -144,7 +145,7 @@ class services_route:
             
             # Stats management
             elif destination.endswith('/stats') and method == 'POST':
-                user_id = int(destination.split('/')[0])
+                user_id = get_jwt_identity()
                 return self.user_controller.update_student_stats(user_id, data)
             
             # List users
@@ -191,25 +192,29 @@ class services_route:
         """Điều hướng progress service"""
         if not self.progress_controller:
             return jsonify({"error": "Progress service not available"}), 503
-            
+
         try:
             if destination == 'health' and method == 'GET':
                 return self.progress_controller.check_health()
+
             elif destination == 'record' and method == 'POST':
                 return self.progress_controller.record_activity(data)
-            elif destination.startswith('user/') and method == 'GET':
-                user_id = destination.split('/')[-1]
+
+            elif destination == 'user' and method == 'GET':
+                user_id = get_jwt_identity()
                 return self.progress_controller.get_user_progress(user_id)
-            elif destination.startswith('grade/') and method == 'GET':
-                path_parts = destination.split('/')
-                if len(path_parts) < 3:
-                    return jsonify({"error": "User ID and difficulty are required"}), 400
-                user_id = path_parts[1]
-                difficulty = path_parts[2]
+
+            elif destination == 'grade' and method == 'GET':
+                user_id = get_jwt_identity()
+                difficulty = request.args.get('difficulty')
+                if not difficulty:
+                    return jsonify({"error": "Missing difficulty"}), 400
                 return self.progress_controller.get_average_grade(user_id, difficulty)
-            elif destination.startswith('performance/') and method == 'GET':
-                user_id = destination.split('/')[-1]
+
+            elif destination == 'performance' and method == 'GET':
+                user_id = get_jwt_identity()
                 return self.progress_controller.get_performance_by_difficulty(user_id)
+
             else:
                 return jsonify({"error": f"Progress endpoint '{destination}' not found"}), 404
         except Exception as e:
@@ -226,7 +231,7 @@ class services_route:
             elif destination == 'generate' and method == 'POST':
                 return self.feedback_controller.generate_feedback(data)
             elif destination.startswith('user/') and method == 'GET':
-                user_id = destination.split('/')[-1]
+                user_id = get_jwt_identity()
                 return self.feedback_controller.get_user_feedback(user_id)
             elif method == 'GET' and destination:
                 feedback_id = destination
@@ -247,7 +252,7 @@ class services_route:
             
             # Get user weapons
             elif destination.startswith('user/') and method == 'GET':
-                user_id = destination.split('/')[-1]
+                user_id = get_jwt_identity()
                 if 'upgradeable' in destination:
                     return self.item_controller.get_upgradeable_items(user_id)
                 elif 'available' in destination:
@@ -327,7 +332,7 @@ class services_route:
                 class_id = destination.split("/")[0]
                 return self.classroom_controller.get_dashboard(class_id)
             elif destination.startswith("student/") and destination.endswith("/classes") and method == "GET":
-                student_id = destination.split("/")[1]
+                student_id = get_jwt_identity()
                 return self.classroom_controller.get_student_classes(student_id)
             elif destination.startswith("question/") and method == "GET":
                 class_id = destination.split("/")[1]
