@@ -33,66 +33,50 @@ INSERT INTO student_class (class_id, student_id) VALUES
   ('class2', 'student4'),
   ('class3', 'student3');
 
--- MULTIPLE CHOICE (nhiều đáp án đúng)
-INSERT INTO questions (id, class_id, question, q_type, difficulty,
-                       choices, correct_index, correct_answers) VALUES
+INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, correct_answers) VALUES
   ('mcq01', 'class1', 'Which animals are mammals?', 'multiple_choice', 'easy',
-    '["Whale","Shark","Dolphin","Eagle"]', NULL,
-    '["Whale","Dolphin"]'),
+    '["Whale","Shark","Dolphin","Eagle"]', '["Whale","Dolphin"]'),
   ('mcq02', 'class1', 'Which of the following are prime numbers?', 'multiple_choice', 'easy',
-    '["2","3","4","5","6","7"]', NULL,
-    '["2","3","5","7"]'),
+    '["2","3","4","5","6","7"]', '["2","3","5","7"]'),
   ('mcq03', 'class1', 'Which elements are noble gases?', 'multiple_choice', 'medium',
-    '["Helium","Neon","Oxygen","Nitrogen"]', NULL,
-    '["Helium","Neon"]'),
+    '["Helium","Neon","Oxygen","Nitrogen"]', '["Helium","Neon"]'),
   ('mcq04', 'class1', 'Which of these are programming languages?', 'multiple_choice', 'medium',
-    '["Python","HTML","Java","Excel"]', NULL,
-    '["Python","Java"]'),
+    '["Python","HTML","Java","Excel"]', '["Python","Java"]'),
   ('mcq05', 'class1', 'Select the fruits from the list below:', 'multiple_choice', 'hard',
-    '["Apple","Tomato","Cucumber","Potato"]', NULL,
-    '["Apple","Tomato"]');
+    '["Apple","Tomato","Cucumber","Potato"]', '["Apple","Tomato"]'),
 
--- TRUE/FALSE
-INSERT INTO questions (id, class_id, question, q_type, difficulty,
-                       choices, correct_index, correct_answers) VALUES
   ('tf01', 'class1', 'The programming language Python was named after a snake.', 'true_false', 'easy',
-    '["True","False"]', 1, NULL),
+    '["True","False"]', '["False"]'),
   ('tf02', 'class1', 'Light travels faster than sound.', 'true_false', 'easy',
-    '["True","False"]', 0, NULL),
+    '["True","False"]', '["True"]'),
   ('tf03', 'class1', 'The human heart has four chambers.', 'true_false', 'medium',
-    '["True","False"]', 0, NULL),
+    '["True","False"]', '["True"]'),
   ('tf04', 'class1', 'Venus is the closest planet to the Sun.', 'true_false', 'medium',
-    '["True","False"]', 1, NULL),
+    '["True","False"]', '["False"]'),
   ('tf05', 'class1', 'Water is composed of two hydrogen atoms and one oxygen atom.', 'true_false', 'easy',
-    '["True","False"]', 0, NULL);
+    '["True","False"]', '["True"]'),
 
--- FILL-IN-THE-BLANK
-INSERT INTO questions (id, class_id, question, q_type, difficulty,
-                       choices, correct_index, correct_answers) VALUES
   ('fb01', 'class1', 'The capital of Japan is ___.', 'fill_in_the_blank', 'easy',
-    '[]', NULL, '["Tokyo"]'),
+    '[]', '["Tokyo"]'),
   ('fb02', 'class1', '___ is known as the powerhouse of the cell.', 'fill_in_the_blank', 'medium',
-    '[]', NULL, '["Mitochondria"]'),
+    '[]', '["Mitochondria"]'),
   ('fb03', 'class1', 'Water freezes at ___ degrees Celsius.', 'fill_in_the_blank', 'easy',
-    '[]', NULL, '["0"]'),
+    '[]', '["0"]'),
   ('fb04', 'class1', 'The largest mammal on Earth is the ___.', 'fill_in_the_blank', 'medium',
-    '[]', NULL, '["Blue whale"]'),
+    '[]', '["Blue whale"]'),
   ('fb05', 'class1', 'The chemical formula for table salt is ___.', 'fill_in_the_blank', 'hard',
-    '[]', NULL, '["NaCl"]');
+    '[]', '["NaCl"]'),
 
--- SINGLE CHOICE
-INSERT INTO questions (id, class_id, question, q_type, difficulty,
-                       choices, correct_index, correct_answers) VALUES
-  ('sc01', 'class1', 'Which country hosted the 2016 Summer Olympics?', 'single_choice', 'easy',
-    '["China","Brazil","UK","Russia"]', 1, NULL),
+  ('sc01', 'class1', 'Which country hosted the 2016 Summer Olympic Games?', 'single_choice', 'easy',
+    '["China","Brazil","UK","Russia"]', '["Brazil"]'),
   ('sc02', 'class1', 'What is the square root of 64?', 'single_choice', 'easy',
-    '["6","7","8","9"]', 2, NULL),
+    '["6","7","8","9"]', '["8"]'),
   ('sc03', 'class1', 'Who painted the Mona Lisa?', 'single_choice', 'medium',
-    '["Van Gogh","Da Vinci","Picasso","Rembrandt"]', 1, NULL),
+    '["Van Gogh","Da Vinci","Picasso","Rembrandt"]', '["Da Vinci"]'),
   ('sc04', 'class1', 'Which gas do plants absorb from the atmosphere?', 'single_choice', 'medium',
-    '["Oxygen","Nitrogen","Carbon dioxide","Hydrogen"]', 2, NULL),
+    '["Oxygen","Nitrogen","Carbon dioxide","Hydrogen"]', '["Carbon dioxide"]'),
   ('sc05', 'class1', 'In which year did World War II end?', 'single_choice', 'hard',
-    '["1942","1945","1948","1950"]', 1, NULL);
+    '["1942","1945","1948","1950"]', '["1945"]');
 
 -- ADMIN PERMISSIONS SEED DATA
 INSERT OR IGNORE INTO permission (role, path, service, method) VALUES

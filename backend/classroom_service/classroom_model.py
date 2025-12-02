@@ -14,7 +14,6 @@ class Question:
         text: str,
         difficulty: str,
         choices: List[str],
-        correct_index: Optional[int],
         correct_answers: Optional[List[str]],
         q_type: str,
         class_id: str
@@ -23,8 +22,7 @@ class Question:
         self.question = text
         self.difficulty = difficulty
         self.choices = choices
-        self.correct_index = correct_index
-        self.correct_answers = correct_answers or []
+        self.correct_answers = correct_answers
         self.type = q_type
         self.class_id = class_id
 
@@ -35,8 +33,6 @@ class Question:
             "difficulty": self.difficulty,
             "question": self.question,
             "choices": self.choices,
-            "answer": (self.choices[self.correct_index]
-                       if self.correct_index is not None else None),
             "correct_answers": self.correct_answers,
             "class_id": self.class_id
         }
@@ -48,9 +44,7 @@ class Question:
             text=row["question"],
             difficulty=row["difficulty"],
             choices=json.loads(row["choices"]),
-            correct_index=row["correct_index"],
-            correct_answers=(json.loads(row["correct_answers"])
-                             if row["correct_answers"] else []),
+            correct_answers=json.loads(row["correct_answers"] or "[]"),
             q_type=row["q_type"],
             class_id=row["class_id"]
         )
