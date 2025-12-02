@@ -13,10 +13,20 @@
             Time: 30
         </div>
         
+        <!-- Loading Screen -->
         <div class="loading-screen" id="loadingScreen">
             <div class="loading-text">Loading game...</div>
+            <div class="loading-spinner"></div>
         </div>
         
+        <!-- Error Screen -->
+        <div class="error-message" id="errorMessage" style="display: none;">
+            <h2>Failed to Load Game</h2>
+            <p>Please refresh the page or try again later.</p>
+            <button onclick="location.reload()" class="retry-btn">Retry</button>
+        </div>
+
+        <!-- Battle Scene -->
         <div class="battle-scene" id="battleScene" style="display: none;">
             <!-- Health bars -->
             <div class="health-bars">
@@ -51,29 +61,30 @@
         
         <!-- Question area - positioned at bottom -->
         <div class="question-area" id="questionArea" style="display: none;">
-            <div class="question">
-                <div class="question-text" id="questionText">Loading question...</div>
-            </div>
-            
-            <!-- Multiple choice answers -->
-            <div class="answers" id="answersContainer">
-                <button class="answer-btn" style="display: none;"></button>
-                <button class="answer-btn" style="display: none;"></button>
-                <button class="answer-btn" style="display: none;"></button>
-                <button class="answer-btn" style="display: none;"></button>
+            <!-- Multiple Choice Questions -->
+            <div class="question-type multiple-choice" id="multipleChoiceQuestion" style="display: none;">
+                <div class="question">
+                    <div class="question-text" id="questionText">Loading question...</div>
+                </div>
+                <div class="answers" id="answersContainer">
+                    <button class="answer-btn" data-index="0"></button>
+                    <button class="answer-btn" data-index="1"></button>
+                    <button class="answer-btn" data-index="2"></button>
+                    <button class="answer-btn" data-index="3"></button>
+                </div>
             </div>
 
-            <!-- Fill in the blank questions -->
+            <!-- Fill in the Blank Questions -->
             <div class="question-type fill-in-blank" id="fillInBlankQuestion" style="display: none;">
                 <div class="question">
                     <div class="question-text" id="fillInBlankText">Complete the sentence:</div>
                     <div class="sentence-container">
-                        <span class="sentence-part" id="sentenceBefore">I went to the</span>
+                        <span class="sentence-part" id="sentenceBefore">Loading...</span>
                         <input type="text" class="blank-input" id="blankInput" placeholder="____" autocomplete="off">
-                        <span class="sentence-part" id="sentenceAfter">yesterday.</span>
+                        <span class="sentence-part" id="sentenceAfter">...</span>
                     </div>
                     <div class="hint-text" id="hintText" style="display: none;">
-                        Hint: A place where you can buy things
+                        Hint: Loading...
                     </div>
                 </div>
                 <div class="fill-controls">
@@ -92,68 +103,62 @@
         <div class="game-info" id="gameInfo" style="display: none;">
             <div class="difficulty">Difficulty: <span id="gameDifficulty">-</span></div>
             <div class="session">Session: <span id="sessionId">-</span></div>
-        </div>
-
-        <!-- Error message -->
-        <div class="error-message" id="errorMessage" style="display: none;">
-            <p>Failed to load game. Please refresh the page or try again later.</p>
-            <button onclick="location.reload()">Retry</button>
+            <div class="question-type-display">Type: <span id="questionTypeDisplay">-</span></div>
         </div>
     </div>
 
     <!-- Audio SFX -->
-    <audio id="sfx-attack">
+    <audio id="sfx-attack" preload="auto">
         <source src="../../static/music/attack.wav" type="audio/wav">
+        <source src="../../static/music/attack.mp3" type="audio/mpeg">
     </audio>
-    <audio id="sfx-hit">
+    
+    <audio id="sfx-hit" preload="auto">
         <source src="../../static/music/hit.wav" type="audio/wav">
+        <source src="../../static/music/hit.mp3" type="audio/mpeg">
     </audio>
 
+    <audio id="bg-music" loop preload="auto">
+        <source src="../../static/music/combat.wav" type="audio/wav">
+        <source src="../../static/music/combat.mp3" type="audio/mpeg">
+        Your browser does not support audio.
+    </audio>
+
+    <!-- Load JavaScript -->
     <script src="gamePage2.js"></script>
+    
     <script>
         // Global audio functions
         function playAttackSFX() {
-            const sfx = document.getElementById('sfx-attack');
-            if (sfx) {
-                sfx.currentTime = 0;
-                sfx.play().catch(e => console.log('Audio play failed:', e));
+            try {
+                const sfx = document.getElementById('sfx-attack');
+                if (sfx) {
+                    sfx.currentTime = 0;
+                    sfx.volume = 0.5;
+                    const playPromise = sfx.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(e => console.log('Attack SFX play failed:', e));
+                    }
+                }
+            } catch (error) {
+                console.log('Attack SFX error:', error);
             }
         }
 
         function playHitSFX() {
-            const sfx = document.getElementById('sfx-hit');
-            if (sfx) {
-                sfx.currentTime = 0;
-                sfx.play().catch(e => console.log('Audio play failed:', e));
+            try {
+                const sfx = document.getElementById('sfx-hit');
+                if (sfx) {
+                    sfx.currentTime = 0;
+                    sfx.volume = 0.5;
+                    const playPromise = sfx.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(e => console.log('Hit SFX play failed:', e));
+                    }
+                }
+            } catch (error) {
+                console.log('Hit SFX error:', error);
             }
-        }
-
-        // Show/hide game sections
-        function showLoadingScreen() {
-            document.getElementById('loadingScreen').style.display = 'block';
-            document.getElementById('battleScene').style.display = 'none';
-            document.getElementById('questionArea').style.display = 'none';
-            document.getElementById('gameInfo').style.display = 'none';
-            document.getElementById('errorMessage').style.display = 'none';
-            document.getElementById('timerDisplay').style.display = 'none';
-        }
-
-        function showGameScreen() {
-            document.getElementById('loadingScreen').style.display = 'none';
-            document.getElementById('battleScene').style.display = 'flex';
-            document.getElementById('questionArea').style.display = 'block';
-            document.getElementById('gameInfo').style.display = 'block';
-            document.getElementById('errorMessage').style.display = 'none';
-            document.getElementById('timerDisplay').style.display = 'block';
-        }
-
-        function showErrorScreen() {
-            document.getElementById('loadingScreen').style.display = 'none';
-            document.getElementById('battleScene').style.display = 'none';
-            document.getElementById('questionArea').style.display = 'none';
-            document.getElementById('gameInfo').style.display = 'none';
-            document.getElementById('errorMessage').style.display = 'block';
-            document.getElementById('timerDisplay').style.display = 'none';
         }
 
         // Background music handling
@@ -161,7 +166,7 @@
             const music = document.getElementById("bg-music");
             
             if (music) {
-                // Play music after user interaction
+                // Enable audio after user interaction
                 document.body.addEventListener("click", () => {
                     if (music.paused) {
                         music.volume = 0.3;
@@ -170,14 +175,12 @@
                 }, { once: true });
             }
 
-            // Show loading screen initially
-            showLoadingScreen();
+            console.log('HTML loaded, showing loading screen');
         });
-    </script>
 
-    <audio id="bg-music" loop>
-        <source src="/English-game/client/static/music/combat.wav" type="audio/wav">
-        Your browser does not support audio.
-    </audio>
+        // Make functions globally available
+        window.playAttackSFX = playAttackSFX;
+        window.playHitSFX = playHitSFX;
+    </script>
 </body>
 </html>
