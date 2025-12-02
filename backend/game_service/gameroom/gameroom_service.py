@@ -75,13 +75,13 @@ class game_service:
             if result["status"] == "win":
                 self.game_room_list[session_id].status = 1
                 Timer(30 * 60, self.trigger_game_room_deletion, args=[session_id]).start()
-                return result
+                return jsonify(result)
             elif result["status"] == "lose":
                 self.game_room_list[session_id].status = 2
                 Timer(30 * 60, self.trigger_game_room_deletion, args=[session_id]).start()
-                return result
+                return jsonify(result)
             else:
-                return result
+                return jsonify(result)
         return None
 
     def trigger_game_room_deletion(self, session_id):

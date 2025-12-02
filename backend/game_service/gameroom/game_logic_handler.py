@@ -28,24 +28,24 @@ class game_logic_handler:
             self.monster_hp -= self.atk
             if self.monster_hp <= 0:
                 print("You win!")
-                return jsonify({"status": "win"})
-            return jsonify({
+                return {"status": "win"}
+            return {
                 "status": "correct",
                 "monster_hp": self.monster_hp,
                 "player_hp": self.hp
-            })
+            }
 
         else:
             print("Wrong!")
             self.hp -= self.monster_atk
             if self.hp <= 0:
                 print("You lose!")
-                return jsonify({"status": "lose"})
-            return jsonify({
+                return {"status": "lose"}
+            return {
                 "status": "incorrect",
                 "monster_hp": self.monster_hp,
                 "player_hp": self.hp
-            })
+            }
 
 
 
