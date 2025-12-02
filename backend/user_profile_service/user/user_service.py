@@ -250,6 +250,8 @@ class UserProfileService:
             if user_data:
                 atk = user_data.get('atk', 0)
                 hp = user_data.get('hp', 0)
+                print(f"User {user_id} stats - ATK: {atk}, HP: {hp}")
+                print(type(atk), type(hp))
                 return {"atk": atk, "hp": hp}
             else:
                 print(f"User with ID {user_id} not found")

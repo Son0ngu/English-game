@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Result</title>
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <style>
+        body {
+            background: #181c2f;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .result-container {
+            background: rgba(30,40,80,0.95);
+            border-radius: 16px;
+            padding: 40px 50px;
+            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+            text-align: center;
+            min-width: 350px;
+        }
+        .result-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .result-win {
+            color: #00ff99;
+            text-shadow: 0 0 10px #00ff99;
+        }
+        .result-lose {
+            color: #ff4d4d;
+            text-shadow: 0 0 10px #ff4d4d;
+        }
+        .result-detail {
+            font-size: 1.2rem;
+            margin: 15px 0;
+        }
+        .back-btn {
+            margin-top: 25px;
+            padding: 12px 32px;
+            font-size: 1.1rem;
+            background: #ffb703;
+            color: #181c2f;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .back-btn:hover {
+            background: #ffd166;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container">
+        <div id="resultTitle" class="result-title"></div>
+        <div id="resultDetail" class="result-detail"></div>
+        <div id="resultStats" class="result-detail"></div>
+        <button class="back-btn" onclick="goToMap()">Back to Map</button>
+    </div>
+
+    <script>
+        // Get parameter from URL
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        function goToMap() {
+            window.location.href = "/client/map.html";
+        }
+
+        // Show result
+        document.addEventListener("DOMContentLoaded", async function() {
+            const status = getQueryParam("result"); // 'win' or 'lose'
+            const reward = getQueryParam("reward") || 0;
+
+            const resultTitle = document.getElementById("resultTitle");
+            const resultDetail = document.getElementById("resultDetail");
+            const resultStats = document.getElementById("resultStats");
+
+            if (status === "win") {
+                resultTitle.textContent = "🎉 Victory!";
+                resultTitle.classList.add("result-win");
+                resultDetail.textContent = `You defeated the monster and earned ${reward} coins!`;
+            } else if (status === "lose") {
+                resultTitle.textContent = "💀 Defeat!";
+                resultTitle.classList.add("result-lose");
+                resultDetail.textContent = "You were defeated by the monster. Try again!";
+            } else {
+                resultTitle.textContent = "Unknown result";
+                resultDetail.textContent = "";
+            }
+
+            // If you want to fetch more info from API, e.g. total score/time:
+            /*
+            const sessionId = getQueryParam("session_id");
+            if (sessionId) {
+                try {
+                    const resp = await fetch("http://127.0.0.1:5000/game/check_answer", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${localStorage.getItem('jwtToken')}`
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            question_id: "last", // or pass the last question id
+                            answer: "summary"
+                        })
+                    });
+                    const data = await resp.json();
+                    // Show more stats if backend returns them
+                    if (data.score) {
+                        resultStats.textContent = `Total score: ${data.score} | Time: ${data.time || '-'}s`;
+                    }
+                } catch (err) {
+                    // Could not fetch details
+                }
+            }
+            */
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get("result"); // 'win' hoặc 'lose'
+            const level = parseInt(localStorage.getItem('currentLevel')); // truyền level qua URL khi chuyển trang
+
+            if (status === "win" && level) {
+                let completed = JSON.parse(localStorage.getItem('completedLevels') || '[]');
+                if (!completed.includes(level)) {
+                    completed.push(level);
+                    localStorage.setItem('completedLevels', JSON.stringify(completed));
+                }
+            }
+        });
+    </script>
+</body>
+</html>

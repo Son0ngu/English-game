@@ -400,11 +400,12 @@ class services_route:
                 print("Reached game/newroom handler")
                 if not self.game_service:
                     return jsonify({"error": "Game service not available"}), 503
-
                 student_id = get_jwt_identity()
-                print(student_id)
+                print(student_id) # đã print ra được student_id
                 difficulty = data.get('difficulty')
                 class_id = data.get('class_id')
+
+                print(difficulty, class_id)
 
                 if not student_id or not difficulty or not class_id:
                     return jsonify({"error": "Missing parameters"}), 400
@@ -436,6 +437,8 @@ class services_route:
             elif destination == "get_question" and method == 'POST':
                 session_id = data.get('session_id')
                 class_id = data.get('class_id')
+                print("session_id:", session_id, "class_id:", class_id)
+
                 if not session_id:
                     return jsonify({"error": "session_id required in JSON"}), 400
                 return self.game_service.get_question(session_id,class_id)

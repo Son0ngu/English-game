@@ -1363,20 +1363,12 @@ function setupTrueFalseListeners() {
         if (isWin) {
             // Show win dialog and navigate
             setTimeout(() => {
-                alert(`You won! The monster has been defeated! You earned ${reward} coins!`);
-                // Navigate to results or menu
-                window.location.href = `/game-results?result=win&reward=${reward}`;
-                // Or back to menu
-                // window.location.href = '/menu';
+                window.location.href = `/client/gameResult.html?result=win&reward=${reward}`;
             }, 500);
         } else {
             // Show lose dialog and navigate  
             setTimeout(() => {
-                alert('Game Over! You have been defeated!');
-                // Navigate to results or menu
-                window.location.href = `/game-results?result=lose`;
-                // Or back to menu
-                // window.location.href = '/menu';
+                window.location.href = '/client/gameResult.html?result=lose';
             }, 500);
         }
     }

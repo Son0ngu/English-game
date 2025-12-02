@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // TEMPORARY: Fallback to test token if no token found
         if (!token) {
             console.log('No JWT token found, using test token');
-            const testToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0ODk0MjIwNSwianRpIjoiZmI4MThjYTctNTIxZC00MjRkLWE3YTgtNDA5ZjkzZTU2NjJjIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjkyNTVkZTliLWMxMDktNGE0NS1hMjAzLWJiNTNiYjM2ZWNiYyIsIm5iZiI6MTc0ODk0MjIwNSwiY3NyZiI6IjI5MDE1YjM4LWNhNTQtNGUwMy04MzgyLWM2ZmJjM2FkYTMyZiIsImV4cCI6MTc0ODk0OTQwNSwicm9sZSI6InN0dWRlbnQifQ.b-3Y_98pzjyJLsvPh50HBBrwEHbCnRS76EA8eTZ7-Ag';
+            const testToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0OTMyMDU3OCwianRpIjoiNmIxMjAzYzctMWVjNS00YjM1LTlkMGEtZWU3NWVhNGMwZDYyIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImYxYTFkNTc3LWMyNjctNDk4YS1hZmRkLTg3NTg3ZTA2Nzc1YSIsIm5iZiI6MTc0OTMyMDU3OCwiY3NyZiI6ImVmYTJiNjU4LWNkNDQtNDUyZS1iYjFlLThlMDQwNTIyOWNlNCIsImV4cCI6MTc0OTMyNzc3OCwicm9sZSI6InN0dWRlbnQifQ.4MouUV8_HSb2c0cPrwkAXD6u8M2O_aOydextqG2pVjA';
             localStorage.setItem('jwtToken', testToken);
             return testToken;
         }
@@ -1363,20 +1363,12 @@ function setupTrueFalseListeners() {
         if (isWin) {
             // Show win dialog and navigate
             setTimeout(() => {
-                alert(`You won! The monster has been defeated! You earned ${reward} coins!`);
-                // Navigate to results or menu
-                window.location.href = `/game-results?result=win&reward=${reward}`;
-                // Or back to menu
-                // window.location.href = '/menu';
+                window.location.href = `/client/gameResult.html?result=win&reward=${reward}`;
             }, 500);
         } else {
             // Show lose dialog and navigate  
             setTimeout(() => {
-                alert('Game Over! You have been defeated!');
-                // Navigate to results or menu
-                window.location.href = `/game-results?result=lose`;
-                // Or back to menu
-                // window.location.href = '/menu';
+                window.location.href = '/client/gameResult.html?result=lose';
             }, 500);
         }
     }
@@ -1389,7 +1381,7 @@ function setupTrueFalseListeners() {
 
     function getClassId() {
         const urlParams = new URLSearchParams(window.location.search);
-        return parseInt(urlParams.get('classId')) || 1;
+        return parseInt(urlParams.get('classId')) || 'class1';
     }
     
     // Initialize the game with comprehensive error handling
