@@ -54,3 +54,4 @@ INSERT INTO questions (id, class_id, question, q_type, difficulty, choices, corr
   ('q10', 'class1', 'Choose the correct spelling.',          'single_choice',   'easy',   '["becase","becuase","because","becuasee"]',         2),
   ('q11', 'class1', 'What is the synonym of "happy"?',       'single_choice',   'medium', '["sad","glad","angry","tired"]',                     1),
   ('q12', 'class1', 'Which is an adverb?',                   'single_choice',   'hard',   '["quick","quickly","quicker","quickest"]',           1);
+
