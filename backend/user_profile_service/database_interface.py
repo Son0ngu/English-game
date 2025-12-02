@@ -275,6 +275,54 @@ class UserProfileDatabaseInterface(DatabaseInterface):
         finally:
             cursor.close()
             connection.close()
+
+    def get_user_by_id_gameplay(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Lấy thông tin người dùng theo ID
+
+        Args:
+            user_id: ID của người dùng
+
+        Returns:
+            Dictionary chứa thông tin người dùng hoặc None
+        """
+        print("get_user_by_id", user_id)
+        connection = self._get_connection()
+        cursor = connection.cursor()
+
+        try:
+            # Lấy thông tin cơ bản
+            # cursor.execute("SELECT * FROM user_profiles WHERE id = ?", (user_id,))
+            cursor.execute("SELECT * FROM student_profiles WHERE id = ?", (user_id,))
+            user_data = cursor.fetchone()
+
+            print("user_data123", user_data)
+
+            if not user_data:
+                return None
+
+            # Chuyển đổi từ tuple sang dictionary
+            user_dict = {
+                'id': user_data[0],
+                'language': user_data[1],
+                'points': user_data[2],
+                'money': user_data[3],
+                'hp': user_data[4],
+                'atk': user_data[5],
+                'items': json.loads(user_data[6] or '[]'),
+                'current_map': user_data[7],
+                'max_map_unlocked': user_data[8],
+                'maps_completed': user_data[9]
+            }
+
+            return user_dict
+
+        except Exception as e:
+            print(f"Error getting user: {str(e)}")
+            return None
+        finally:
+            cursor.close()
+            connection.close()
     
     def  get_students(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
         """

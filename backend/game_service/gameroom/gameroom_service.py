@@ -36,6 +36,7 @@ class game_service:
                 difficulty, monster, monster.money_win
             )
             room.status = 0
+            print(f"Creating game room with session_id: {session_id}, student_id: {student_id}, difficulty: {difficulty}, class_id: {class_id}, hp: {hp}, atk: {atk}")
             self.game_room_list[session_id] = room
             self.student_id_to_session_id[student_id] = session_id
             return jsonify({

@@ -114,6 +114,21 @@ class UserRepository:
         user_dict = self.db.get_user_by_id(user_id)
         print("user_dict", user_dict)
         return self._dict_to_user(user_dict)
+
+    def find_by_id_gameplay(self, user_id: str) -> Optional[UserProfile]:
+        """
+        Tìm người dùng theo ID
+
+        Args:
+            user_id: ID của người dùng
+
+        Returns:
+            Đối tượng UserProfile hoặc None nếu không tìm thấy
+        """
+        print("find_by_id", user_id)
+        user_dict = self.db.get_user_by_id_gameplay(user_id)
+        print("user_dict", user_dict)
+        return self._dict_to_user(user_dict)
     
     def find_students(self, limit: int = 100, offset: int = 0) -> List[StudentProfile]:
         """

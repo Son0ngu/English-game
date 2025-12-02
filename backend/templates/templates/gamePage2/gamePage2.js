@@ -1363,12 +1363,12 @@ function setupTrueFalseListeners() {
         if (isWin) {
             // Show win dialog and navigate
             setTimeout(() => {
-                window.location.href = `/client/gameResult.html?result=win&reward=${reward}`;
+                window.location.href = `../../gameResult.html?result=win&reward=${reward}`;
             }, 500);
         } else {
-            // Show lose dialog and navigate  
+            // Show lose dialog and navigate
             setTimeout(() => {
-                window.location.href = '/client/gameResult.html?result=lose';
+                window.location.href = `../../gameResult.html?result=lose`;
             }, 500);
         }
     }

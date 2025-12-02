@@ -30,6 +30,28 @@ class UserProfileService:
             print(f"💥 Error getting user {user_id}: {e}")
             self._last_error = e
             return None
+
+    def get_user_gameplay(self, user_id: str) -> Optional[dict]:
+        """Get user details by ID"""
+        try:
+            print(f"Looking for user: {user_id}")
+            # user = self.user_repository.find_by_id(user_id)
+            user = self.user_repository.find_by_id_gameplay(user_id)
+            print(f"Found user: {user}")
+
+            if not user:
+                print(f"User {user_id} not found")
+                return None
+
+            if user:
+                print(f"Found user: {user.to_dict()}")
+                return user.to_dict()
+
+            return None
+        except Exception as e:
+            print(f"💥 Error getting user {user_id}: {e}")
+            self._last_error = e
+            return None
     
     def update_profile(self, user_id: str, updates: dict) -> dict:
         """Update user profile attributes"""
@@ -247,7 +269,9 @@ class UserProfileService:
     def get_user_stats_only(self, user_id):
         """Lấy chỉ ATK và HP của user"""
         try:
-            user_data = self.get_user(user_id)
+            # user_data = self.get_user(user_id)
+            user_data = self.get_user_gameplay(user_id)
+            print(f"User data 1234 for {user_id}: {user_data}")
             if user_data:
                 atk = user_data.get('atk', 0)
                 hp = user_data.get('hp', 0)

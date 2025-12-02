@@ -4,6 +4,7 @@ class game_service_controller:
         self.game_room_controller = game_room_controller()
 
     def create_game_room(self, student_id,difficulty,class_id):
+        print("Creating game room with student_id:", student_id, "difficulty:", difficulty, "class_id:", class_id)
         return self.game_room_controller.create_game_room(student_id,difficulty,class_id)
 
     def get_game_room_state(self, session_id):
