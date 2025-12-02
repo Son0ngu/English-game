@@ -19,8 +19,7 @@ CREATE TABLE IF NOT EXISTS student_profiles (
     money INTEGER DEFAULT 100,            -- Tiền trong game
     hp INTEGER DEFAULT 100,               -- Máu (Health Points)
     atk INTEGER DEFAULT 10,               -- Sức tấn công (Attack)
-    items TEXT DEFAULT '[]',              -- Danh sách vật phẩm (JSON format)
-    FOREIGN KEY (id) REFERENCES user_profiles(id) ON DELETE CASCADE
+    items TEXT DEFAULT '[]'              -- Danh sách vật phẩm (JSON format)
 );
 
 -- Tạo bảng cho TeacherProfile (thông tin giáo viên)

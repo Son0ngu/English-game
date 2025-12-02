@@ -398,6 +398,7 @@ class services_route:
                     return jsonify({"error": "Game service not available"}), 503
 
                 student_id = get_jwt_identity()
+                print(student_id)
                 difficulty = data.get('difficulty')
                 class_id = data.get('class_id')
 
