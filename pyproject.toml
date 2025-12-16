@@ -1,9 +1,12 @@
-# English-game
-
-## running
-dependency neu cai` dat = pip
-
-```
+[project]
+name = "english-game"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Trung Tran",email = "tritrungtq@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
 dependencies = [
     "flask (>=3.1.2,<4.0.0)",
     "flask-injector (>=0.15.0,<0.16.0)",
@@ -14,15 +17,8 @@ dependencies = [
     "flask-jwt-extended (>=4.7.1,<5.0.0)",
     "psutil (>=7.1.0,<8.0.0)"
 ]
-```
 
-### backend
-```
-python3 app.py
-```
 
-### fe
-```
-cd front-end
-python3 -m http.server
-```
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
